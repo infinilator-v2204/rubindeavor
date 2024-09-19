@@ -1,0 +1,14 @@
+CC=i686-w64-mingw32-gcc
+
+C_SOURCES = $(wildcard *.c)
+C_HEADERS = $(wildcard *.h)
+OBJ = $(patsubst %.c,_obj/win32/%.o,$(C_SOURCES))
+
+rubixplore32.exe: ${OBJ} _obj/win32/resource.o
+	$(CC) $^ -o $@ -lm -mwindows -lSDL2 -lSDL2_image -lSDL2_mixer -lzip
+
+_obj/win32/resource.o: resource.rc
+	i686-w64-mingw32-windres $< -o $@
+
+_obj/win32/%.o: %.c $(C_HEADERS)
+	$(CC) -c $< -o $@ -Wno-pointer-sign
