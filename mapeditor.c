@@ -10,7 +10,7 @@
 MapEditor mapEditor;
 
 void MapEditor_Init() {
-	StopMusic();
+	Audio_StopMusic();
 	overworld.camera.x = 160;
 	overworld.camera.y = 120;
 	overworld.camera.zoom = 2;
@@ -45,6 +45,7 @@ void MapEditor_Init() {
 }
 
 void MapEditor_Update() {
+	#ifdef RXS_INCLUDE_MAP_EDITOR
 	mapEditor.moving = false;
 	if (game.keyStates[SDL_SCANCODE_LSHIFT]) {
 		if (game.keyPressed[SDL_SCANCODE_LEFT] || game.keyPressed[SDL_SCANCODE_A]) {
@@ -162,7 +163,7 @@ void MapEditor_Update() {
 		mapEditor.tilesetVisible = !mapEditor.tilesetVisible;
 	}
 	
-	SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
+	Drawer_SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
 	if (game.keyPressed[SDL_SCANCODE_C]) {
 		int x = (int)(GetWorldX(game.mouseX) + 16) / 16 - 1;
 		int y = (int)(GetWorldY(game.mouseY) + 16) / 16 - 1;
@@ -190,7 +191,7 @@ void MapEditor_Update() {
 	if (MouseHeld(MOUSE_LEFT) || MouseHeld(MOUSE_RIGHT)) {
 		if (!game.keyStates[SDL_SCANCODE_R]) {
 			if (mapEditor.tilesetVisible) {
-				SetProjection(mapEditor.tilesetCamera.x, mapEditor.tilesetCamera.y, 1);
+				Drawer_SetProjection(mapEditor.tilesetCamera.x, mapEditor.tilesetCamera.y, 1);
 				for (int j = 0; j < 128; j++)
 				for (int i = 0; i < 64; i++) {
 					if (MouseRectangleHover(i * 16, j * 16, 16, 16)) {
@@ -201,7 +202,7 @@ void MapEditor_Update() {
 				}
 			}
 			else {
-				SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
+				Drawer_SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
 				int x = (int)(GetWorldX(game.mouseX) + 16) / 16 - 1;
 				int y = (int)(GetWorldY(game.mouseY) + 16) / 16 - 1;
 				
@@ -231,7 +232,7 @@ void MapEditor_Update() {
 	
 	if (MousePressed(MOUSE_LEFT)) {
 		if (game.keyStates[SDL_SCANCODE_R]) {
-			SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
+			Drawer_SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
 			int x = (int)(GetWorldX(game.mouseX) + 16000) / 16 - 1000;
 			int y = (int)(GetWorldY(game.mouseY) + 16000) / 16 - 1000;
 			
@@ -305,16 +306,18 @@ void MapEditor_Update() {
 			MapEditor_LoadMap();
 		}
 	}
+	#endif
 }
 
 void MapEditor_Draw() {
-	SetProjection(320, 240, 1);
+	#ifdef RXS_INCLUDE_MAP_EDITOR
+	Drawer_SetProjection(320, 240, 1);
 	
-	SetDrawColor(23, 23, 23);
-	FillRect(0, 0, 640, 480);
-	SetDrawColor(255, 255, 255);
+	Drawer_SetDrawColor(23, 23, 23);
+	Drawer_FillRect(0, 0, 640, 480);
+	Drawer_SetDrawColor(255, 255, 255);
 	
-	SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
+	Drawer_SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
 	
 	Overworld_DrawMap();
 	
@@ -366,12 +369,12 @@ void MapEditor_Draw() {
 		else
 			object = &overworld.objects[objectOrder[i]];
 		
-		SetDrawColor(object->color[0], object->color[1], object->color[2]);
+		Drawer_SetDrawColor(object->color[0], object->color[1], object->color[2]);
 		
 		if (object->type == 4) {
 			for (int k = 0; k < object->vars[1].i; k++)
 			for (int j = 0; j < object->vars[0].i; j++) {
-				DrawSprite(overworld.map.tilesetSpriteId, object->x - 8 - (object->vars[1].i - 1) * 8 + k * 16, object->y - 16 * (1 + j), object->id - 64 * j + k, 1, 1);
+				Drawer_DrawSprite(overworld.map.tilesetSpriteId, object->x - 8 - (object->vars[1].i - 1) * 8 + k * 16, object->y - 16 * (1 + j), object->id - 64 * j + k, 1, 1);
 			}
 		}
 		else if (object->bodyId >= 0) {
@@ -379,12 +382,12 @@ void MapEditor_Draw() {
 		}
 		else if (object->spriteId >= 0) {
 			if (object->direction == OBJECT_DIRECTION_LEFT)
-				DrawSprite(object->spriteId, object->x, object->y, object->spriteFrame, -1, 1);
+				Drawer_DrawSprite(object->spriteId, object->x, object->y, object->spriteFrame, -1, 1);
 			else
-				DrawSprite(object->spriteId, object->x, object->y, object->spriteFrame, 1, 1);
+				Drawer_DrawSprite(object->spriteId, object->x, object->y, object->spriteFrame, 1, 1);
 		}
 	}
-	SetDrawColor(255, 255, 255);
+	Drawer_SetDrawColor(255, 255, 255);
 	
 	for (int i = 0; i < OBJECT_COUNT_MAX; i++) {
 		if (!overworld.map.doors[i].enabled) continue;
@@ -393,14 +396,14 @@ void MapEditor_Draw() {
 		float x2 = overworld.map.doors[i].x2;
 		float y2 = overworld.map.doors[i].y2;
 		if (x1 >= overworld.camera.x - SCREEN_WIDTH * 2 && x1 <= overworld.camera.x + SCREEN_WIDTH * 2 && y1 >= overworld.camera.y - SCREEN_HEIGHT * 2 && y1 <= overworld.camera.y + SCREEN_HEIGHT * 2) {
-			FillRect(x1, y1, 2, 2);
+			Drawer_FillRect(x1, y1, 2, 2);
 			snprintf(game.textBuffer, 32, "Door\n%d", i);
-			DrawText(game.textBuffer, 32, x1, y1, 0.5, 0.5);
+			Drawer_DrawText(game.textBuffer, 32, x1, y1, 0.5, 0.5);
 		}
 		if (x2 >= overworld.camera.x - SCREEN_WIDTH * 2 && x2 <= overworld.camera.x + SCREEN_WIDTH * 2 && y2 >= overworld.camera.y - SCREEN_HEIGHT * 2 && y2 <= overworld.camera.y + SCREEN_HEIGHT * 2) {
-			FillRect(x2, y2, 2, 2);
+			Drawer_FillRect(x2, y2, 2, 2);
 			snprintf(game.textBuffer, 32, "Door\n%d", i);
-			DrawText(game.textBuffer, 32, x2, y2, 0.5, 0.5);
+			Drawer_DrawText(game.textBuffer, 32, x2, y2, 0.5, 0.5);
 		}
 	}
 	
@@ -409,59 +412,59 @@ void MapEditor_Draw() {
 	
 	if (mapEditor.mode == MAPEDITOR_PLACEMODE_TILE) {
 		if (game.keyStates[SDL_SCANCODE_C]) {
-			SetDrawAlpha(127);
-			FillRect(mapEditor.selectX * 16, mapEditor.selectY * 16, mapEditor.selectW * 16, mapEditor.selectH * 16);
-			SetDrawAlpha(255);
+			Drawer_SetDrawAlpha(127);
+			Drawer_FillRect(mapEditor.selectX * 16, mapEditor.selectY * 16, mapEditor.selectW * 16, mapEditor.selectH * 16);
+			Drawer_SetDrawAlpha(255);
 		}
 		else if (mapEditor.selectW >= 1) {
 			for (int j = 0; j < mapEditor.selectH; j++)
 			for (int i = 0; i < mapEditor.selectW; i++) {
-				DrawSprite(overworld.map.tilesetSpriteId, (x + i) * 16, (y + j) * 16, mapEditor.selectTiles[j][i], 1, 1);
+				Drawer_DrawSprite(overworld.map.tilesetSpriteId, (x + i) * 16, (y + j) * 16, mapEditor.selectTiles[j][i], 1, 1);
 			}
 		}
 		else if (x >= 0 && x < overworld.map.w && y >= 0 && y < overworld.map.h) {
-			DrawSprite(overworld.map.tilesetSpriteId, x * 16, y * 16, mapEditor.tileId, 1, 1);
+			Drawer_DrawSprite(overworld.map.tilesetSpriteId, x * 16, y * 16, mapEditor.tileId, 1, 1);
 		}
 	}
 	else if (mapEditor.mode == MAPEDITOR_PLACEMODE_DECORATION) {
 		for (int j = 0; j < mapEditor.decorationWidth; j++)
 		for (int i = 0; i < mapEditor.decorationHeight; i++) {
 			if (x >= 0 && x < overworld.map.w && y - i >= 0 && y - i < overworld.map.h && mapEditor.tileId - 64 * i >= 0) {
-				DrawSprite(overworld.map.tilesetSpriteId, (x + j) * 16 - (mapEditor.decorationWidth - 1) * 8, (y - i) * 16, mapEditor.tileId - 64 * i + j, 1, 1);
+				Drawer_DrawSprite(overworld.map.tilesetSpriteId, (x + j) * 16 - (mapEditor.decorationWidth - 1) * 8, (y - i) * 16, mapEditor.tileId - 64 * i + j, 1, 1);
 			}
 		}
 	}
 	
-	SetProjection(320, 240, 1);
+	Drawer_SetProjection(320, 240, 1);
 	
 	if (mapEditor.tilesetVisible) {
-		SetProjection(320, 240, 1);
+		Drawer_SetProjection(320, 240, 1);
 		
-		SetDrawColor(32, 32, 32);
-		FillRect(0, 0, 640, 480);
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(32, 32, 32);
+		Drawer_FillRect(0, 0, 640, 480);
+		Drawer_SetDrawColor(255, 255, 255);
 		
-		SetProjection(mapEditor.tilesetCamera.x, mapEditor.tilesetCamera.y, 1);
+		Drawer_SetProjection(mapEditor.tilesetCamera.x, mapEditor.tilesetCamera.y, 1);
 		
 		for (int j = 0; j < 128; j++)
 		for (int i = 0; i < 64; i++) {
-			DrawSprite(overworld.map.tilesetSpriteId, i * 16, j * 16, j*64 + i, 1, 1);
+			Drawer_DrawSprite(overworld.map.tilesetSpriteId, i * 16, j * 16, j*64 + i, 1, 1);
 			if (mapEditor.tileId == j*64 + i) {
-				SetDrawAlpha(127);
-				FillRect(i * 16, j * 16, 16, 16);
-				SetDrawAlpha(255);
+				Drawer_SetDrawAlpha(127);
+				Drawer_FillRect(i * 16, j * 16, 16, 16);
+				Drawer_SetDrawAlpha(255);
 			}
 		}
 		
-		SetProjection(320, 240, 1);
+		Drawer_SetProjection(320, 240, 1);
 	}
 	else {
 		if ((game.mouseX != game.mouseXPrev || game.mouseY != game.mouseYPrev || mapEditor.moving) && game.timer % 4 == 0) {
 			mapEditor.hoverAreaId = -1;
-			SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
+			Drawer_SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
 			int mouseX = (int)(GetWorldX(game.mouseX) + 16000) / 16 - 1000;
 			int mouseY = (int)(GetWorldY(game.mouseY) + 16000) / 16 - 1000;
-			SetProjection(320, 240, 1);
+			Drawer_SetProjection(320, 240, 1);
 			for (int i = 0; i < OBJECT_COUNT_MAX; i++) {
 				int x1 = overworld.map.areas[i].x1;
 				int x2 = overworld.map.areas[i].x2;
@@ -474,15 +477,16 @@ void MapEditor_Draw() {
 			}
 		}
 		
-		SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+		Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 		snprintf(game.textBuffer, 128, "x: %d (tile %d)\ny: %d (tile %d)\ntileId: %d\nareaId: %d", x * 16, x, y * 16, y, mapEditor.tileId, mapEditor.hoverAreaId);
-		DrawText(game.textBuffer, 128, 4, 4, 2, 2);
+		Drawer_DrawText(game.textBuffer, 128, 4, 4, 2, 2);
 		
 		if (mapEditor.mode == MAPEDITOR_PLACEMODE_DECORATION) {
 			snprintf(game.textBuffer, 64, "Decoration count: %d", overworld.map.decorationCount);
-			DrawText(game.textBuffer, 64, 4, SCREEN_HEIGHT - 32, 2, 2);
+			Drawer_DrawText(game.textBuffer, 64, 4, SCREEN_HEIGHT - 32, 2, 2);
 		}
 	}
+	#endif
 }
 
 int MapEditor_LoadMap() {

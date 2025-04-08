@@ -1219,6 +1219,7 @@ void Event_Trigger(int id) {
 			Event_Queue_Player_SetPositionSync(true);
 			Event_Queue_Camera_TogglePlayerFollow(true);
 			if (profile.flags[FLAG_ALONE]) {
+				Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_DOWN);
 				Event_Queue_Dialog_Run(680);
 				Event_Queue_FadeOutMusic(2000);
 				if (player->y >= 6832) {
@@ -2945,6 +2946,11 @@ void Event_Trigger(int id) {
 		} break;
 		
 		case 49: {
+			for (int i = 0; i < 6; i++) {
+				Profile_UnequipAction(3, 0);
+				Profile_UnequipPassive(3, 0);
+			}
+			Profile_UnequipArmor(3);
 			overworld.map.triggers[0].eventId = 0;
 			overworld.map.triggers[5].eventId = 0;
 			overworld.map.triggers[6].eventId = 0;
@@ -3255,10 +3261,15 @@ void Event_Trigger(int id) {
 		
 		case 52: {
 			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
-			Event_Queue_Dialog_Run(760);
-			Event_Queue_Dialog_Run(761);
-			Event_Queue_Dialog_Run(762);
-			Event_Queue_Dialog_Run(763);
+			if (!profile.flags[FLAG_ALONE]) {
+				Event_Queue_Dialog_Run(760);
+				Event_Queue_Dialog_Run(761);
+				Event_Queue_Dialog_Run(762);
+				Event_Queue_Dialog_Run(763);
+			}
+			else {
+				Event_Queue_SetFlag(FLAG_PLOT, 113);
+			}
 			Event_Queue_RemoveCurrentTrigger();
 			Event_Queue_SetFlag(FLAG_RCCLUB_CLEAR, 1);
 			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
@@ -3565,6 +3576,4154 @@ void Event_Trigger(int id) {
 			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
 		} break;
 		
+		case 59: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(26176, 1000, 2);
+			Event_Queue_WaitFrames(12);
+			Event_Queue_Object_WalkTo(3, 26176, 1096, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(12);
+			Event_Queue_Dialog_Run(1120);
+			Event_Queue_Camera_MoveTo(26176, 1056, 2);
+			if (player->x < 26176)
+				Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+			else
+				Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1121);
+			
+			Event_Queue_Regroup(2);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_PLOT, 151);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 60: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(20656, 15184, 1);
+			Event_Queue_Object_WalkTo(0, 20656, 15216, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(1, 20632, 15216, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(2, 20680, 15216, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(3, 20656, 15184, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1125);
+			Event_Queue_Dialog_Run(1126);
+			Event_Queue_Dialog_Run(1127);
+			Event_Queue_Object_JumpToRelative(3, 0, 0, OBJECT_DIRECTION_DOWN, 16, 12);
+			Event_Queue_Dialog_Run(1128);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(20656, 15088, 1);
+			Event_Queue_Object_WalkTo(3, 20704, 15060, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(64);
+			Event_Queue_PlaySound(SND_menu2);
+			Event_Queue_WaitFrames(40);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(20656, 15184, 1);
+			Event_Queue_Object_WalkTo(3, 20656, 15184, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(false);
+			Event_Queue_Dialog_Run(1129);
+			Event_Queue_Dialog_Run(1130);
+			Event_Queue_Dialog_Run(1131);
+			Event_Queue_Dialog_Run(1132);
+			Event_Queue_AddCash(484);
+			Event_Queue_Dialog_Run(1133);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_JumpToRelative(3, 0, 0, OBJECT_DIRECTION_LEFT, 16, 12);
+			Event_Queue_Dialog_Run(1134);
+			
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_GotoArea(187, 20698, 15520, -1);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_TeleportTo(1, 20698, 15552);
+			Event_Queue_Object_TeleportTo(2, 20758, 15520);
+			Event_Queue_Object_TeleportTo(3, 20758, 15552);
+			Event_Queue_CreateObject(70, 1, SPR_misc_perrypizza, 20712, 15504, OBJECT_DIRECTION_DOWN);
+			Event_Queue_CreateObject(71, 1, SPR_misc_perrypizza, 20712, 15536, OBJECT_DIRECTION_DOWN);
+			Event_Queue_CreateObject(72, 1, SPR_misc_perrypizza, 20744, 15504, OBJECT_DIRECTION_DOWN);
+			Event_Queue_CreateObject(73, 1, SPR_misc_perrypizza, 20744, 15536, OBJECT_DIRECTION_DOWN);
+			
+			Event_Queue_WaitFrames(70);
+			Event_Queue_Dialog_Run(1140);
+			Event_Queue_Dialog_Run(1141);
+			Event_Queue_Dialog_Run(1142);
+			Event_Queue_Dialog_Run(1143);
+			Event_Queue_Dialog_Run(1144);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1145);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1146);
+			Event_Queue_Dialog_Run(1147);
+			Event_Queue_Object_ToggleGhost(1, true);
+			Event_Queue_Object_WalkTo(1, 20696, 15560, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ToggleGhost(1, false);
+			Event_Queue_Object_WalkTo(1, 20672, 15560, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_WaitFrames(16);
+			Event_Queue_Dialog_Run(1148);
+			Event_Queue_Dialog_Run(1149);
+			Event_Queue_Dialog_Run(1150);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1151);
+			Event_Queue_Dialog_Run(1152);
+			Event_Queue_Dialog_Run(1153);
+			Event_Queue_Dialog_Run(1154);
+			Event_Queue_Dialog_Run(1155);
+			Event_Queue_Dialog_Run(192);
+			Event_Queue_Dialog_Run(1156);
+			Event_Queue_Dialog_Run(1157);
+			Event_Queue_Dialog_Run(1158);
+			Event_Queue_Object_WalkTo(1, 20672, 15520, 1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1159);
+			Event_Queue_Dialog_Run(324);
+			Event_Queue_SetFlag(FLAG_NOAH_CASH_LENT, profile.cash / 4);
+			Event_Queue_AddCash(-profile.cash / 4);
+			Event_Queue_Dialog_Run(1160);
+			Event_Queue_Dialog_Run(1178);
+			Event_Queue_Object_WalkTo(1, 20368, 15552, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1163);
+			Event_Queue_Dialog_Run(1164);
+			Event_Queue_Dialog_Run(1165);
+			Event_Queue_Dialog_Run(1166);
+			Event_Queue_Dialog_Run(1167);
+			Event_Queue_Dialog_Run(1168);
+			Event_Queue_Dialog_Run(1169);
+			Event_Queue_Dialog_Run(1170);
+			Event_Queue_Dialog_Run(1171);
+			
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_FullyHealParty();
+			Event_Queue_Party_Leave(1);
+			Event_Queue_Profile_InventoryPartyOrderRemove(1);
+			Event_Queue_Profile_UnequipAll(1);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_Object_Destroy(71);
+			Event_Queue_Object_Destroy(72);
+			Event_Queue_Object_Destroy(73);
+			Event_Queue_Object_TeleportTo(0, 20680, 15496);
+			Event_Queue_Object_TeleportTo(1, 20680, 15496);
+			Event_Queue_Object_TeleportTo(2, 20680, 15496);
+			Event_Queue_Object_WalkTo(0, 20664, 15560, 3, OBJECT_DIRECTION_UP);
+			Event_Queue_Regroup(8);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			
+			Event_Queue_Dialog_Run(1172);
+			Event_Queue_Dialog_Run(1173);
+			Event_Queue_Dialog_Run(1174);
+			Event_Queue_Dialog_Run(1175);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1176);
+			Event_Queue_Dialog_Run(1177);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			
+			Event_Queue_SetFlag(FLAG_PLOT, 152);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 61: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(26176, 1092, 2);
+			Event_Queue_Object_WalkTo(0, 26176, 1096, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(8);
+			Event_Queue_Object_WalkTo(1, 26176, 1078, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(8);
+			Event_Queue_Object_WalkTo(2, 26176, 1060, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(70, 26216, 1096, 4, OBJECT_DIRECTION_LEFT);
+			Event_Queue_SetSync(false);
+			Event_Queue_Dialog_Run(1180);
+			Event_Queue_Dialog_Run(1181);
+			Event_Queue_Dialog_Run(1182);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+			Event_Queue_Dialog_Run(1183);
+			Event_Queue_Dialog_Run(1184);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Object_WalkTo(70, 26632, 1096, 4, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_WaitFrames(12);
+			Event_Queue_Object_WalkToRelative(1, 24, 0, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1185);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1186);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1187);
+			Event_Queue_Dialog_Run(1188);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1189);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_shrug);
+			Event_Queue_Dialog_Run(1190);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Dialog_Run(1191);
+			Event_Queue_Dialog_Run(1192);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1193);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1194);
+			Event_Queue_Dialog_Run(1195);
+			Event_Queue_Dialog_Run(1196);
+			
+			Event_Queue_Regroup(2);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_PLOT, 153);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 62: {
+			bool triggerDeath = true;
+			for (int i = 0; i < 5; i++) {
+				if (profile.party[i] < 0) break;
+				partyMembers[profile.party[i]].hpDamage += 25;
+				if (partyMembers[profile.party[i]].hpDamage < partyMembers[profile.party[i]].hpMax - 1) {
+					triggerDeath = false;
+				}
+			}
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_PlaySound(SND_hit3);
+			Event_Queue_PlaySound(SND_saw);
+			Event_Queue_PlaySound(SND_electric);
+			for (int i = 0; i < 20; i++) {
+				Event_Queue_Object_TeleportTo(0, player->x + Random_IRange(-2, 2), player->y + Random_IRange(-2, 2));
+				Event_Queue_Object_TeleportTo(1, overworld.objects[1].x + Random_IRange(-2, 2), overworld.objects[1].y + Random_IRange(-2, 2));
+				Event_Queue_Object_TeleportTo(2, overworld.objects[2].x + Random_IRange(-2, 2), overworld.objects[2].y + Random_IRange(-2, 2));
+				Event_Queue_Object_TeleportTo(3, overworld.objects[3].x + Random_IRange(-2, 2), overworld.objects[3].y + Random_IRange(-2, 2));
+				Event_Queue_WaitFrames(1);
+			}
+			Event_Queue_Object_TeleportTo(0, player->x, player->y);
+			Event_Queue_Object_TeleportTo(1, overworld.objects[1].x, overworld.objects[1].y);
+			Event_Queue_Object_TeleportTo(2, overworld.objects[2].x, overworld.objects[2].y);
+			Event_Queue_Object_TeleportTo(3, overworld.objects[3].x, overworld.objects[3].y);
+			if (triggerDeath) {
+				for (int i = 0; i < 5; i++) {
+					if (profile.party[i] < 0) break;
+					
+					int spriteId = -1;
+					switch (profile.party[i]) {
+						case 0:
+							spriteId = SPR_owchar_collapse_ruby;
+							break;
+						case 1:
+							spriteId = SPR_owchar_collapse_noah;
+							break;
+						case 2:
+							spriteId = SPR_owchar_collapse_emmet;
+							break;
+						case 3:
+							spriteId = SPR_owchar_collapse_sally;
+							break;
+						
+						case 6:
+							spriteId = SPR_owchar_collapse_perry;
+							break;
+					}
+					if (spriteId >= 0) {
+						Event_Queue_Object_ChangeSpriteId(i, spriteId);
+						Event_Queue_Object_ChangeSpriteFrame(i, 0);
+					}
+				}
+				Event_Queue_WaitFrames(60);
+				Event_Queue_PlaySound(SND_poison);
+				for (int i = 0; i < 5; i++) {
+					if (profile.party[i] < 0) break;
+					
+					Event_Queue_Object_ChangeSpriteFrame(i, 1);
+				}
+				Event_Queue_WaitFrames(75);
+				Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+				Event_Queue_GotoArea(189, 19608, 15984, -1);
+			}
+			else if (profile.flags[FLAG_WHITELIGHT_ELECTROFLOOR_HITS] == 0 && profile.flags[FLAG_WHITELIGHT_ELECTROFLOOR_SOLUTION_FOUND] < 2) {
+				Event_Queue_WaitFrames(10);
+				Event_Queue_Dialog_Run(2329);
+				Event_Queue_Dialog_Run(2330);
+				Event_Queue_Dialog_Run(2331);
+				if (profile.flags[FLAG_WHITELIGHT_ELECTROFLOOR_SOLUTION_FOUND]) {
+					Event_Queue_Dialog_Run(2333);
+				}
+				else {
+					Event_Queue_Dialog_Run(2332);
+				}
+			}
+			
+			Event_Queue_SetFlag(FLAG_WHITELIGHT_ELECTROFLOOR_HITS, profile.flags[FLAG_WHITELIGHT_ELECTROFLOOR_HITS] + 1);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 63: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (profile.flags[FLAG_WHITELIGHT_ELECTROFLOOR_HITS] > 0) {
+				Event_Queue_Dialog_Run(2334);
+				Event_Queue_Camera_MoveTo(19496, 15576, 2);
+				Event_Queue_Dialog_Run(2335);
+				
+				Event_Queue_Regroup(2);
+			}
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_WHITELIGHT_ELECTROFLOOR_SOLUTION_FOUND, 2);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 64: {
+			int spotX = 19008;
+			int spotY = 15328;
+			int spotDirection = OBJECT_DIRECTION_DOWN;
+			for (int i = 0; i < 70; i++) {
+				if (overworld.objects[160 + i].vars[7].i == 1) {
+					spotX = overworld.objects[160 + i].x;
+					spotY = overworld.objects[160 + i].y;
+					spotDirection = overworld.objects[160 + i].vars[6].i;
+					break;
+				}
+			}
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_PlaySound(SND_no);
+			Event_Queue_StopMusic();
+			if (profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] >= 5) {
+				Event_Queue_Object_ChangeDirection(71, OBJECT_DIRECTION_DOWN);
+				if (overworld.objects[71].x < 18864) {
+					Event_Queue_Object_JumpTo(71, 18784, 15824, OBJECT_DIRECTION_DOWN, 24, 26);
+				}
+				else {
+					Event_Queue_Object_JumpTo(71, 18944, 15824, OBJECT_DIRECTION_DOWN, 24, 26);
+				}
+				Event_Queue_Object_Destroy(71);
+			}
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Camera_MoveTo(spotX, spotY, 4);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Object_TeleportTo(10, spotX, spotY);
+			if (spotDirection == OBJECT_DIRECTION_RIGHT) {
+				Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Object_JumpToRelative(10, 8, 0, OBJECT_DIRECTION_RIGHT, 8, 12);
+			}
+			else if (spotDirection == OBJECT_DIRECTION_LEFT) {
+				Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_JumpToRelative(10, -8, 0, OBJECT_DIRECTION_LEFT, 8, 12);
+			}
+			else if (spotDirection == OBJECT_DIRECTION_DOWN) {
+				Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_JumpToRelative(10, 0, 16, OBJECT_DIRECTION_DOWN, 8, 12);
+			}
+			else {
+				Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_JumpToRelative(10, 0, -10, OBJECT_DIRECTION_UP, 8, 12);
+			}
+			Event_Queue_Dialog_Run(2342);
+			
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_Camera_TogglePlayerFollow(true);
+			Event_Queue_Camera_TeleportTo(18864, 15676);
+			Event_Queue_Object_TeleportTo(0, 18864, 15760);
+			Event_Queue_Object_TeleportTo(1, 18864, 15760);
+			Event_Queue_Object_TeleportTo(2, 18864, 15760);
+			Event_Queue_Object_TeleportTo(3, 18864, 15760);
+			Event_Queue_Object_TeleportTo(10, 18864, 15656);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkToRelative(0, 0, -80, 3, OBJECT_DIRECTION_UP);
+			for (int i = 0; i < 70; i++) {
+				Event_Queue_Object_TeleportTo(160 + i, overworld.objects[160 + i].x, overworld.objects[160 + i].y - 1000);
+			}
+			Event_Queue_Regroup(3);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			Event_Queue_PlayMusic(MUS_whitelight);
+			
+			if (profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] == 4) {
+				Event_Queue_SetSync(true);
+				Event_Queue_Object_WalkTo(2, 18784, 15824, 1, OBJECT_DIRECTION_DOWN);
+				Event_Queue_WaitFrames(26);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_DOWN);
+				Event_Queue_WaitFrames(28);
+				Event_Queue_Dialog_Run(2351);
+				Event_Queue_WaitFrames(92);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Party_Leave(3);
+				Event_Queue_SetSync(false);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Dialog_Run(2352);
+				Event_Queue_Dialog_Run(2353);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			}
+			
+			Event_Queue_SetBoolPtr(&overworld.map.doors[174].enabled, true);
+			Event_Queue_SetBoolPtr(&overworld.map.doors[175].enabled, true);
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 65: {
+			Profile_EquipAction(1, 1);
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1230);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(18032, 15664, 1);
+			Event_Queue_Object_WalkTo(2, 17976, 15640, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(0, 18008, 15656, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(1, 17960, 15696, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1231);
+			Event_Queue_Dialog_Run(1162);
+			Event_Queue_Object_JumpToRelative(10, 0, 0, OBJECT_DIRECTION_DOWN, 16, 12);
+			Event_Queue_Dialog_Run(1232);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(18096, 15640, 1);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(10, 18184, 15568, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(10, 18184, 15608, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(10, 18096, 15616, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(34);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(6);
+			Event_Queue_Object_WalkTo(0, 18096, 15648, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(1, 18064, 15648, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(27);
+			Event_Queue_Object_WalkTo(2, 18128, 15648, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1233);
+			Event_Queue_Dialog_Run(1234);
+			Event_Queue_Dialog_Run(1235);
+			Event_Queue_Dialog_Run(1236);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1237);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1238);
+			Event_Queue_Dialog_Run(1239);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1240);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1241);
+			Event_Queue_Dialog_Run(1242);
+			Event_Queue_Dialog_Run(1243);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1244);
+			Event_Queue_Object_JumpToRelative(11, 0, 0, OBJECT_DIRECTION_DOWN, 16, 8);
+			Event_Queue_Dialog_Run(1245);
+			Event_Queue_Dialog_Run(1246);
+			Event_Queue_Object_WalkTo(11, 18080, 15568, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1247);
+			Event_Queue_Dialog_Run(1248);
+			Event_Queue_Dialog_Run(1249);
+			Event_Queue_Dialog_Run(1250);
+			Event_Queue_Dialog_Run(1251);
+			Event_Queue_Object_EnableFighterSprite(10, 74, 83, FIGHTER_STATE_IDLE);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1252);
+			Event_Queue_Dialog_Run(1253);
+			Event_Queue_Object_DisableFighterSprite(10);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1254);
+			Event_Queue_Object_JumpToRelative(1, 0, 0, OBJECT_DIRECTION_UP, 16, 12);
+			Event_Queue_Dialog_Run(1255);
+			Event_Queue_Dialog_Run(1256);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1257);
+			Event_Queue_Object_JumpToRelative(2, 0, 0, OBJECT_DIRECTION_UP, 16, 12);
+			Event_Queue_Dialog_Run(1258);
+			Event_Queue_Dialog_Run(1259);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+			Event_Queue_WaitFrames(80);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Dialog_Run(1260);
+			Event_Queue_Object_ChangeSpriteId(2, SPR_misc_sally_serious);
+			Event_Queue_Object_ChangeSpriteFrame(2, 1);
+			Event_Queue_Dialog_Run(1261);
+			Event_Queue_Dialog_Run(1262);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1263);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1264);
+			
+			Event_Queue_Object_WalkTo(70, 18082, 15680, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeSpriteId(2, SPR_owchar_sally);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Party_Leave(2);
+			Event_Queue_Party_Leave(3);
+			Event_Queue_Profile_InventoryPartyOrderRemove(2);
+			Event_Queue_Profile_InventoryPartyOrderRemove(3);
+			Event_Queue_Profile_InventoryPartyOrderAdd(1);
+			Event_Queue_Profile_InventoryPartyOrderAdd(2);
+			Event_Queue_Profile_InventoryPartyOrderAdd(3);
+			Event_Queue_Party_Join(1);
+			Event_Queue_Party_Join(2);
+			Event_Queue_Party_Join(3);
+			Event_Queue_Object_TeleportToPointer(3, 0, 0, &overworld.objects[2].x, &overworld.objects[2].y);
+			Event_Queue_Object_TeleportToPointer(2, 0, 0, &overworld.objects[1].x, &overworld.objects[1].y);
+			Event_Queue_Object_TeleportToPointer(1, 0, 0, &overworld.objects[70].x, &overworld.objects[70].y);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Dialog_Run(1265);
+			Event_Queue_Dialog_Run(1266);
+			Event_Queue_Object_WalkTo(0, 18096, 15656, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1267);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1268);
+			Event_Queue_Dialog_Run(1269);
+			Event_Queue_Dialog_Run(1270);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_Dialog_Run(3001);
+			Event_Queue_Dialog_Run(1271);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_PLOT, 160);
+			Event_Queue_SetFlag(FLAG_WHITELIGHT_PLOT, 3);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			
+			Overworld_CreateTrigger(1, 18040, 15600, 18152, 15640, 66);
+			Overworld_CreateTrigger(2, 18040, 15672, 18152, 15712, 66);
+			Overworld_CreateTrigger(3, 18040, 15600, 18080, 15712, 66);
+			Overworld_CreateTrigger(4, 18112, 15600, 18152, 15712, 66);
+		} break;
+		
+		case 66: {
+			overworld.map.triggers[1].eventId = 0;
+			overworld.map.triggers[2].eventId = 0;
+			overworld.map.triggers[3].eventId = 0;
+			overworld.map.triggers[4].eventId = 0;
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1272);
+			Event_Queue_Dialog_Run(1273);
+			Event_Queue_Dialog_Run(1274);
+			Event_Queue_Dialog_Run(1275);
+			
+			Event_Queue_EngageBattle(80, 10);
+			Event_Queue_Camera_TeleportTo(18096, 15640);
+			Event_Queue_Object_TeleportTo(11, 18064, 15568);
+			Event_Queue_Object_TeleportTo(12, 18000, 15600);
+			Event_Queue_Object_TeleportToPointer(1, 0, 32, &overworld.objects[0].x, &overworld.objects[0].y);
+			Event_Queue_Object_TeleportToPointer(2, -24, 16, &overworld.objects[0].x, &overworld.objects[0].y);
+			Event_Queue_Object_TeleportToPointer(3, 24, 16, &overworld.objects[0].x, &overworld.objects[0].y);
+			
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
+			
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Dialog_Run(1276);
+			Event_Queue_Dialog_Run(1277);
+			Event_Queue_Dialog_Run(1278);
+			Event_Queue_Dialog_Run(1279);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+			Event_Queue_WaitFrames(40);
+			Event_Queue_Dialog_Run(1280);
+			Event_Queue_WaitFrames(80);
+			Event_Queue_Dialog_Run(1281);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Dialog_Run(1282);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1283);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1284);
+			Event_Queue_Dialog_Run(1285);
+			
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(10, 18184, 15608, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(10, 18184, 15568, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(10, 18096, 15568, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Regroup(1);
+			Event_Queue_SetSync(false);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 67: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(18096, 16064, 2);
+			Event_Queue_Object_WalkTo(0, 18096, 16056, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(1, 18128, 16080, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(2, 18064, 16080, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(3, 18096, 16104, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_Dialog_Run(1290);
+			Event_Queue_Dialog_Run(1291);
+			Event_Queue_Dialog_Run(1292);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1293);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1294);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(0, 18096, 16076, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(0, 18120, 16080.125, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_hug);
+			Event_Queue_WaitFrames(150);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Object_JumpToRelative(0, -8, -0.125, OBJECT_DIRECTION_RIGHT, 0, 4);
+			Event_Queue_WaitFrames(70);
+			Event_Queue_Dialog_Run(1295);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+			Event_Queue_Dialog_Run(1296);
+			Event_Queue_Dialog_Run(1297);
+			Event_Queue_Dialog_Run(1298);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Dialog_Run(1299);
+			Event_Queue_AddCash(profile.flags[FLAG_NOAH_CASH_LENT] + 400);
+			Event_Queue_Dialog_Run(1300);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_WHITELIGHT_PLOT, 4);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 68: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_Camera_TeleportTo(15616, 16144);
+			
+			Event_Queue_Object_TeleportTo(0, 15532, 16192);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_sit);
+			Event_Queue_Object_ChangeSpriteFrame(0, 2);
+			
+			Event_Queue_Object_TeleportTo(1, 15532, 16160);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeSpriteId(1, SPR_misc_noah_sit);
+			Event_Queue_Object_ChangeSpriteFrame(1, 2);
+			
+			Event_Queue_Object_TeleportTo(2, 15532, 16128);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeSpriteId(2, SPR_misc_emmet_sit);
+			Event_Queue_Object_ChangeSpriteFrame(2, 2);
+			
+			Event_Queue_Object_TeleportTo(3, 15532, 16096);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeSpriteId(3, SPR_misc_sally_sit);
+			Event_Queue_Object_ChangeSpriteFrame(3, 2);
+			
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			
+			Event_Queue_WaitFrames(180);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_suppressed);
+			Event_Queue_Object_ChangeSpriteFrame(0, 0);
+			Event_Queue_Object_JumpToRelative(0, 12, 0, OBJECT_DIRECTION_RIGHT, 0, 3);
+			Event_Queue_WaitFrames(90);
+			Event_Queue_Object_ChangeSpriteId(1, SPR_owchar_noah);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_JumpToRelative(1, 12, 0, OBJECT_DIRECTION_DOWN, 0, 3);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_PlayMusic(MUS_shutdownpre);
+			Event_Queue_Object_ChangeSpriteFrame(0, 1);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_ChangeSpriteFrame(0, 2);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_collapse_ruby);
+			Event_Queue_Object_ChangeSpriteFrame(0, 1);
+			Event_Queue_WaitFrames(30);
+			
+			Event_Queue_Overworld_FadeIn(120, 0, 0, 0);
+			Event_Queue_SetFlag(FLAG_SALLY_NEO, 1);
+			Event_Queue_SetIntPtr(&partyMembers[3].headId, 79);
+			Event_Queue_SetIntPtr(&partyMembers[3].defaultArmorId, 74);
+			Event_Queue_Party_Leave(3);
+			Event_Queue_Profile_InventoryPartyOrderRemove(3);
+			Event_Queue_Profile_UnequipAll(3);
+			Event_Queue_Object_TeleportTo(0, 15792, 16136);
+			Event_Queue_Object_WalkTo(0, 15712, 16136, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Regroup(2);
+			Event_Queue_WaitFrames(360);
+			Event_Queue_StopMusic();
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			Event_Queue_PlayMusic(MUS_ominous);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_SAPPHIREHOTEL_PLOT, 2);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 69: {
+			Profile_AddAction(138, 1);
+			Profile_AddAction(139, 1);
+			Profile_AddAction(140, 1);
+			Profile_AddAction(142, 1);
+			Profile_EquipAction(3, 138);
+			Profile_EquipAction(3, 139);
+			Profile_EquipAction(3, 140);
+			Profile_EquipAction(3, 142);
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(25952, 3536, 1);
+			Event_Queue_Object_WalkTo(0, 25920, 3552, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(1, 25904, 3568, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(2, 25888, 3584, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_sally_neo);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_JumpTo(70, 26008, 3560, OBJECT_DIRECTION_DOWN, 8, 12);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(70, 25928, 3584, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_StopMusic();
+			Event_Queue_PlaySound(SND_snowqueenwannabeapproaches);
+			Event_Queue_WaitFrames(162);
+			
+			Event_Queue_Party_Leave(0);
+			Event_Queue_Party_Leave(1);
+			Event_Queue_EngageBattle(84, 70);
+			Event_Queue_Party_Join(0);
+			Event_Queue_Party_Join(1);
+			Event_Queue_Party_Leave(2);
+			Event_Queue_Party_Join(2);
+			
+			Event_Queue_PlayMusic(MUS_bother);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_CreateObject(71, 1, SPR_owchar_diego, 26144, 3600, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(71, 26016, 3600, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_ChangeSpriteId(71, SPR_misc_diego_greet);
+			Event_Queue_Object_ChangeSpriteFrame(71, 0);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_ChangeSpriteFrame(71, 1);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_ChangeSpriteFrame(71, 2);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_ChangeSpriteFrame(71, 3);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_ChangeSpriteFrame(71, 4);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_ChangeSpriteFrame(71, 5);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_ChangeSpriteFrame(71, 4);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_ChangeSpriteFrame(71, 3);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_ChangeSpriteFrame(71, 2);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_ChangeSpriteFrame(71, 1);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_ChangeSpriteFrame(71, 0);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_ChangeSpriteId(71, SPR_owchar_diego);
+			Event_Queue_Object_ChangeDirection(71, OBJECT_DIRECTION_LEFT);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_WalkTo(70, 25996, 3600.01, 1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_JumpToRelative(70, 12, 0, OBJECT_DIRECTION_RIGHT, 0, 4);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_sally_neo_hug);
+			Event_Queue_WaitFrames(80);
+			Event_Queue_Object_ChangeSpriteId(71, SPR_owchar_collapse_diego);
+			Event_Queue_Object_ChangeSpriteFrame(71, 0);
+			Event_Queue_Object_TeleportToPointer(71, 1, 0, &overworld.objects[71].x, &overworld.objects[71].y);
+			Event_Queue_WaitFrames(7);
+			Event_Queue_Object_TeleportToPointer(71, -2, 0, &overworld.objects[71].x, &overworld.objects[71].y);
+			Event_Queue_WaitFrames(7);
+			Event_Queue_Object_TeleportToPointer(71, 2, 0, &overworld.objects[71].x, &overworld.objects[71].y);
+			Event_Queue_WaitFrames(7);
+			Event_Queue_Object_TeleportToPointer(71, -2, 0, &overworld.objects[71].x, &overworld.objects[71].y);
+			Event_Queue_WaitFrames(7);
+			Event_Queue_Object_TeleportToPointer(71, 1, 0, &overworld.objects[71].x, &overworld.objects[71].y);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_sally_neo);
+			Event_Queue_Object_JumpToRelative(70, -12, 0, OBJECT_DIRECTION_RIGHT, 0, 4);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeSpriteId(71, SPR_owchar_diego);
+			Event_Queue_Object_ChangeDirection(71, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_WalkTo(71, 26248, 3624, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_Destroy(71);
+			Event_Queue_Party_Join(3);
+			Event_Queue_Profile_InventoryPartyOrderAdd(3);
+			Event_Queue_Object_TeleportToPointer(3, 0, 0, &overworld.objects[70].x, &overworld.objects[70].y);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_Regroup(2);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_SAPPHIREHOTEL_PLOT, 3);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 70: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_WaitFrames(70);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(29912, 10568, 1);
+			Event_Queue_Object_WalkTo(0, 29912, 10580, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(1, 29888, 10608, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(3, 29936, 10608, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(2, 29912, 10632, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(40);
+			Event_Queue_Dialog_Run(2397);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(2398);
+			Event_Queue_Object_WalkTo(3, 29936, 10580, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_JumpToRelative(3, 0, 0, OBJECT_DIRECTION_UP, 16, 12);
+			Event_Queue_Dialog_Run(2399);
+			Event_Queue_Object_ChangeSpriteId(11, SPR_owchar_npc_35);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(11, 0);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Object_WalkTo(11, 29944, 10532, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(11, 29944, 10552, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(11, 29920, 10552, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeSpriteFrame(11, 5);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_JumpToRelative(11, 21, 0, OBJECT_DIRECTION_LEFT, 0, 21);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_ChangeSpriteFrame(11, 2);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_WalkTo(11, 29912, 10552, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(7);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(7);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(7);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_LEFT);
+			Event_Queue_StopMusic();
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_SetIntPtr(&overworld.overlayId, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(10, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(12, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(13, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(14, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(15, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(16, 0);
+			Event_Queue_Object_ChangeSpriteFrame(16, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(17, 0);
+			Event_Queue_Object_ChangeSpriteFrame(17, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(18, 0);
+			Event_Queue_Object_SetColor(18, 0, 0, 0);
+			Event_Queue_WaitFrames(7);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(44);
+			Event_Queue_Object_ChangeSpriteId(12, SPR_owchar_npc_36);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteId(13, SPR_owchar_npc_37);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteId(14, SPR_owchar_npc_38);
+			Event_Queue_Object_ChangeDirection(14, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(2400);
+			Event_Queue_Dialog_Run(2401);
+			Event_Queue_Dialog_Run(2402);
+			Event_Queue_Dialog_Run(2403);
+			Event_Queue_Dialog_Run(2404);
+			Event_Queue_Dialog_Run(2405);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_JumpToRelative(12, 0, 0, OBJECT_DIRECTION_RIGHT, 16, 12);
+			Event_Queue_Dialog_Run(2406);
+			Event_Queue_Object_ChangeDirection(14, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_JumpToRelative(14, 0, 0, OBJECT_DIRECTION_UP, 16, 12);
+			Event_Queue_Dialog_Run(2407);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_JumpToRelative(13, 0, 0, OBJECT_DIRECTION_LEFT, 16, 12);
+			Event_Queue_Dialog_Run(2408);
+			Event_Queue_Dialog_Run(2409);
+			Event_Queue_Dialog_Run(2410);
+			Event_Queue_Dialog_Run(2411);
+			Event_Queue_Dialog_Run(2412);
+			Event_Queue_Dialog_Run(2413);
+			Event_Queue_Dialog_Run(2414);
+			Event_Queue_Dialog_Run(2415);
+			Event_Queue_Dialog_Run(2416);
+			Event_Queue_Dialog_Run(2417);
+			Event_Queue_Object_JumpTo(11, 29912, 10532, OBJECT_DIRECTION_UP, 72, 30);
+			Event_Queue_SetSync(true);
+			Event_Queue_Dialog_Run(2418);
+			Event_Queue_WaitFrames(7);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_SetIntPtr(&overworld.overlayId, 14);
+			Event_Queue_WaitFrames(21);
+			
+			Event_Queue_PlayMusic(MUS_discodoomsday);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(10, 0.125);
+			Event_Queue_Object_ChangeSpriteId(11, SPR_misc_npc_35_dj);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(11, 0.1);
+			Event_Queue_Object_ChangeSpriteId(12, SPR_misc_npc_36_floss);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(12, 0.25);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(13, 0.5);
+			Event_Queue_Object_ChangeSpriteId(14, SPR_misc_npc_38_dance);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(14, 0.25);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(15, 0.125);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(16, 0.144);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(17, 0.144);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(18, 0.25);
+			Event_Queue_Object_SetColor(18, 255, 255, 255);
+			
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Dialog_Run(394);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_AMPERCORP_PLOT, 20);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 71: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(28584, 10616, 1);
+			Event_Queue_Object_WalkTo(0, 28584, 10616, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(1, 28616, 10640, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(2, 28584, 10664, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(3, 28552, 10640, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(40);
+			Event_Queue_Dialog_Run(2419);
+			Event_Queue_Dialog_Run(2420);
+			Event_Queue_Dialog_Run(2421);
+			Event_Queue_Dialog_Run(2422);
+			Event_Queue_Dialog_Run(2423);
+			Event_Queue_Dialog_Run(2424);
+			Event_Queue_Dialog_Run(2425);
+			Event_Queue_Dialog_Run(2426);
+			Event_Queue_Dialog_Run(2427);
+			Event_Queue_Dialog_Run(2428);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+			
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(1, 28904, 10616, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Camera_MoveToRelative(80, 0, 2);
+			Event_Queue_SetSync(false);
+			Event_Queue_PlaySound(SND_swing);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Object_WalkTo(10, 28824, 10608, 3, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(10, 28792, 10608, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(10, 28776, 10608, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(6);
+			Event_Queue_Object_WalkTo(1, 28616, 10640, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_SetSync(false);
+			
+			Event_Queue_Dialog_Run(2429);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(2430);
+			Event_Queue_Dialog_Run(2431);
+			Event_Queue_Dialog_Run(2432);
+			Event_Queue_Dialog_Run(2433);
+			Event_Queue_Dialog_Run(2434);
+			Event_Queue_Dialog_Run(2435);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Overworld_ShakeScreen(8);
+			Event_Queue_WaitFrames(34);
+			Event_Queue_Camera_MoveTo(28832, 10304, 2);
+			Event_Queue_CreateObject(70, 1, SPR_owchar_reti, 28832, 10304, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(70, 28832, 10328, 0.5, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(2436);
+			Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_IDLE);
+			Event_Queue_WaitFrames(16);
+			Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_BLOCK);
+			Event_Queue_WaitFrames(6);
+			Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_ATTACK3);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Overworld_ShakeScreen(8);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_IDLE);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Dialog_Run(2437);
+			Event_Queue_Object_DisableFighterSprite(70);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(70, 28712, 10336, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Camera_MoveTo(28584, 10616, 2);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_Dialog_Run(2438);
+			Event_Queue_Dialog_Run(2439);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+			Event_Queue_Dialog_Run(2440);
+			
+			Event_Queue_FadeOutMusic(1000);
+			Event_Queue_Camera_MoveTo(28584, 10936, 2);
+			Event_Queue_PlayMusic(MUS_countdown);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_AMPERCORP_PLOT, 21);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_PAUSED);
+			Event_Queue_ChangeMenu(10004);
+		} break;
+		
+		case 72: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_StopMusic();
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_Camera_TeleportTo(28584, 10616);
+			if (overworld.menu.cursors[0] == 0) {
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+				Event_Queue_CreateObject(70, 1, SPR_owchar_reti, 28312, 10632, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+				
+				Event_Queue_Object_WalkTo(70, 28504, 10632, 1, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Dialog_Run(2446);
+				Event_Queue_Dialog_Run(2447);
+				Event_Queue_Dialog_Run(2448);
+				Event_Queue_Dialog_Run(2449);
+				Event_Queue_Dialog_Run(2450);
+				Event_Queue_Dialog_Run(2451);
+				Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_IDLE);
+				Event_Queue_WaitFrames(16);
+				Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_BLOCK);
+				Event_Queue_WaitFrames(6);
+				Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_ATTACK3);
+				Event_Queue_PlaySound(SND_crusherhit);
+				Event_Queue_PlaySound(SND_slap);
+				Event_Queue_Overworld_ShakeScreen(8);
+				Event_Queue_WaitFrames(10);
+				Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_IDLE);
+				Event_Queue_WaitFrames(10);
+				Event_Queue_Dialog_Run(2452);
+				Event_Queue_Object_DisableFighterSprite(70);
+				Event_Queue_WaitFrames(60);
+				Event_Queue_Dialog_Run(2453);
+				
+				Event_Queue_EngageBattle(85, 70);
+				
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Dialog_Run(2454);
+				Event_Queue_Dialog_Run(2455);
+				Event_Queue_Dialog_Run(2456);
+				Event_Queue_Object_JumpToRelative(3, 0, 0, OBJECT_DIRECTION_LEFT, 16, 12);
+				Event_Queue_Dialog_Run(2457);
+				Event_Queue_Object_ToggleWalkAnimation(70, false);
+				Event_Queue_Object_WalkToRelative(70, -16, 0, 1, -1);
+				Event_Queue_Object_ToggleWalkAnimation(70, true);
+				Event_Queue_WaitFrames(95);
+				Event_Queue_Object_WalkTo(70, 28312, 10632, 2, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_Destroy(70);
+				
+				Event_Queue_Regroup(1);
+				Event_Queue_Dialog_Run(2458);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (overworld.menu.cursors[0] == 1) {
+				Event_Queue_Object_WalkTo(0, 28776, 10648, 3, OBJECT_DIRECTION_UP);
+				Event_Queue_CreateWall(71, 28832, 10600, 1600, 16);
+				Event_Queue_Object_WalkTo(0, 28776, 10616, 3, OBJECT_DIRECTION_UP);
+				Event_Queue_Regroup(3);
+				Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+				
+				Event_Queue_WaitFrames(20);
+				Event_Queue_Dialog_Run(2441);
+				
+				Event_Queue_PlaySound(SND_swing);
+				Event_Queue_PlaySound(SND_slap);
+				Event_Queue_SetSync(true);
+				Event_Queue_Object_WalkTo(10, 28296, 10608, 4, -1);
+				Event_Queue_Camera_MoveTo(28296, 10608, 4);
+				Event_Queue_SetSync(false);
+				Event_Queue_PlaySound(SND_hit3);
+				
+				Event_Queue_CreateObject(70, 1, SPR_owchar_reti, 28296, 10344, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_WalkTo(70, 28296, 10552, 2, OBJECT_DIRECTION_DOWN);
+				Event_Queue_WaitFrames(120);
+				Event_Queue_SetSync(true);
+				Event_Queue_Object_WalkTo(70, 28296, 10336, 2, OBJECT_DIRECTION_UP);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Regroup(2);
+				Event_Queue_SetSync(false);
+				Event_Queue_Dialog_Run(2442);
+				Event_Queue_Dialog_Run(2443);
+				Event_Queue_Dialog_Run(2444);
+				Event_Queue_CreateObject(72, 103, 28776, 10616, 0, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_TeleportTo(70, 28784, 10336);
+				Event_Queue_PlayMusic(MUS_retichase);
+				
+				Event_Queue_Regroup(1);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (overworld.menu.cursors[0] == 2) {
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+				Event_Queue_CreateObject(70, 1, SPR_owchar_reti, 28312, 10632, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+				
+				Event_Queue_Object_WalkTo(70, 28504, 10632, 1, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Dialog_Run(2446);
+				Event_Queue_Dialog_Run(2459);
+				Event_Queue_Dialog_Run(2460);
+				Event_Queue_Dialog_Run(2461);
+				Event_Queue_Dialog_Run(2462);
+				Event_Queue_Dialog_Run(2463);
+				Event_Queue_Dialog_Run(2464);
+				Event_Queue_CompareIntToConst(&profile.cash, 10000);
+				Event_Queue_JumpIfLess(2);
+				
+				Event_Queue_Dialog_Run(2465);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+				Event_Queue_JumpIfEqual(1);
+				
+				Event_Queue_Label(2);
+				Event_Queue_Dialog_Run(2468);
+				Event_Queue_Dialog_Run(2469);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(1);
+				Event_Queue_AddCash(-10000);
+				Event_Queue_Dialog_Run(2466);
+				Event_Queue_Dialog_Run(2467);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Object_WalkTo(70, 28312, 10632, 2, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_Destroy(70);
+				Event_Queue_Regroup(1);
+				Event_Queue_Dialog_Run(2458);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (overworld.menu.cursors[0] == 3) {
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+				Event_Queue_CreateObject(70, 1, SPR_owchar_reti, 28312, 10632, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+				
+				Event_Queue_Object_WalkTo(70, 28504, 10632, 1, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Dialog_Run(2446);
+				Event_Queue_Dialog_Run(2470);
+				Event_Queue_Dialog_Run(2471);
+				Event_Queue_Dialog_Run(2472);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+				Event_Queue_JumpIfEqual(1);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(2);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 2);
+				Event_Queue_JumpIfEqual(3);
+				Event_Queue_Jump(4);
+				
+				Event_Queue_Label(1);
+				Event_Queue_Dialog_Run(2473);
+				Event_Queue_Dialog_Run(2474);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(2);
+				Event_Queue_Dialog_Run(2475);
+				Event_Queue_Dialog_Run(2476);
+				Event_Queue_Dialog_Run(2477);
+				Event_Queue_Dialog_Run(2478);
+				Event_Queue_Dialog_Run(2479);
+				Event_Queue_Dialog_Run(2480);
+				Event_Queue_Dialog_Run(2481);
+				Event_Queue_Dialog_Run(2482);
+				Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_IDLE);
+				Event_Queue_WaitFrames(16);
+				Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_BLOCK);
+				Event_Queue_WaitFrames(6);
+				Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_ATTACK3);
+				Event_Queue_PlaySound(SND_crusherhit);
+				Event_Queue_PlaySound(SND_slap);
+				Event_Queue_Overworld_ShakeScreen(8);
+				Event_Queue_WaitFrames(10);
+				Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_IDLE);
+				Event_Queue_WaitFrames(10);
+				Event_Queue_Dialog_Run(2483);
+				Event_Queue_Object_DisableFighterSprite(70);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(3);
+				Event_Queue_Dialog_Run(2484);
+				Event_Queue_Dialog_Run(2485);
+				Event_Queue_Dialog_Run(2486);
+				Event_Queue_Object_JumpToRelative(3, 0, 0, OBJECT_DIRECTION_LEFT, 16, 12);
+				Event_Queue_Dialog_Run(2487);
+				Event_Queue_Dialog_Run(2488);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(4);
+				Event_Queue_Dialog_Run(2489);
+				Event_Queue_Dialog_Run(2490);
+				Event_Queue_Dialog_Run(2491);
+				Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_IDLE);
+				Event_Queue_WaitFrames(16);
+				Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_BLOCK);
+				Event_Queue_WaitFrames(6);
+				Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_ATTACK3);
+				Event_Queue_PlaySound(SND_crusherhit);
+				Event_Queue_PlaySound(SND_slap);
+				Event_Queue_Overworld_ShakeScreen(8);
+				Event_Queue_WaitFrames(10);
+				Event_Queue_Object_EnableFighterSprite(70, 80, 89, FIGHTER_STATE_IDLE);
+				Event_Queue_WaitFrames(10);
+				Event_Queue_Dialog_Run(2492);
+				Event_Queue_Dialog_Run(2493);
+				Event_Queue_Object_DisableFighterSprite(70);
+				Event_Queue_Dialog_Run(2494);
+				Event_Queue_Object_WalkTo(70, 28312, 10632, 2, OBJECT_DIRECTION_UP);
+				
+				Event_Queue_Regroup(1);
+				Event_Queue_Dialog_Run(2458);
+				Event_Queue_WaitFrames(20);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_reti_mask);
+				Event_Queue_Object_WalkTo(70, 28504, 10632, 1, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Dialog_Run(2495);
+				Event_Queue_Object_JumpToRelative(3, 0, 0, OBJECT_DIRECTION_LEFT, 16, 12);
+				Event_Queue_Dialog_Run(2496);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+				Event_Queue_Dialog_Run(2497);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+				Event_Queue_WaitFrames(60);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Dialog_Run(2498);
+				Event_Queue_Jump(0);
+			}
+			else {
+				Event_Queue_WaitFrames(90);
+				Event_Queue_PlayMusic(MUS_countdown);
+				
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_PAUSED);
+				Event_Queue_ChangeMenu(10004);
+			}
+			Event_Queue_Exit();
+			
+			Event_Queue_Label(0);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(70, 28584, 10632, 4, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_QueueWalkTo(70, 28584, 10592, 4, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(8);
+			Event_Queue_PlaySound(SND_hit1);
+			Event_Queue_Object_JumpToRelative(0, 48, 0, OBJECT_DIRECTION_LEFT, 8, 12);
+			Event_Queue_Object_JumpToRelative(1, 48, 0, OBJECT_DIRECTION_LEFT, 8, 12);
+			Event_Queue_Object_JumpToRelative(2, 48, 0, OBJECT_DIRECTION_LEFT, 8, 12);
+			Event_Queue_Object_JumpToRelative(3, 72, 0, OBJECT_DIRECTION_LEFT, 8, 12);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_WaitFrames(55);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Overworld_ShakeScreen(15);
+			Event_Queue_WaitFrames(17);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Overworld_ShakeScreen(16);
+			Event_Queue_WaitFrames(12);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Overworld_ShakeScreen(16);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Overworld_ShakeScreen(16);
+			Event_Queue_WaitFrames(82);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_explode);
+			Event_Queue_PlaySound(SND_explode);
+			Event_Queue_PlaySound(SND_firemassattack);
+			Event_Queue_Overworld_ShakeScreen(140);
+			
+			Event_Queue_WaitFrames(140);
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_TeleportTo(0, 28584, 10600);
+			Event_Queue_Object_TeleportTo(1, 28584, 10600);
+			Event_Queue_Object_TeleportTo(2, 28584, 10600);
+			Event_Queue_Object_TeleportTo(3, 28584, 10600);
+			Event_Queue_Object_WalkTo(0, 28664, 10616, 3, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(0, 28584, 10616, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(1, 28616, 10640, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(2, 28584, 10664, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(3, 28552, 10640, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+			Event_Queue_Object_TeleportTo(10, 28776, 10608);
+			Event_Queue_Camera_TeleportTo(28584, 10936);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			
+			Event_Queue_PlayMusic(MUS_countdown);
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_PAUSED);
+			Event_Queue_ChangeMenu(10004);
+		} break;
+		
+		case 73: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_StopMusic();
+			Event_Queue_Object_Destroy(71);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(28832, 10304, 2);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_WalkTo(70, 28832, 10336, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(70);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(2445);
+			Event_Queue_Camera_MoveTo(player->x, player->y - 4, 3);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 74: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_StopMusic();
+			Event_Queue_Object_Destroy(71);
+			Event_Queue_PlaySound(SND_chess_wrong);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Camera_MoveTo(overworld.objects[70].x, overworld.objects[70].y - 4, 8);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(70, 28584, 10632, 4, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_QueueWalkTo(70, 28584, 10592, 4, OBJECT_DIRECTION_UP);
+			Event_Queue_Camera_MoveTo(28584, overworld.objects[70].y - 4, 4);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_WaitFrames(55);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Overworld_ShakeScreen(15);
+			Event_Queue_WaitFrames(17);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Overworld_ShakeScreen(16);
+			Event_Queue_WaitFrames(12);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Overworld_ShakeScreen(16);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Overworld_ShakeScreen(16);
+			Event_Queue_WaitFrames(82);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_crusherhit);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_PlaySound(SND_explode);
+			Event_Queue_PlaySound(SND_explode);
+			Event_Queue_PlaySound(SND_firemassattack);
+			Event_Queue_Overworld_ShakeScreen(140);
+			
+			Event_Queue_WaitFrames(140);
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_TeleportTo(0, 28584, 10600);
+			Event_Queue_Object_TeleportTo(1, 28584, 10600);
+			Event_Queue_Object_TeleportTo(2, 28584, 10600);
+			Event_Queue_Object_TeleportTo(3, 28584, 10600);
+			Event_Queue_Object_WalkTo(0, 28664, 10616, 3, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(0, 28584, 10616, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(1, 28616, 10640, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(2, 28584, 10664, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(3, 28552, 10640, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+			Event_Queue_Object_TeleportTo(10, 28776, 10608);
+			Event_Queue_Camera_TeleportTo(28584, 10936);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			
+			Event_Queue_PlayMusic(MUS_countdown);
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_PAUSED);
+			Event_Queue_ChangeMenu(10004);
+		} break;
+		
+		case 75: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(29912, 10568, 2);
+			Event_Queue_Object_WalkTo(0, 29912, 10580, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(1, 29888, 10608, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(3, 29936, 10608, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(2, 29912, 10632, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_ChangeSpriteId(11, SPR_owchar_npc_35);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(11, 0);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_UP);
+			Event_Queue_StopMusic();
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_SetIntPtr(&overworld.overlayId, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(10, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(12, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(13, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(14, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(15, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(16, 0);
+			Event_Queue_Object_ChangeSpriteFrame(16, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(17, 0);
+			Event_Queue_Object_ChangeSpriteFrame(17, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(18, 0);
+			Event_Queue_Object_SetColor(18, 0, 0, 0);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_ChangeSpriteId(12, SPR_owchar_npc_36);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteId(13, SPR_owchar_npc_37);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteId(14, SPR_owchar_npc_38);
+			Event_Queue_Object_ChangeDirection(14, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(2499);
+			Event_Queue_Dialog_Run(2500);
+			Event_Queue_Dialog_Run(2501);
+			Event_Queue_Dialog_Run(2502);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_JumpToRelative(12, 0, 0, OBJECT_DIRECTION_RIGHT, 16, 12);
+			Event_Queue_Dialog_Run(2503);
+			Event_Queue_Object_ChangeDirection(14, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_JumpToRelative(14, 0, 0, OBJECT_DIRECTION_UP, 16, 12);
+			Event_Queue_Dialog_Run(2504);
+			Event_Queue_Dialog_Run(2505);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(2506);
+			Event_Queue_Dialog_Run(2507);
+			Event_Queue_Dialog_Run(2508);
+			
+			Event_Queue_Object_WalkTo(11, 29944, 10532, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(11, 29944, 10552, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(11, 29912, 10552, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(2509);
+			Event_Queue_Dialog_Run(2390);
+			Event_Queue_Dialog_Run(2510);
+			
+			Event_Queue_Object_JumpTo(11, 29912, 10532, OBJECT_DIRECTION_UP, 72, 30);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_SetIntPtr(&overworld.overlayId, 14);
+			Event_Queue_WaitFrames(21);
+			
+			Event_Queue_PlayMusic(MUS_discodoomsday);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(10, 0.125);
+			Event_Queue_Object_ChangeSpriteId(11, SPR_misc_npc_35_dj);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(11, 0.1);
+			Event_Queue_Object_ChangeSpriteId(12, SPR_misc_npc_36_floss);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(12, 0.25);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(13, 0.5);
+			Event_Queue_Object_ChangeSpriteId(14, SPR_misc_npc_38_dance);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(14, 0.25);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(15, 0.125);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(16, 0.144);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(17, 0.144);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(18, 0.25);
+			Event_Queue_Object_SetColor(18, 255, 255, 255);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_AMPERCORP_PLOT, 22);
+			Event_Queue_SetFlag(FLAG_AMPERCORP_FLOORS_UNLOCKED, 2);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 76: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(29104, 12912, 1);
+			Event_Queue_Object_WalkTo(0, 29104, 12840, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(1, 29080, 12824, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(2, 29128, 12824, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(3, 29104, 12808, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_JumpToRelative(12, 0, 0, OBJECT_DIRECTION_RIGHT, 16, 12);
+			Event_Queue_Dialog_Run(2511);
+			Event_Queue_Dialog_Run(2512);
+			Event_Queue_StopMusic();
+			Event_Queue_PlaySound(SND_ampbroadcast);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(14, OBJECT_DIRECTION_UP);
+			Event_Queue_Camera_MoveTo(29104, 12720, 2);
+			Event_Queue_CreateObject(70, 1, SPR_misc_ampbroadcast, 29104, 12704, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteFrame(70, 5);
+			Event_Queue_PlaySound(SND_beep_square);
+			Event_Queue_WaitFrames(45);
+			Event_Queue_Object_ChangeSpriteFrame(70, 6);
+			Event_Queue_WaitFrames(70);
+			Event_Queue_PlayMusic(MUS_amper);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Dialog_Run(2513);
+			Event_Queue_Object_ChangeSpriteFrame(70, 2);
+			Event_Queue_Dialog_Run(2514);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_Dialog_Run(2515);
+			Event_Queue_Object_ChangeSpriteFrame(70, 2);
+			Event_Queue_Dialog_Run(2516);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_Dialog_Run(2517);
+			Event_Queue_Dialog_Run(2518);
+			Event_Queue_StopMusic();
+			Event_Queue_Object_ChangeSpriteFrame(70, 5);
+			Event_Queue_WaitFrames(6);
+			Event_Queue_Object_ChangeSpriteFrame(70, 3);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Camera_MoveTo(29104, 12912, 2);
+			
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(2519);
+			Event_Queue_Dialog_Run(2520);
+			Event_Queue_Object_JumpToRelative(14, 0, 0, OBJECT_DIRECTION_UP, 16, 12);
+			Event_Queue_Dialog_Run(2521);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Dialog_Run(2522);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(2523);
+			Event_Queue_Dialog_Run(2524);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(2525);
+			Event_Queue_Dialog_Run(2526);
+			Event_Queue_Dialog_Run(2527);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(29104, 12848, 6);
+			Event_Queue_Object_JumpTo(14, 29104, 12792, OBJECT_DIRECTION_DOWN, 56, 12);
+			Event_Queue_SetSync(false);
+			Event_Queue_PlaySound(SND_explode);
+			Event_Queue_Overworld_ShakeScreen(8);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_JumpTo(0, 29104, 12856, OBJECT_DIRECTION_DOWN, 8, 6);
+			Event_Queue_Object_JumpTo(1, 29080, 12840, OBJECT_DIRECTION_DOWN, 8, 6);
+			Event_Queue_Object_JumpTo(2, 29128, 12840, OBJECT_DIRECTION_DOWN, 8, 6);
+			Event_Queue_Object_JumpTo(3, 29104, 12824, OBJECT_DIRECTION_DOWN, 8, 6);
+			Event_Queue_SetSync(false);
+			Event_Queue_Dialog_Run(2528);
+			Event_Queue_Dialog_Run(2529);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(12, 29080, 12888, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(13, 29128, 12888, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_Dialog_Run(2530);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(2531);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(2532);
+			Event_Queue_Dialog_Run(2533);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(2534);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_UP);
+			
+			Event_Queue_EngageBattle(75, 12);
+			Event_Queue_Object_TeleportTo(14, 29104, 12920);
+			Event_Queue_Object_ChangeDirection(14, OBJECT_DIRECTION_UP);
+			Event_Queue_PlayMusic(MUS_casualneo);
+			
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Dialog_Run(2535);
+			Event_Queue_Dialog_Run(2536);
+			Event_Queue_Dialog_Run(2537);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(2538);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(14, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(2539);
+			Event_Queue_Dialog_Run(2540);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkToRelative(12, 0, 192, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkToRelative(14, 0, 192, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(72);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(2542);
+			Event_Queue_Object_WalkTo(13, 29104, 12888, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_CompareIntToConst(&partyMembers[0].armorId, 28);
+			Event_Queue_JumpIfNotEqual(0);
+			
+			Event_Queue_Dialog_Run(2541);
+			Event_Queue_WaitFrames(40);
+			
+			Event_Queue_Label(0);
+			Event_Queue_Dialog_Run(2543);
+			Event_Queue_Dialog_Run(316);
+			Event_Queue_Dialog_Run(2544);
+			Event_Queue_Dialog_Run(2393);
+			Event_Queue_Dialog_Run(2545);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_AMPERCORP_PLOT, 51);
+			Event_Queue_SetFlag(FLAG_AMPERCORP_FLOORS_UNLOCKED, 5);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 77: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (overworld.camera.x >= 29344 || overworld.camera.x <= 28896 || overworld.camera.y >= 14160) {
+				Event_Queue_Object_TeleportTo(61, 29096, 13952);
+			}
+			else {
+				Event_Queue_Object_WalkTo(61, 29152, 13952, 2, -1);
+				Event_Queue_Object_WalkTo(61, 29096, 13952, 2, OBJECT_DIRECTION_DOWN);
+			}
+			Event_Queue_SetFlag(FLAG_AMPERCORP_PBSUPERHERO_DEFEATED, 2);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 78: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_Dialog_Run(2595);
+			Event_Queue_Camera_TogglePlayerFollow(true);
+			Event_Queue_SetSync(true);
+			
+			Event_Queue_Object_WalkTo(11, 28944, 15616, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(11, 28944, 15702, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_QueueWalkTo(11, 29128, 15750, 2, OBJECT_DIRECTION_UP);
+			
+			Event_Queue_WaitFrames(16);
+			Event_Queue_Object_WalkTo(0, 28944, 15616, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(0, 28944, 15702, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_QueueWalkTo(0, 29112, 15750, 2, OBJECT_DIRECTION_UP);
+			
+			Event_Queue_WaitFrames(14);
+			Event_Queue_Object_WalkTo(1, 28944, 15616, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(1, 28944, 15702, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_QueueWalkTo(1, 29096, 15750, 2, OBJECT_DIRECTION_UP);
+			
+			Event_Queue_WaitFrames(14);
+			Event_Queue_Object_WalkTo(2, 28944, 15616, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(2, 28944, 15702, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_QueueWalkTo(2, 29080, 15750, 2, OBJECT_DIRECTION_UP);
+			
+			Event_Queue_WaitFrames(14);
+			Event_Queue_Object_WalkTo(3, 28944, 15616, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(3, 28944, 15702, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_QueueWalkTo(3, 29064, 15750, 2, OBJECT_DIRECTION_UP);
+			
+			Event_Queue_SetSync(false);
+			Event_Queue_Camera_TogglePlayerFollow(false);
+			
+			Event_Queue_Camera_MoveTo(29152, 15712, 2);
+			Event_Queue_WaitFrames(20);
+			Event_Queue_Dialog_Run(2596);
+			Event_Queue_Dialog_Run(2597);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_Dialog_Run(2598);
+			Event_Queue_Camera_MoveTo(29152, 15584, 1);
+			Event_Queue_CreateObject(70, 1, SPR_owchar_flora, 29008, 15544, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(70, 29008, 15560, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(70, 29152, 15592, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Dialog_Run(2599);
+			Event_Queue_Dialog_Run(2600);
+			Event_Queue_Dialog_Run(2601);
+			Event_Queue_WaitFrames(90);
+			Event_Queue_SetSync(true);
+			Event_Queue_Dialog_Run(2602);
+			Event_Queue_WaitFrames(125);
+			Event_Queue_CreateObject(71, 1, SPR_owchar_npc_29, 29296, 15544, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(71, 29296, 15568, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(71, 29200, 15584, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(2603);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(71, 29200, 15592, 0.5, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(2604);
+			
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_WaitFrames(90);
+			Event_Queue_Dialog_Run(2605);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			
+			Event_Queue_Dialog_Run(2606);
+			
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_Object_Destroy(71);
+			for (int i = 20; i <= 36; i++) {
+				Event_Queue_Object_Destroy(i);
+			}
+			Event_Queue_Camera_TeleportTo(29320, 15556);
+			Event_Queue_Object_TeleportTo(11, 29272, 15584);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_TeleportTo(0, 29240, 15560);
+			Event_Queue_Object_WalkTo(0, 29320, 15560, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_TeleportTo(1, 29320, 15576);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_TeleportTo(2, 29320, 15592);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_TeleportTo(3, 29320, 15608);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			Event_Queue_Dialog_Run(2607);
+			Event_Queue_Dialog_Run(2608);
+			Event_Queue_Dialog_Run(2609);
+			Event_Queue_Dialog_Run(2610);
+			Event_Queue_Dialog_Run(2611);
+			Event_Queue_Dialog_Run(2612);
+			Event_Queue_Dialog_Run(2613);
+			Event_Queue_Dialog_Run(2614);
+			Event_Queue_Object_WalkTo(11, 29296, 15536, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_Destroy(11);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_Dialog_Run(2395);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_AMPERCORP_PLOT, 70);
+			Event_Queue_SetFlag(FLAG_AMPERCORP_FLOORS_UNLOCKED, 7);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 79: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_CreateTrigger(1, 31792, 12672, 31872, 12752, 80);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 80: {
+			overworld.map.doors[147].enabled = true;
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (!profile.flags[FLAG_ALONE]) {
+				Event_Queue_Dialog_Run(2615);
+			}
+			Event_Queue_FadeOutMusic(2000);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+			Event_Queue_CreateObject(70, 1, SPR_owchar_flora, 31696, overworld.player.y, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Camera_MoveTo(31784, 12688, 1);
+			if (profile.flags[FLAG_ALONE]) {
+				Event_Queue_Dialog_Run(2670);
+				Event_Queue_Dialog_Run(2671);
+				Event_Queue_Dialog_Run(2672);
+				Event_Queue_Dialog_Run(2673);
+				Event_Queue_Dialog_Run(2674);
+				Event_Queue_Dialog_Run(2675);
+				Event_Queue_Dialog_Run(2676);
+				Event_Queue_Dialog_Run(2677);
+				Event_Queue_Dialog_Run(2678);
+				Event_Queue_Dialog_Run(2627);
+				
+				Event_Queue_EngageBattle(51, 70);
+				Event_Queue_Object_EnableFighterSprite(70, 44, 46, FIGHTER_STATE_HURT);
+				
+				Event_Queue_WaitFrames(60);
+				Event_Queue_Dialog_Run(2679);
+				Event_Queue_Object_DisableFighterSprite(70);
+				Event_Queue_Object_WalkTo(70, 31840, overworld.player.y, 1, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Dialog_Run(2396);
+				Event_Queue_Dialog_Run(2680);
+				Event_Queue_SetSync(true);
+				Event_Queue_Camera_MoveTo(31984, 12688, 1);
+				Event_Queue_Object_WalkTo(70, 32064, overworld.player.y, 1, OBJECT_DIRECTION_UP);
+				Event_Queue_SetSync(false);
+				Event_Queue_Object_WalkTo(70, 32064, 12688, 1, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Dialog_Run(2681);
+				Event_Queue_Object_Destroy(70);
+				Event_Queue_Object_Destroy(10);
+				
+				Event_Queue_SetFlag(FLAG_AMPERCORP_FLOORS_UNLOCKED, 8);
+				Event_Queue_SetFlag(FLAG_AMPERCORP_PLOT, 81);
+			}
+			else {
+				Event_Queue_Dialog_Run(2616);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+				Event_Queue_WaitFrames(60);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Dialog_Run(2617);
+				Event_Queue_Dialog_Run(2618);
+				Event_Queue_Object_EnableFighterSprite(70, 44, 46, FIGHTER_STATE_IDLE);
+				Event_Queue_Dialog_Run(2619);
+				
+				Event_Queue_Dialog_Run(2620);
+				Event_Queue_Dialog_Run(2621);
+				Event_Queue_Dialog_Run(2622);
+				Event_Queue_Dialog_Run(2623);
+				Event_Queue_Dialog_Run(2624);
+				Event_Queue_Dialog_Run(2625);
+				Event_Queue_Dialog_Run(2626);
+				Event_Queue_Dialog_Run(2627);
+				
+				Event_Queue_EngageBattle(51, 70);
+				Event_Queue_Object_EnableFighterSprite(70, 44, 46, FIGHTER_STATE_HURT);
+				
+				Event_Queue_WaitFrames(60);
+				Event_Queue_Dialog_Run(2628);
+				Event_Queue_Dialog_Run(2629);
+				Event_Queue_Dialog_Run(2630);
+				Event_Queue_Dialog_Run(2631);
+				Event_Queue_Object_DisableFighterSprite(70);
+				Event_Queue_SetSync(true);
+				Event_Queue_Camera_MoveTo(31984, 12688, 1);
+				Event_Queue_Object_WalkTo(70, 32064, overworld.player.y, 1, OBJECT_DIRECTION_UP);
+				Event_Queue_SetSync(false);
+				Event_Queue_Object_WalkTo(70, 32064, 12688, 1, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Dialog_Run(2632);
+				Event_Queue_Object_Destroy(70);
+				Event_Queue_Object_Destroy(10);
+				Event_Queue_SetFlag(FLAG_AMPERCORP_PLOT, 80);
+			}
+			
+			
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 81: {
+			overworld.map.doors[148].enabled = true;
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 32504, 11784, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(1, 32520, 11800, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(2, 32544, 11800, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(3, 32568, 11800, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Camera_MoveTo(32536, 11768, 2);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(20);
+			Event_Queue_Dialog_Run(2633);
+			Event_Queue_Dialog_Run(2634);
+			Event_Queue_Dialog_Run(2635);
+			Event_Queue_Dialog_Run(2636);
+			Event_Queue_Dialog_Run(2637);
+			Event_Queue_Dialog_Run(2638);
+			Event_Queue_Object_WalkTo(10, 32616, 11768, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(10, 32672, 11704, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(40);
+			Event_Queue_Object_WalkTo(10, 32552, 11744, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(2396);
+			Event_Queue_Dialog_Run(2639);
+			Event_Queue_Dialog_Run(2640);
+			Event_Queue_Dialog_Run(2641);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Dialog_Run(2642);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Dialog_Run(2643);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_AMPERCORP_PLOT, 81);
+			Event_Queue_SetFlag(FLAG_AMPERCORP_FLOORS_UNLOCKED, 8);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 82: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 31320, 13080, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(1, 31288, 13096, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(2, 31264, 13096, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(3, 31240, 13096, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Camera_MoveTo(31320, 13064, 2);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(90);
+			Event_Queue_Dialog_Run(1301);
+			Event_Queue_CreateObject(70, 1, SPR_owchar_amp, 30968, 13168, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Camera_MoveTo(31088, 13152, 2);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(70, 31208, 13080, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Camera_MoveTo(31272, 13064, 2);
+			Event_Queue_SetSync(false);
+			Event_Queue_Dialog_Run(1302);
+			Event_Queue_Dialog_Run(1303);
+			Event_Queue_Dialog_Run(1304);
+			Event_Queue_Dialog_Run(1305);
+			Event_Queue_Dialog_Run(1306);
+			Event_Queue_Dialog_Run(1307);
+			Event_Queue_Dialog_Run(1308);
+			Event_Queue_Dialog_Run(1309);
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_SetFlag(FLAG_AMPERCORP_PLOT, 90);
+			Event_Queue_GotoArea(164, 30544, 13056, -1);
+			Event_Queue_Overworld_FadeIn(1, 0, 0, 0);
+			Event_Queue_Object_WalkTo(0, 30544, 13136, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(1, 30512, 13104, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(2, 30576, 13104, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(3, 30544, 13072, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Camera_TeleportTo(30544, 13168);
+			Event_Queue_CreateObject(70, 1, SPR_owchar_amp, 30544, 13216, OBJECT_DIRECTION_UP);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Dialog_Run(1310);
+			
+			Event_Queue_EngageBattle(48, 70);
+			
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Dialog_Run(1311);
+			Event_Queue_PlayMusic(MUS_perspective);
+			Event_Queue_Dialog_Run(1312);
+			Event_Queue_Dialog_Run(1313);
+			Event_Queue_Dialog_Run(1314);
+			Event_Queue_Dialog_Run(1315);
+			Event_Queue_Dialog_Run(1316);
+			Event_Queue_Dialog_Run(1317);
+			Event_Queue_Dialog_Run(1318);
+			Event_Queue_Dialog_Run(1319);
+			Event_Queue_Dialog_Run(1320);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_WalkTo(70, 30544, 13472, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_Destroy(70);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_SetFlag(FLAG_AMPERCORP_PLOT, 91);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 83: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 31320, 13080, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_QueueWalkTo(0, 31320, 13064, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(1, 31352, 13096, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(2, 31320, 13096, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(3, 31288, 13096, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Camera_MoveTo(31312, 13052, 1);
+			Event_Queue_SetSync(false);
+			
+			Event_Queue_Object_ToggleGhost(10, true);
+			Event_Queue_Object_WalkToPointer(10, 0, -320, 2, OBJECT_DIRECTION_UP, &overworld.player.x, &overworld.player.y);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_raisehands);
+			Event_Queue_Object_WalkToPointer(10, 0, -36, 2, OBJECT_DIRECTION_UP, &overworld.player.x, &overworld.player.y);
+			Event_Queue_PlaySound(SND_introwakeup);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Overworld_FadeIn(120, 255, 255, 255);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Object_Destroy(10);
+			Event_Queue_CreateNPC(10, 70000, 31320, 13044, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Overworld_FadeOut(30, 255, 255, 255);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Profile_KeyItemAdd(254);
+			Event_Queue_FullyHealParty();
+			Event_Queue_Dialog_Run(3074);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_PLOT, 250);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 84: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(30);
+			
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 27520, 3560, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(1, 27488, 3560, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(2, 27552, 3560, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(3, 27608, 3592, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Camera_MoveTo(27520, 3584, 1);
+			Event_Queue_SetSync(false);
+			
+			Event_Queue_Dialog_Run(1321);
+			Event_Queue_Dialog_Run(1322);
+			Event_Queue_Dialog_Run(1323);
+			Event_Queue_Dialog_Run(1324);
+			Event_Queue_Dialog_Run(1325);
+			Event_Queue_Dialog_Run(1326);
+			Event_Queue_Dialog_Run(1327);
+			Event_Queue_Dialog_Run(1328);
+			Event_Queue_Dialog_Run(1329);
+			Event_Queue_Dialog_Run(1330);
+			Event_Queue_Dialog_Run(1331);
+			Event_Queue_Dialog_Run(1332);
+			Event_Queue_Dialog_Run(1333);
+			Event_Queue_Dialog_Run(1334);
+			Event_Queue_Object_JumpToRelative(70, 0, 0, OBJECT_DIRECTION_UP, 16, 12);
+			Event_Queue_Dialog_Run(1335);
+			Event_Queue_Dialog_Run(1336);
+			Event_Queue_Dialog_Run(1337);
+			Event_Queue_Dialog_Run(1338);
+			Event_Queue_Dialog_Run(1339);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Dialog_Run(1340);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1341);
+			Event_Queue_PlaySound(SND_swing);
+			
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_JumpToRelative(70, 0, 0, -1, 256, 120);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_TeleportTo(70, 27520, 3472);
+			Event_Queue_Object_JumpToRelative(70, 0, 0, -1, 1, 2);
+			Event_Queue_Camera_MoveTo(27520, 3472, 16);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_kara_jump);
+			Event_Queue_Object_ChangeSpriteFrame(70, 2);
+			Event_Queue_PlaySound(SND_flower2);
+			Event_Queue_PlaySound(SND_encountermg);
+			Event_Queue_SetSync(false);
+			Event_Queue_Overworld_FadeIn(60, 255, 255, 255);
+			Event_Queue_Overworld_FadeOut(60, 255, 255, 255);
+			Event_Queue_WaitFrames(30);
+			
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1342);
+			Event_Queue_Camera_MoveTo(27520, 3536, 16);
+			Event_Queue_Object_JumpTo(70, 27520, 3536, OBJECT_DIRECTION_DOWN, 32, 6);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_kara);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_EnableFighterSprite(70, 67, 76, FIGHTER_STATE_BLOCK);
+			Event_Queue_PlaySound(SND_explode);
+			Event_Queue_Overworld_ShakeScreen(8);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_JumpToRelative(0, 0, 32, OBJECT_DIRECTION_UP, 16, 12);
+			Event_Queue_Object_JumpToRelative(1, 0, 32, OBJECT_DIRECTION_UP, 16, 12);
+			Event_Queue_Object_JumpToRelative(2, 0, 32, OBJECT_DIRECTION_UP, 16, 12);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(90);
+			
+			Event_Queue_StopMusic();
+			Event_Queue_Object_DisableFighterSprite(70);
+			Event_Queue_Dialog_Run(1343);
+			Event_Queue_Profile_KeyItemAdd(176);
+			Event_Queue_Dialog_Run(4004);
+			Event_Queue_PlayMusic(MUS_megacity);
+			Event_Queue_Dialog_Run(1344);
+			Event_Queue_Dialog_Run(1345);
+			Event_Queue_Object_WalkTo(70, 27520, 3520, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1346);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_WaitFrames(80);
+			
+			Event_Queue_Dialog_Run(1347);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1348);
+			Event_Queue_Dialog_Run(1349);
+			Event_Queue_Dialog_Run(1350);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_PLOT, 251);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 85: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_Camera_MoveTo(2576, 7712, 1);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 2544, 7712, 1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(1, 2528, 7688, 1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(2, 2544, 7736, 1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(3, 2496, 7728, 1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_SetSync(false);
+			
+			Event_Queue_FadeOutMusic(2000);
+			if (profile.flags[FLAG_ALONE]) {
+				Event_Queue_WaitFrames(80);
+				Event_Queue_Dialog_Run(1351);
+				Event_Queue_Dialog_Run(1610);
+				Event_Queue_Dialog_Run(1611);
+				Event_Queue_Dialog_Run(1612);
+				Event_Queue_PlaySound(SND_swing);
+				Event_Queue_PlayMusic(MUS_luxpre);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_lulu_cloak2);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+				Event_Queue_WaitFrames(54);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+				Event_Queue_WaitFrames(5);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+				Event_Queue_WaitFrames(54);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_lulu_master);
+				Event_Queue_PlaySound(SND_dodge);
+				Event_Queue_Overworld_ShakeScreen(4);
+				Event_Queue_CreateObject(71, 1, SPR_misc_lulu_cloakthrow, 2632, 7724, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_JumpTo(71, 2912, 7664, OBJECT_DIRECTION_DOWN, 96, 120);
+				Event_Queue_WaitFrames(34);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+				Event_Queue_WaitFrames(8);
+				Event_Queue_Object_EnableFighterSprite(70, 81, 91, FIGHTER_STATE_BLOCK);
+				Event_Queue_Camera_TeleportTo(2624, 7712);
+				Event_Queue_SetFloatPtr(&overworld.camera.zoom, 12);
+				Event_Queue_WaitFrames(1);
+				Event_Queue_Object_Destroy(71);
+				Event_Queue_PlaySound(SND_firemassattack);
+				Event_Queue_Overworld_ShakeScreen(14);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(14);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(13);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(13);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(12);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(12);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(11);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(11);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(10);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(9);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(8);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(7);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(6);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(5);
+				Event_Queue_WaitFrames(60);
+				Event_Queue_Camera_TeleportTo(2576, 7708);
+				Event_Queue_SetFloatPtr(&overworld.camera.zoom, 2);
+				Event_Queue_WaitFrames(40);
+				Event_Queue_Object_DisableFighterSprite(70);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Dialog_Run(1613);
+				Event_Queue_Dialog_Run(1614);
+				Event_Queue_Dialog_Run(1615);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_shrug);
+				Event_Queue_Dialog_Run(1616);
+				Event_Queue_Object_EnableFighterSprite(70, 81, 91, FIGHTER_STATE_IDLE);
+				Event_Queue_Dialog_Run(1617);
+				
+				Event_Queue_StopMusic();
+				Event_Queue_EngageBattle(87, 70);
+				Event_Queue_PlayMusic(MUS_lux);
+				Event_Queue_Object_DisableFighterSprite(70);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_master_broken);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+				
+				Event_Queue_WaitFrames(60);
+				Event_Queue_Dialog_Run(1618);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_beamsword);
+				Event_Queue_Object_ChangeSpriteFrame(0, 1);
+				Event_Queue_PlaySound(SND_saw);
+				Event_Queue_PlaySound(SND_beamsword);
+				Event_Queue_WaitFrames(6);
+				Event_Queue_Object_ChangeSpriteFrame(0, 2);
+				Event_Queue_WaitFrames(10);
+				Event_Queue_Object_EnableFighterSprite(0, 1, 10, FIGHTER_STATE_IDLE);
+				Event_Queue_Dialog_Run(1619);
+				Event_Queue_Object_EnableFighterSprite(0, 1, 10, FIGHTER_STATE_RUN);
+				Event_Queue_PlaySound(SND_swing);
+				Event_Queue_StopMusic();
+				Event_Queue_Object_JumpTo(0, 2600, 7728, OBJECT_DIRECTION_RIGHT, 0, 6);
+				Event_Queue_Object_EnableFighterSprite(0, 1, 10, FIGHTER_STATE_ATTACK2);
+				Event_Queue_PlaySound(SND_beamsword);
+				Event_Queue_PlaySound(SND_hit3);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_EnableFighterSprite(70, 81, 91, FIGHTER_STATE_HURT);
+				Event_Queue_Object_JumpTo(70, 2648, 7728, OBJECT_DIRECTION_LEFT, 0, 6);
+				Event_Queue_WaitFrames(41);
+				Event_Queue_Object_EnableFighterSprite(0, 1, 10, FIGHTER_STATE_IDLE);
+				Event_Queue_WaitFrames(44);
+				Event_Queue_Object_DisableFighterSprite(70);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_master_broken);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+				Event_Queue_WaitFrames(102);
+				Event_Queue_CreateObject(71, 1, SPR_misc_collapseblood, 2648, 7723, OBJECT_DIRECTION_DOWN);
+				Event_Queue_WaitFrames(83);
+				Event_Queue_Dialog_Run(1620);
+				Event_Queue_Dialog_Run(1621);
+				Event_Queue_Object_EnableFighterSprite(0, 1, 10, FIGHTER_STATE_BLOCK);
+				Event_Queue_Dialog_Run(1622);
+				Event_Queue_Object_EnableFighterSprite(0, 1, 10, FIGHTER_STATE_ATTACK1);
+				Event_Queue_WaitFrames(12);
+				Event_Queue_PlaySound(SND_firemassattack);
+				Event_Queue_Overworld_FadeIn(1, 255, 127, 0);
+				Event_Queue_Object_Destroy(70);
+				Event_Queue_Object_Destroy(71);
+				Event_Queue_WaitFrames(6);
+				Event_Queue_Object_DisableFighterSprite(0);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby_run_prepare);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Overworld_FadeOut(1, 255, 127, 0);
+				Event_Queue_Object_JumpTo(0, 2568, 7728, OBJECT_DIRECTION_RIGHT, 0, 8);
+				Event_Queue_WaitFrames(93);
+				Event_Queue_Dialog_Run(1623);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			}
+			else {
+				Event_Queue_WaitFrames(120);
+				Event_Queue_Dialog_Run(1351);
+				Event_Queue_Dialog_Run(1352);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Dialog_Run(1353);
+				Event_Queue_Dialog_Run(1354);
+				Event_Queue_Object_JumpToRelative(70, 0, 0, OBJECT_DIRECTION_DOWN, 16, 12);
+				Event_Queue_Dialog_Run(1355);
+				Event_Queue_Dialog_Run(1356);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Dialog_Run(1357);
+				Event_Queue_Dialog_Run(1358);
+				Event_Queue_Dialog_Run(1359);
+				Event_Queue_WaitFrames(60);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(1360);
+				Event_Queue_Dialog_Run(1361);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_cloak_happy);
+				Event_Queue_Dialog_Run(1362);
+				Event_Queue_WaitFrames(20);
+				Event_Queue_PlaySound(SND_swing);
+				Event_Queue_PlayMusic(MUS_luxpre);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_lulu_cloak2);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+				Event_Queue_WaitFrames(54);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+				Event_Queue_WaitFrames(5);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+				Event_Queue_WaitFrames(54);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_lulu_master);
+				Event_Queue_PlaySound(SND_dodge);
+				Event_Queue_Overworld_ShakeScreen(4);
+				Event_Queue_CreateObject(71, 1, SPR_misc_lulu_cloakthrow, 2632, 7724, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_JumpTo(71, 2912, 7664, OBJECT_DIRECTION_DOWN, 96, 120);
+				Event_Queue_WaitFrames(34);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+				Event_Queue_WaitFrames(8);
+				Event_Queue_Object_EnableFighterSprite(70, 81, 91, FIGHTER_STATE_BLOCK);
+				Event_Queue_Camera_TeleportTo(2624, 7712);
+				Event_Queue_SetFloatPtr(&overworld.camera.zoom, 12);
+				Event_Queue_WaitFrames(1);
+				Event_Queue_PlaySound(SND_firemassattack);
+				Event_Queue_Overworld_ShakeScreen(14);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(14);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(13);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(13);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(12);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(12);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(11);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(11);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(10);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(9);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(8);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(7);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(6);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Overworld_ShakeScreen(5);
+				Event_Queue_WaitFrames(60);
+				Event_Queue_Camera_TeleportTo(2576, 7708);
+				Event_Queue_SetFloatPtr(&overworld.camera.zoom, 2);
+				Event_Queue_WaitFrames(40);
+				Event_Queue_Object_DisableFighterSprite(70);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+				
+				Event_Queue_Dialog_Run(1363);
+				Event_Queue_WaitFrames(50);
+				Event_Queue_Dialog_Run(1364);
+				Event_Queue_Dialog_Run(1365);
+				Event_Queue_Dialog_Run(1366);
+				Event_Queue_Dialog_Run(1367);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(1368);
+				Event_Queue_Dialog_Run(1369);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Dialog_Run(1370);
+				if (profile.cash >= 10000000) {
+					Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_shrug);
+					Event_Queue_Dialog_Run(1371);
+					Event_Queue_Dialog_Run(1372);
+					Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+					Event_Queue_Dialog_Run(1373);
+				}
+				else if (profile.cash == 9999999) {
+					Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_shrug);
+					Event_Queue_Dialog_Run(1371);
+					Event_Queue_Dialog_Run(1377);
+					Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+					Event_Queue_Dialog_Run(1374);
+				}
+				else {
+					Event_Queue_Dialog_Run(1374);
+				}
+				Event_Queue_Dialog_Run(1375);
+				Event_Queue_Object_EnableFighterSprite(70, 81, 91, FIGHTER_STATE_IDLE);
+				Event_Queue_WaitFrames(50);
+				Event_Queue_Dialog_Run(1376);
+				Event_Queue_WaitFrames(120);
+				
+				Event_Queue_StopMusic();
+				Event_Queue_EngageBattle(87, 70);
+				Event_Queue_PlayMusic(MUS_lux);
+				Event_Queue_Object_EnableFighterSprite(70, 81, 91, FIGHTER_STATE_HURT);
+				Event_Queue_SetVarInt(0, Random_IRange(0, 135));
+				Event_Queue_SetVarInt(1, Random_IRange(0, 135));
+				Event_Queue_SetVarInt(2, Random_IRange(0, 135));
+				Event_Queue_SetVarInt(3, Random_IRange(0, 135));
+				Event_Queue_SetVarInt(4, Random_IRange(0, 135));
+				Event_Queue_SetVarInt(5, Random_IRange(0, 135));
+				Event_Queue_SetVarInt(6, Random_IRange(0, 135));
+				Event_Queue_SetVarInt(7, Random_IRange(0, 135));
+				
+				Event_Queue_WaitFrames(105);
+				Event_Queue_Object_DisableFighterSprite(70);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_master_rage);
+				Event_Queue_Object_ChangeSpriteFrame(70, 0);
+				Event_Queue_Dialog_Run(1378);
+				Event_Queue_WaitFrames(60);
+				Event_Queue_Dialog_Run(1379);
+				Event_Queue_WaitFrames(48);
+				Event_Queue_Object_ChangeSpriteFrame(70, 1);
+				Event_Queue_Overworld_ShakeScreen(16);
+				Event_Queue_Dialog_Run(1380);
+				Event_Queue_Object_JumpToRelative(3, 0, 0, OBJECT_DIRECTION_RIGHT, 16, 12);
+				Event_Queue_Dialog_Run(1381);
+				Event_Queue_WaitFrames(46);
+				Event_Queue_Overworld_ShakeScreen(16);
+				Event_Queue_Dialog_Run(1382);
+				Event_Queue_StopMusic();
+				Event_Queue_PlaySound(SND_poison);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_master_broken);
+				Event_Queue_Object_ChangeSpriteFrame(70, 0);
+				Event_Queue_Object_TeleportToRelative(70, -2, 0);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Object_TeleportToRelative(70, 3, 0);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Object_TeleportToRelative(70, -2, 0);
+				Event_Queue_WaitFrames(2);
+				Event_Queue_Object_TeleportToRelative(70, 1, 0);
+				Event_Queue_WaitFrames(105);
+				Event_Queue_Dialog_Run(1383);
+				Event_Queue_Dialog_Run(1384);
+				Event_Queue_Dialog_Run(1385);
+				if (profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DIALOG] == 8) {
+					Event_Queue_Dialog_Run(1386);
+				}
+				Event_Queue_WaitFrames(50);
+				Event_Queue_Dialog_Run(1387);
+				Event_Queue_Dialog_Run(1388);
+				Event_Queue_Object_EnableFighterSprite(70, 81, 91, FIGHTER_STATE_RUN);
+				Event_Queue_PlaySound(SND_swing);
+				Event_Queue_Object_JumpTo(70, 2536, 7688.125, OBJECT_DIRECTION_LEFT, 0, 14);
+				Event_Queue_Object_DisableFighterSprite(70);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_master_hug);
+				Event_Queue_Object_EnableFighterSprite(1, 2, 3, FIGHTER_STATE_HURT);
+				Event_Queue_SetSync(true);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_JumpTo(0, 2544, 7720, OBJECT_DIRECTION_UP, 8, 12);
+				Event_Queue_Object_JumpTo(2, 2544, 7744, OBJECT_DIRECTION_UP, 8, 12);
+				Event_Queue_SetSync(false);
+				Event_Queue_WaitFrames(65);
+				Event_Queue_Dialog_Run(1389);
+				Event_Queue_Dialog_Run(1390);
+				Event_Queue_WaitFrames(35);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_master_flushed);
+				Event_Queue_Object_JumpTo(70, 2544, 7688, OBJECT_DIRECTION_LEFT, 0, 14);
+				Event_Queue_WaitFrames(70);
+				Event_Queue_Object_DisableFighterSprite(1);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(1391);
+				Event_Queue_Dialog_Run(1392);
+				Event_Queue_WaitFrames(40);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_lulu_master);
+				Event_Queue_Object_WalkTo(70, 2440, 7704, 2, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_WalkTo(70, 2248, 7640, 2, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_Destroy(70);
+				Event_Queue_Dialog_Run(1393);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+				Event_Queue_Dialog_Run(1394);
+				Event_Queue_Dialog_Run(1395);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+				Event_Queue_Dialog_Run(1396);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(1397);
+				Event_Queue_Dialog_Run(1398);
+				Event_Queue_Dialog_Run(1399);
+				Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Dialog_Run(1400);
+				Event_Queue_Dialog_Run(1401);
+			}
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_PLOT, 252);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 86: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
+			Event_Queue_Camera_MoveTo(30440, 5888, 1);
+			if (profile.flags[FLAG_ALONE]) {
+				Event_Queue_WaitFrames(20);
+				Event_Queue_Object_WalkTo(70, 30440, 5880, 1, OBJECT_DIRECTION_DOWN);
+				Event_Queue_WaitFrames(70);
+				Event_Queue_Object_WalkTo(70, 30440, 5912, 2, OBJECT_DIRECTION_DOWN);
+				
+				Event_Queue_EngageBattle(88, 70);
+				Event_Queue_Object_Destroy(70);
+			}
+			else {
+				Event_Queue_Dialog_Run(1410);
+				Event_Queue_Dialog_Run(1411);
+				Event_Queue_Object_WalkTo(70, 30440, 5880, 1, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(1412);
+				Event_Queue_Dialog_Run(1413);
+				Event_Queue_Dialog_Run(1414);
+				Event_Queue_Object_WalkTo(70, 30440, 5912, 2, OBJECT_DIRECTION_DOWN);
+				
+				Event_Queue_EngageBattle(88, 70);
+				Event_Queue_Object_Destroy(70);
+				
+				Event_Queue_Dialog_Run(1415);
+				Event_Queue_Dialog_Run(1416);
+			}
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_PLOT, 255);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 87: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_WaitFrames(50);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(13400, 15208, 0.5);
+			Event_Queue_Object_WalkTo(0, 13352, 15224, 1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(1, 13320, 15192, 0.5, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(2, 13320, 15256, 0.5, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(3, 13288, 15224, 0.5, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(70);
+			Event_Queue_Object_TeleportToRelative(70, -1, 0);
+			Event_Queue_WaitFrames(24);
+			Event_Queue_Object_TeleportToRelative(70, 2, 0);
+			Event_Queue_WaitFrames(24);
+			Event_Queue_Object_TeleportToRelative(70, -2, 0);
+			Event_Queue_WaitFrames(16);
+			Event_Queue_Object_TeleportToRelative(70, 2, 0);
+			Event_Queue_WaitFrames(16);
+			Event_Queue_Object_TeleportToRelative(70, -2, 0);
+			Event_Queue_WaitFrames(16);
+			Event_Queue_Object_TeleportToRelative(70, 2, 0);
+			Event_Queue_WaitFrames(16);
+			Event_Queue_Object_TeleportToRelative(70, -2, 0);
+			Event_Queue_WaitFrames(8);
+			Event_Queue_Object_TeleportToRelative(70, 2, 0);
+			Event_Queue_WaitFrames(8);
+			Event_Queue_Object_TeleportToRelative(70, -2, 0);
+			Event_Queue_WaitFrames(8);
+			Event_Queue_Object_TeleportToRelative(70, 2, 0);
+			Event_Queue_WaitFrames(8);
+			Event_Queue_Object_TeleportToRelative(70, -1, 0);
+			Event_Queue_Object_JumpToRelative(70, 0, -320, -1, 0, 40);
+			Event_Queue_Object_TeleportToRelative(70, -16, -16);
+			Event_Queue_Object_JumpToRelative(70, 0, 320, -1, 0, 20);
+			Event_Queue_PlaySound(SND_thunder);
+			Event_Queue_Overworld_ShakeScreen(57);
+			Event_Queue_Object_EnableFighterSprite(0, 1, 1, FIGHTER_STATE_ATTACK1);
+			Event_Queue_Object_EnableFighterSprite(1, 2, 3, FIGHTER_STATE_ATTACK1);
+			Event_Queue_Object_EnableFighterSprite(2, 3, 4, FIGHTER_STATE_ATTACK1);
+			Event_Queue_Object_EnableFighterSprite(3, 79, 88, FIGHTER_STATE_ATTACK1);
+			Event_Queue_WaitFrames(180);
+			
+			Event_Queue_StopMusic();
+			Event_Queue_EngageBattle(100, 70);
+			Event_Queue_SetIntPtr(&overworld.overlayId, 0);
+			Event_Queue_Object_Destroy(70);
+			
+			Event_Queue_Object_DisableFighterSprite(0);
+			Event_Queue_Object_DisableFighterSprite(1);
+			Event_Queue_Object_DisableFighterSprite(2);
+			Event_Queue_Object_DisableFighterSprite(3);
+			Event_Queue_WaitFrames(114);
+			
+			Event_Queue_Regroup(0.5);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_PLOT, 300);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 88: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Camera_MoveTo(4776, 15256, 0.5);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(53);
+			Event_Queue_Dialog_Run(3159);
+			Event_Queue_Object_WalkTo(70, 4880, 15122, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(70, 4848, 15024, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(70, 5096, 14976, 2, OBJECT_DIRECTION_RIGHT);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_CreateTrigger(11, 4560, 14880, 4656, 14896, 89);
+			Event_Queue_SetFlag(FLAG_PLOT, 301);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 89: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(3172);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 90: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(3160);
+			Event_Queue_Object_WalkTo(70, 5144, 14976, 2, -1);
+			Event_Queue_Object_WalkTo(70, 5216, 15144, 2, -1);
+			Event_Queue_Object_JumpTo(70, 5144, 15360, OBJECT_DIRECTION_LEFT, 16, 4);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 91: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(3162);
+			Event_Queue_Object_WalkTo(70, 4984, 15360, 2, -1);
+			Event_Queue_Object_JumpTo(70, 4568, 15448, OBJECT_DIRECTION_UP, 16, 4);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 92: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(3163);
+			Event_Queue_Object_WalkTo(70, 4376, 15408, 2, -1);
+			Event_Queue_Object_JumpTo(70, 4288, 15592, OBJECT_DIRECTION_DOWN, 16, 4);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 93: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(3164);
+			Event_Queue_Object_WalkTo(70, 4464, 15728, 2, -1);
+			Event_Queue_Object_JumpTo(70, 4768, 15904, OBJECT_DIRECTION_RIGHT, 16, 4);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 94: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(3165);
+			Event_Queue_Object_WalkTo(70, 4816, 15904, 2, -1);
+			Event_Queue_Object_WalkTo(70, 4968, 15760, 2, -1);
+			Event_Queue_Object_JumpTo(70, 5256, 15712, OBJECT_DIRECTION_RIGHT, 16, 4);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 95: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(3166);
+			Event_Queue_Object_WalkTo(70, 5272, 15792, 2, -1);
+			Event_Queue_Object_WalkTo(70, 5128, 15808, 2, -1);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 96: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(3167);
+			Event_Queue_Object_WalkTo(70, 5112, 15888, 2, -1);
+			Event_Queue_Object_WalkTo(70, 5256, 15904, 2, -1);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 97: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(3168);
+			Event_Queue_Object_WalkTo(70, 5408, 15904, 2, -1);
+			Event_Queue_Object_JumpTo(70, 5472, 15440, OBJECT_DIRECTION_UP, 16, 4);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 98: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(3169);
+			Event_Queue_Object_WalkTo(70, 5472, 15312, 2, -1);
+			Event_Queue_Object_JumpTo(70, 6288, 15648, OBJECT_DIRECTION_UP, 16, 4);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 99: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Camera_MoveTo(6288, 15644, 0.5);
+			Event_Queue_WaitFrames(6);
+			for (int i = 0; i < 64; i++) {
+				Event_Queue_SetTempFlag(TEMPFLAG_POSTFINALDIALOG_BRIGHTNESS, 3 + i * 4);
+				Event_Queue_WaitFrames(1);
+			}
+			Event_Queue_WaitFrames(58);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+			Event_Queue_WaitFrames(16);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(3170);
+			Event_Queue_WaitFrames(76);
+			Event_Queue_Dialog_Run(3171);
+			Event_Queue_Object_WalkTo(70, 6288, 15618, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_SetColor(70, 191, 191, 191);
+			Event_Queue_WaitFrames(28);
+			Event_Queue_Object_SetColor(70, 127, 127, 127);
+			Event_Queue_WaitFrames(28);
+			Event_Queue_Object_SetColor(70, 63, 63, 63);
+			Event_Queue_WaitFrames(28);
+			Event_Queue_Object_Destroy(70);
+			for (int i = 0; i < 32; i++) {
+				Event_Queue_SetTempFlag(TEMPFLAG_POSTFINALDIALOG_BRIGHTNESS, 248 - i * 8);
+				Event_Queue_WaitFrames(1);
+			}
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 100: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_Camera_MoveTo(6704, 16056, 1);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 6704, 16056, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(32);
+			Event_Queue_Object_WalkTo(1, 6664, 16104, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(2, 6744, 16104, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(3, 6704, 16104, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(58);
+			Event_Queue_Object_ToggleGhost(10, true);
+			Event_Queue_Object_WalkToPointer(10, 0, -320, 2, OBJECT_DIRECTION_UP, &overworld.player.x, &overworld.player.y);
+			Event_Queue_WaitFrames(37);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_raisehands);
+			Event_Queue_Object_WalkToPointer(10, 0, -36, 2, OBJECT_DIRECTION_UP, &overworld.player.x, &overworld.player.y);
+			Event_Queue_PlaySound(SND_introwakeup);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Overworld_FadeIn(120, 255, 255, 255);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_StopMusic();
+			Event_Queue_StopAllSounds();
+			Event_Queue_PlaySound(SND_firemassattack);
+			Event_Queue_Overworld_FadeIn(1, 255, 127, 0);
+			Event_Queue_Object_Destroy(10);
+			Event_Queue_WaitFrames(6);
+			Event_Queue_Overworld_FadeOut(1, 255, 127, 0);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_WaitFrames(68);
+			Event_Queue_Dialog_Run(1420);
+			Event_Queue_Dialog_Run(1421);
+			Event_Queue_Dialog_Run(1422);
+			Event_Queue_PlaySound(SND_swing);
+			Event_Queue_CreateSpark(3, 6704, 16016, 0);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(24);
+			Event_Queue_CreateSpark(4, 6704, 16016, 0);
+			Event_Queue_PlaySound(SND_explode);
+			Event_Queue_Overworld_ShakeScreen(16);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(6704, 16088, 3);
+			Event_Queue_Object_JumpTo(0, 6704, 16104, OBJECT_DIRECTION_UP, 16, 8);
+			Event_Queue_Object_JumpTo(1, 6664, 16136, OBJECT_DIRECTION_UP, 16, 8);
+			Event_Queue_Object_JumpTo(2, 6744, 16136, OBJECT_DIRECTION_UP, 16, 8);
+			Event_Queue_Object_JumpTo(3, 6704, 16168, OBJECT_DIRECTION_UP, 16, 8);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(65);
+			Event_Queue_Dialog_Run(1423);
+			Event_Queue_Dialog_Run(1424);
+			Event_Queue_Dialog_Run(1425);
+			Event_Queue_Dialog_Run(1426);
+			Event_Queue_CreateObject(70, 1, SPR_misc_lulu_god_entry, 6704, 15920, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(70, 0.125);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_JumpTo(70, 6704, 16064, OBJECT_DIRECTION_UP, 32, 390);
+			Event_Queue_WaitFrames(92);
+			Event_Queue_PlaySound(SND_ruentry);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(4);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_god_entryland);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(70, 0);
+			Event_Queue_WaitFrames(58);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_WaitFrames(16);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_lulu_god);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(16);
+			Event_Queue_PlayMusic(MUS_lastresort_intro);
+			Event_Queue_Dialog_Run(1427);
+			Event_Queue_Dialog_Run(1428);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_god_entryland);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_Dialog_Run(1429);
+			Event_Queue_Dialog_Run(1430);
+			Event_Queue_Dialog_Run(1431);
+			Event_Queue_Dialog_Run(1432);
+			Event_Queue_WaitFrames(16);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_WaitFrames(16);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_lulu_god);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(26);
+			Event_Queue_Dialog_Run(1433);
+			Event_Queue_Dialog_Run(1434);
+			Event_Queue_Dialog_Run(1435);
+			Event_Queue_Object_JumpToRelative(2, 0, 0, OBJECT_DIRECTION_UP, 16, 12);
+			Event_Queue_Dialog_Run(1436);
+			Event_Queue_Dialog_Run(1437);
+			Event_Queue_Dialog_Run(1438);
+			Event_Queue_Dialog_Run(1439);
+			Event_Queue_Dialog_Run(1440);
+			
+			Event_Queue_StopMusic();
+			Event_Queue_EngageBattle(101, 70);
+			
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_collapse_ruby);
+			Event_Queue_Object_ChangeSpriteFrame(0, 1);
+			Event_Queue_Object_ChangeSpriteId(1, SPR_owchar_collapse_noah);
+			Event_Queue_Object_ChangeSpriteFrame(1, 1);
+			Event_Queue_Object_ChangeSpriteId(2, SPR_owchar_collapse_emmet);
+			Event_Queue_Object_ChangeSpriteFrame(2, 1);
+			Event_Queue_Object_ChangeSpriteId(3, SPR_owchar_collapse_sally_neo);
+			Event_Queue_Object_ChangeSpriteFrame(3, 1);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_PlayMusic(MUS_oh);
+			Event_Queue_Dialog_Run(1441);
+			Event_Queue_WaitFrames(40);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1442);
+			Event_Queue_Dialog_Run(1443);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_shrug);
+			Event_Queue_Dialog_Run(1444);
+			Event_Queue_Dialog_Run(237);
+			Event_Queue_Dialog_Run(1445);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_god_rage);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_Dialog_Run(1446);
+			Event_Queue_StopMusic();
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Object_EnableFighterSprite(70, 82, 94, FIGHTER_STATE_ATTACK1);
+			Event_Queue_Dialog_Run(1447);
+			Event_Queue_WaitFrames(82);
+			Event_Queue_Dialog_Run(149);
+			Event_Queue_Overworld_FadeIn(1, 0, 0, 0);
+			Event_Queue_PlaySound(SND_swing);
+			Event_Queue_Object_EnableFighterSprite(70, 82, 94, FIGHTER_STATE_ATTACK3);
+			Event_Queue_WaitFrames(231);
+			Event_Queue_Overworld_FadeOut(1, 0, 0, 0);
+			Event_Queue_WaitFrames(131);
+			Event_Queue_Object_DisableFighterSprite(70);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_lulu_god);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(104);
+			Event_Queue_Dialog_Run(1448);
+			Event_Queue_Dialog_Run(1449);
+			Event_Queue_Dialog_Run(1450);
+			Event_Queue_PlaySound(SND_poison);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_god_cry);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_Object_TeleportToRelative(70, -2, 0);
+			Event_Queue_WaitFrames(2);
+			Event_Queue_Object_TeleportToRelative(70, 3, 0);
+			Event_Queue_WaitFrames(2);
+			Event_Queue_Object_TeleportToRelative(70, -2, 0);
+			Event_Queue_WaitFrames(2);
+			Event_Queue_Object_TeleportToRelative(70, 1, 0);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Dialog_Run(1451);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_Overworld_ShakeScreen(16);
+			Event_Queue_Dialog_Run(1452);
+			Event_Queue_Object_ChangeSpriteFrame(70, 2);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_ChangeSpriteId(1, SPR_owchar_noah);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeSpriteId(2, SPR_owchar_emmet);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeSpriteId(3, SPR_owchar_sally_neo);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_ChangeEvent(101);
+		} break;
+		
+		case 101: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 6704, 16088, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(1, 6664, 16108, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(2, 6744, 16112, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(3, 6704, 16116, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_Dialog_Run(1453);
+			Event_Queue_Dialog_Run(1454);
+			Event_Queue_Dialog_Run(1455);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_Dialog_Run(1456);
+			Event_Queue_Object_ChangeSpriteFrame(70, 2);
+			Event_Queue_Dialog_Run(1457);
+			Event_Queue_Dialog_Run(1458);
+			Event_Queue_Dialog_Run(1459);
+			Event_Queue_Object_WalkTo(0, 6688, 16064, 0.5, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1460);
+			Event_Queue_Dialog_Run(1461);
+			Event_Queue_Object_JumpToRelative(2, 0, 0, OBJECT_DIRECTION_UP, 16, 12);
+			Event_Queue_Dialog_Run(1462);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Object_EnableFighterSprite(3, 79, 88, FIGHTER_STATE_ATTACK1);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_JumpToRelative(2, 16, 0, OBJECT_DIRECTION_LEFT, 0, 6);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Dialog_Run(1463);
+			Event_Queue_Object_DisableFighterSprite(3);
+			Event_Queue_Object_WalkToRelative(2, -16, 0, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1464);
+			Event_Queue_Dialog_Run(1465);
+			Event_Queue_Object_ChangeSpriteFrame(70, 2);
+			Event_Queue_Dialog_Run(1466);
+			Event_Queue_Dialog_Run(1467);
+			Event_Queue_Dialog_Run(1468);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+			Event_Queue_JumpIfEqual(1);
+			
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_JumpToRelative(0, 6, 0.125, OBJECT_DIRECTION_RIGHT, 0, 6);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_hug);
+			Event_Queue_WaitFrames(140);
+			Event_Queue_Object_ChangeSpriteFrame(70, 3);
+			Event_Queue_Dialog_Run(1469);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Dialog_Run(1470);
+			Event_Queue_Object_WalkTo(1, 6720, 16080, 0.5, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(1, 6720, 16064, 0.5, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1471);
+			Event_Queue_Object_JumpToRelative(1, -6, 0.125, OBJECT_DIRECTION_LEFT, 0, 6);
+			Event_Queue_Object_ChangeSpriteId(1, SPR_misc_noah_hug);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_WaitFrames(126);
+			Event_Queue_Dialog_Run(1472);
+			Event_Queue_WaitFrames(36);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Object_ChangeSpriteId(1, SPR_owchar_noah);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_JumpToRelative(0, -6, -0.125, OBJECT_DIRECTION_RIGHT, 0, 6);
+			Event_Queue_Object_JumpToRelative(1, 6, -0.125, OBJECT_DIRECTION_LEFT, 0, 6);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_lulu_god);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 6704, 16088, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(1, 6664, 16108, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_Dialog_Run(1474);
+			Event_Queue_Jump(0);
+			
+			Event_Queue_Label(1);
+			Event_Queue_Object_WalkTo(0, 6704, 16088, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1473);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_lulu_god);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(70);
+			
+			Event_Queue_Label(0);
+			Event_Queue_Dialog_Run(1475);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(71);
+			Event_Queue_PlaySound(SND_chess_check);
+			Event_Queue_CreateNPC(10, 60000, 6704, 16024, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(95);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(6704, 16056, 0.5);
+			Event_Queue_Object_WalkTo(70, 6736, 16064, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_QueueWalkTo(70, 6736, 15992, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_QueueWalkTo(70, 6704, 15992, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_Dialog_Run(1476);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+			Event_Queue_Dialog_Run(1477);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1478);
+			Event_Queue_Object_WalkTo(70, 6704, 15936, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_Destroy(70);
+			
+			Event_Queue_Camera_MoveTo(6704, 16056, 1);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 6704, 16056, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(32);
+			Event_Queue_Object_WalkTo(1, 6664, 16104, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(2, 6744, 16104, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(3, 6704, 16104, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(58);
+			Event_Queue_Object_ToggleGhost(10, true);
+			Event_Queue_Object_WalkToPointer(10, 0, -320, 2, OBJECT_DIRECTION_UP, &overworld.player.x, &overworld.player.y);
+			Event_Queue_WaitFrames(37);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_raisehands);
+			Event_Queue_Object_WalkToPointer(10, 0, -36, 2, OBJECT_DIRECTION_UP, &overworld.player.x, &overworld.player.y);
+			Event_Queue_PlaySound(SND_introwakeup);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Overworld_FadeIn(120, 255, 255, 255);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Object_Destroy(10);
+			Event_Queue_CreateNPC(10, 70000, 6704, 16028, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Overworld_FadeOut(30, 255, 255, 255);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Profile_KeyItemAdd(250);
+			Event_Queue_FullyHealParty();
+			Event_Queue_Dialog_Run(3070);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_PLOT, 500);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_ChangeEvent(102);
+		} break;
+		
+		case 102: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_Dialog_Run(3061);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+			Event_Queue_JumpIfEqual(1);
+			Event_Queue_Dialog_Run(3064);
+			
+			Event_Queue_Label(1);
+			Event_Queue_FadeOutMusic(1500);
+			Event_Queue_Overworld_FadeIn(90, 0, 0, 0);
+			Event_Queue_WaitFrames(30);
+			
+			Event_Queue_Party_Leave(1);
+			Event_Queue_Profile_InventoryPartyOrderRemove(1);
+			Event_Queue_Party_Leave(2);
+			Event_Queue_Profile_InventoryPartyOrderRemove(2);
+			Event_Queue_Party_Leave(3);
+			Event_Queue_Profile_InventoryPartyOrderRemove(3);
+			
+			Event_Queue_PlaySound(SND_encountermg_slow);
+			Event_Queue_WaitFrames(240);
+			Event_Queue_GotoArea(240, 280, 10376, -1);
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 103: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(280, 9776, 0.5);
+			Event_Queue_Object_WalkTo(0, 280, 9824, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(35);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			if (profile.flags[FLAG_RUBY_GODMODE]) {
+				Event_Queue_Dialog_Run(3233);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_WaitFrames(66);
+				Event_Queue_Dialog_Run(3234);
+			}
+			else {
+				Event_Queue_Dialog_Run(3173);
+				Event_Queue_Dialog_Run(3174);
+				Event_Queue_Dialog_Run(3175);
+				Event_Queue_Dialog_Run(3176);
+				Event_Queue_Dialog_Run(3177);
+				Event_Queue_WaitFrames(66);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+				Event_Queue_Dialog_Run(3178);
+			}
+			Event_Queue_Object_ToggleGhost(70, true);
+			Event_Queue_Object_WalkTo(70, 280, 9744, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_SetColor(70, 191, 191, 191);
+			Event_Queue_Object_WalkTo(70, 280, 9736, 0.25, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_SetColor(70, 127, 127, 127);
+			Event_Queue_Object_WalkTo(70, 280, 9728, 0.25, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_SetColor(70, 63, 63, 63);
+			Event_Queue_Object_WalkTo(70, 280, 9720, 0.25, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_WaitFrames(95);
+			Event_Queue_Object_ToggleGhost(0, true);
+			Event_Queue_Object_WalkTo(0, 280, 9744, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ToggleGhost(0, false);
+			Event_Queue_FadeOutMusic(1500);
+			Event_Queue_Overworld_FadeIn(120, 0, 0, 0);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_GotoArea(251, 280, 11896, -1);
+			Event_Queue_Overworld_FadeOut(60, 0, 0, 0);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 104: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_FadeOutMusic(1000);
+			Event_Queue_Overworld_FadeIn(60, 0, 0, 0);
+			Event_Queue_WaitFrames(30);
+			if (profile.flags[FLAG_RUBY_GODMODE]) {
+				Event_Queue_Dialog_Run(3235);
+			}
+			else {
+				Event_Queue_Dialog_Run(3179);
+			}
+			Event_Queue_WaitFrames(60);
+			Event_Queue_GotoArea(252, 1120, 10576, -1);
+			Event_Queue_Overworld_FadeOut(1, 0, 0, 0);
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 105: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_Camera_TogglePlayerFollow(true);
+			Event_Queue_StopMusic();
+			Event_Queue_PlaySound(SND_introwakeup);
+			Event_Queue_SetSync(true);
+			//Event_Queue_Object_WalkTo(0, 2552, 11640, 0.125, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkToRelative(0, 0, -40, 0.125, OBJECT_DIRECTION_UP);
+			Event_Queue_Overworld_FadeIn(240, 255, 255, 255);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(30);
+			
+			if (profile.flags[FLAG_NOAH_JOINED]) {
+				Event_Queue_Party_Join(1);
+				Event_Queue_Profile_InventoryPartyOrderAdd(1);
+			}
+			if (profile.flags[FLAG_EMMET_JOINED]) {
+				Event_Queue_Party_Join(2);
+				Event_Queue_Profile_InventoryPartyOrderAdd(2);
+			}
+			if (profile.flags[FLAG_SALLY_JOINED]) {
+				Event_Queue_Party_Join(3);
+				Event_Queue_Profile_InventoryPartyOrderAdd(3);
+			}
+			
+			Event_Queue_GotoArea(202, 6704, 16064, -1);
+			if (profile.flags[FLAG_ALONE]) {
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+				Event_Queue_Overworld_FadeOut(120, 255, 255, 255);
+				
+				Event_Queue_Regroup(1);
+			}
+			else {
+				Event_Queue_Object_TeleportTo(1, 6664, 16104);
+				Event_Queue_Object_TeleportTo(2, 6744, 16104);
+				Event_Queue_Object_TeleportTo(3, 6704, 16104);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
+				Event_Queue_Overworld_FadeOut(120, 255, 255, 255);
+				Event_Queue_WaitFrames(47);
+				Event_Queue_Dialog_Run(1480);
+				Event_Queue_Dialog_Run(1481);
+				
+				Event_Queue_Regroup(1);
+				Event_Queue_Dialog_Run(1482);
+			}
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 106: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(2552, 11596, 0.5);
+			Event_Queue_Object_WalkTo(0, 2552, 11704, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(120);
+			
+			Event_Queue_StopMusic();
+			Event_Queue_EngageBattle(102, 10);
+			Event_Queue_Object_Destroy(10);
+			Event_Queue_WaitFrames(60);
+			
+			Event_Queue_Regroup(0.5);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 107: {
+			if (profile.flags[FLAG_METRO_LOCATION] == 0) {
+				overworld.map.doors[201].x2 = 9328; overworld.map.doors[201].y2 = 5424; overworld.map.doors[201].area2 = 0;
+			}
+			else if (profile.flags[FLAG_METRO_LOCATION] == 1) {
+				overworld.map.doors[201].x2 = 14448; overworld.map.doors[201].y2 = 7616; overworld.map.doors[201].area2 = 6;
+			}
+			else if (profile.flags[FLAG_METRO_LOCATION] == 2) {
+				overworld.map.doors[201].x2 = 26912; overworld.map.doors[201].y2 = 6960; overworld.map.doors[201].area2 = 80;
+			}
+			else {
+				overworld.map.doors[201].x2 = 21888; overworld.map.doors[201].y2 = 3712; overworld.map.doors[201].area2 = 150;
+			}
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 108: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+			Event_Queue_Dialog_Run(1486);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_SetFlag(FLAG_PLOT, 501);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 109: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(8608, 5312, 1);
+			Event_Queue_Object_WalkTo(0, 8568, 5304, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(1, 8648, 5304, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(2, 8608, 5272, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkTo(3, 8608, 5336, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(35);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(37);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(35);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1490);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1491);
+			Event_Queue_Dialog_Run(1492);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1493);
+			Event_Queue_Object_JumpToRelative(3, 0, 0, OBJECT_DIRECTION_LEFT, 16, 12);
+			Event_Queue_Dialog_Run(1494);
+			Event_Queue_Dialog_Run(1495);
+			
+			Event_Queue_Regroup(2);
+			Event_Queue_SetFlag(FLAG_PLOT, 502);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 110: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_PlaySound(SND_swing);
+			Event_Queue_Object_JumpTo(70, 12384, 11792, OBJECT_DIRECTION_RIGHT, 96, 35);
+			Event_Queue_FadeOutMusic(2000);
+			Event_Queue_PlaySound(SND_firemassattack);
+			Event_Queue_Object_ToggleWalkAnimation(0, false);
+			Event_Queue_Object_ToggleWalkAnimation(1, false);
+			Event_Queue_Object_ToggleWalkAnimation(2, false);
+			Event_Queue_Object_ToggleWalkAnimation(3, false);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_EnableFighterSprite(0, 1, 1, FIGHTER_STATE_HURT);
+			if (!profile.flags[FLAG_ALONE]) {
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_EnableFighterSprite(1, 2, 3, FIGHTER_STATE_HURT);
+				Event_Queue_Object_EnableFighterSprite(2, 3, 4, FIGHTER_STATE_HURT);
+				Event_Queue_Object_EnableFighterSprite(3, 4, 5, FIGHTER_STATE_HURT);
+			}
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_EnableFighterSprite(70, 16, 26, FIGHTER_STATE_ATTACK3);
+			Event_Queue_Overworld_FadeIn(1, 255, 255, 255);
+			Event_Queue_Object_WalkTo(0, 12448, 11792, 8, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(1, 12472, 11760, 8, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(2, 12472, 11824, 8, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(3, 12496, 11792, 8, OBJECT_DIRECTION_LEFT);
+			Event_Queue_WaitFrames(1);
+			Event_Queue_Overworld_FadeOut(1, 255, 255, 255);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_ToggleWalkAnimation(0, true);
+			Event_Queue_Object_ToggleWalkAnimation(1, true);
+			Event_Queue_Object_ToggleWalkAnimation(2, true);
+			Event_Queue_Object_ToggleWalkAnimation(3, true);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_Camera_MoveTo(12416, 11784, 1);
+			Event_Queue_PlayMusic(MUS_lu);
+			Event_Queue_Dialog_Run(1080);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_EnableFighterSprite(0, 1, 1, FIGHTER_STATE_IDLE);
+			if (!profile.flags[FLAG_ALONE]) {
+				Event_Queue_Object_EnableFighterSprite(1, 2, 3, FIGHTER_STATE_IDLE);
+				Event_Queue_Object_EnableFighterSprite(2, 3, 4, FIGHTER_STATE_IDLE);
+				Event_Queue_Object_EnableFighterSprite(3, 4, 5, FIGHTER_STATE_IDLE);
+			}
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_EnableFighterSprite(70, 16, 26, FIGHTER_STATE_IDLE);
+			Event_Queue_Dialog_Run(profile.flags[FLAG_ALONE] ? 1087 : 1081);
+			Event_Queue_Object_DisableFighterSprite(70);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_omega_rage);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_Dialog_Run(1082);
+			
+			Event_Queue_EngageBattle(22, 70);
+			Event_Queue_Object_ChangeSpriteId(70, -1);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_EnableFighterSprite(70, 16, 26, FIGHTER_STATE_HURT);
+			Event_Queue_WaitFrames(140);
+			Event_Queue_Object_DisableFighterSprite(0);
+			if (!profile.flags[FLAG_ALONE]) {
+				Event_Queue_Object_DisableFighterSprite(1);
+				Event_Queue_Object_DisableFighterSprite(2);
+				Event_Queue_Object_DisableFighterSprite(3);
+			}
+			Event_Queue_Object_DisableFighterSprite(70);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_lulu_omega_rage);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_Dialog_Run(1083);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_EnableFighterSprite(70, 16, 26, FIGHTER_STATE_IDLE);
+			Event_Queue_Dialog_Run(1084);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_EnableFighterSprite(70, 16, 26, FIGHTER_STATE_RUN);
+			Event_Queue_FadeOutMusic(2000);
+			Event_Queue_Object_JumpTo(70, 11848, 11656, OBJECT_DIRECTION_LEFT, 64, 60);
+			Event_Queue_Object_Destroy(70);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_SetFlag(FLAG_PLOT, 135);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 111: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(21992, 3464, 2);
+			Event_Queue_Object_WalkTo(0, 21964, 3464, 1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_SetSync(false);
+			Event_Queue_Dialog_Run(1510);
+			
+			Event_Queue_Regroup(2);
+			Event_Queue_SetFlag(FLAG_PLOT, 151);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 112: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(25888, 3568, 1);
+			Event_Queue_Object_WalkTo(0, 25888, 3576, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(18);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_WalkTo(70, 25928, 3576, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1520);
+			Event_Queue_Dialog_Run(192);
+			Event_Queue_Dialog_Run(1524);
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_Camera_TeleportTo(29240, 3320);
+			Event_Queue_Object_TeleportTo(0, 29208, 3344);
+			Event_Queue_Object_TeleportTo(70, 29288, 3344);
+			Event_Queue_StopMusic();
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Dialog_Run(1521);
+			Event_Queue_Dialog_Run(1522);
+			Event_Queue_Dialog_Run(1523);
+			Event_Queue_PlayMusic(MUS_lastresort_pitchdown);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1525);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Dialog_Run(1526);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1527);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+			Event_Queue_Dialog_Run(1528);
+			Event_Queue_WaitFrames(86);
+			Event_Queue_Object_WalkTo(70, 29272, 3344, 0.5, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1529);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_panda_beamsword);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_Dialog_Run(1530);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_shrug);
+			Event_Queue_Dialog_Run(1531);
+			Event_Queue_Dialog_Run(1532);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_panda);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1533);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_panda_beamsword);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_Dialog_Run(1534);
+			Event_Queue_StopMusic();
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_PlaySound(SND_saw);
+			Event_Queue_PlaySound(SND_beamsword);
+			Event_Queue_Object_ChangeSpriteFrame(70, 2);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_ChangeSpriteFrame(70, 3);
+			Event_Queue_WaitFrames(55);
+			Event_Queue_Object_EnableFighterSprite(70, 83, 96, FIGHTER_STATE_ATTACK1);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1535);
+			
+			Event_Queue_EngageBattle(103, 70);
+			
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Object_DisableFighterSprite(70);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_collapse_panda);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_WaitFrames(73);
+			Event_Queue_Dialog_Run(1555);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Dialog_Run(1556);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_TeleportToRelative(70, -0.5, 0);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_TeleportToRelative(70, 1, 0);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_TeleportToRelative(70, -1, 0);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_TeleportToRelative(70, 1, 0);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_TeleportToRelative(70, -1, 0);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_Object_TeleportToRelative(70, 0.5, 0);
+			Event_Queue_Dialog_Run(1557);
+			Event_Queue_PlaySound(SND_poison);
+			Event_Queue_CreateNPC(40, 132, 29272, 3344, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_CreateObject(41, 1, SPR_misc_collapseblood, 29272, 3343, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Object_ChangeSpriteFrame(41, 1);
+			Event_Queue_WaitFrames(150);
+			
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_shrug);
+			Event_Queue_Dialog_Run(1558);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_SetFlag(FLAG_SAPPHIREHOTEL_PLOT, 3);
+			Event_Queue_SetFlag(FLAG_ALONE_PLOT, 40);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 113: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Object_WalkTo(70, overworld.player.x, 9688, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1570);
+			Event_Queue_Dialog_Run(1571);
+			Event_Queue_Dialog_Run(1572);
+			Event_Queue_Dialog_Run(1573);
+			Event_Queue_Dialog_Run(1574);
+			Event_Queue_Dialog_Run(192);
+			Event_Queue_Dialog_Run(1575);
+			Event_Queue_Dialog_Run(2395);
+			Event_Queue_Dialog_Run(1576);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkToRelative(0, 40, -4, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(70, 30072, 9688, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(70, 30072, 9728, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_WaitFrames(15);
+			
+			Event_Queue_Regroup(2);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_AMPERCORP_FLOORS_UNLOCKED, 7);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 114: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_Camera_MoveTo(31496, 13164, 2);
+			Event_Queue_WaitFrames(40);
+			Event_Queue_Dialog_Run(1580);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_amp);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 31032, 13168, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_JumpTo(70, 31544, 13160, OBJECT_DIRECTION_DOWN, 8, 12);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(8);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1581);
+			Event_Queue_Object_EnableFighterSprite(70, 40, 42, FIGHTER_STATE_RUN);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(31096, 13164, 12);
+			Event_Queue_Object_JumpTo(70, 31096, 13168, OBJECT_DIRECTION_LEFT, 64, 60);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_DisableFighterSprite(70);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_amp_kneel);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_PlaySound(SND_thunder);
+			Event_Queue_Overworld_ShakeScreen(16);
+			Event_Queue_PlayMusic(MUS_scary2);
+			Event_Queue_WaitFrames(31);
+			Event_Queue_Dialog_Run(1582);
+			Event_Queue_Dialog_Run(192);
+			Event_Queue_Dialog_Run(1583);
+			Event_Queue_Dialog_Run(1584);
+			Event_Queue_Dialog_Run(1585);
+			
+			Event_Queue_StopMusic();
+			Event_Queue_EngageBattle(48, 70);
+			Event_Queue_Object_EnableFighterSprite(70, 40, 42, FIGHTER_STATE_HURT);
+			
+			Event_Queue_WaitFrames(115);
+			Event_Queue_Object_DisableFighterSprite(70);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_Dialog_Run(1586);
+			if (profile.flags[FLAG_ALONE_PLOT] >= 40) {
+				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_beamsword);
+				Event_Queue_Object_ChangeSpriteFrame(0, 1);
+				Event_Queue_PlaySound(SND_saw);
+				Event_Queue_PlaySound(SND_beamsword);
+				Event_Queue_WaitFrames(6);
+				Event_Queue_Object_ChangeSpriteFrame(0, 2);
+				Event_Queue_WaitFrames(10);
+				Event_Queue_Object_EnableFighterSprite(0, 1, 10, FIGHTER_STATE_IDLE);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Dialog_Run(1587);
+				Event_Queue_Dialog_Run(1588);
+				Event_Queue_Dialog_Run(1589);
+				Event_Queue_Object_EnableFighterSprite(0, 1, 10, FIGHTER_STATE_ATTACK1);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Object_ChangeSpriteFrame(70, 2);
+				Event_Queue_Dialog_Run(1590);
+				Event_Queue_Object_DisableFighterSprite(0);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_shrug);
+				Event_Queue_Dialog_Run(1591);
+				Event_Queue_Dialog_Run(1592);
+				Event_Queue_Object_EnableFighterSprite(0, 1, 10, FIGHTER_STATE_IDLE);
+				Event_Queue_Dialog_Run(1593);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(1);
+				
+				Event_Queue_WaitFrames(96);
+				Event_Queue_Dialog_Run(1596);
+				Event_Queue_Dialog_Run(1597);
+				Event_Queue_WaitFrames(20);
+				Event_Queue_Object_DisableFighterSprite(0);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_beamsword);
+				Event_Queue_Object_ChangeSpriteFrame(0, 2);
+				Event_Queue_WaitFrames(12);
+				Event_Queue_Object_ChangeSpriteFrame(0, 1);
+				Event_Queue_WaitFrames(6);
+				Event_Queue_Object_ChangeSpriteFrame(0, 0);
+				Event_Queue_WaitFrames(12);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+				Event_Queue_WaitFrames(12);
+				Event_Queue_PlayMusic(MUS_blue);
+				Event_Queue_Dialog_Run(1598);
+				Event_Queue_Object_ChangeSpriteFrame(70, 1);
+				Event_Queue_Dialog_Run(1599);
+				Event_Queue_AddCash(100000);
+				Event_Queue_Dialog_Run(1606);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_amp);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+				Event_Queue_WaitFrames(60);
+				Event_Queue_Dialog_Run(1604);
+				
+				Event_Queue_SetSync(true);
+				Event_Queue_Object_WalkTo(0, 31320, 13080, 2, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_QueueWalkTo(0, 31320, 13064, 2, OBJECT_DIRECTION_UP);
+				Event_Queue_Camera_MoveTo(31320, 13060, 2);
+				Event_Queue_WaitFrames(68);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+				Event_Queue_SetSync(false);
+				Event_Queue_WaitFrames(30);
+				
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(1605);
+				Event_Queue_Object_WalkTo(70, 31544, 13224, 6, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_JumpTo(70, 31544, 13156, OBJECT_DIRECTION_LEFT, 32, 20);
+				Event_Queue_Object_Destroy(70);
+				Event_Queue_CreateNPC(11, 128, 31544, 13156, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeSpriteId(11, SPR_misc_amp_sit);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(1);
+				Event_Queue_Object_EnableFighterSprite(0, 1, 10, FIGHTER_STATE_BLOCK);
+				Event_Queue_Dialog_Run(1594);
+				Event_Queue_Object_EnableFighterSprite(0, 1, 10, FIGHTER_STATE_RUN);
+				Event_Queue_PlaySound(SND_swing);
+				Event_Queue_SetSync(true);
+				Event_Queue_Object_JumpTo(0, 31072, 13168, OBJECT_DIRECTION_RIGHT, 0, 8);
+				Event_Queue_Dialog_Run(1595);
+				Event_Queue_SetSync(false);
+				Event_Queue_Overworld_FadeIn(1, 0, 0, 0);
+				Event_Queue_PlaySound(SND_hit3);
+				Event_Queue_SetFlag(FLAG_ALONE_PLOT, 50);
+				Event_Queue_WaitFrames(150);
+				Event_Queue_PlaySound(SND_poison);
+				Event_Queue_WaitFrames(174);
+				Event_Queue_Object_EnableFighterSprite(0, 1, 10, FIGHTER_STATE_IDLE);
+				Event_Queue_Object_Destroy(70);
+				Event_Queue_CreateNPC(11, 128, 31096, 13168, OBJECT_DIRECTION_DOWN);
+				Event_Queue_CreateObject(12, 1, SPR_misc_collapseblood, 31096, 13167, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+				Event_Queue_WaitFrames(63);
+				Event_Queue_Object_ChangeSpriteFrame(12, 1);
+				Event_Queue_WaitFrames(140);
+				Event_Queue_Object_DisableFighterSprite(0);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_beamsword);
+				Event_Queue_Object_ChangeSpriteFrame(0, 2);
+				Event_Queue_WaitFrames(12);
+				Event_Queue_Object_ChangeSpriteFrame(0, 1);
+				Event_Queue_WaitFrames(6);
+				Event_Queue_Object_ChangeSpriteFrame(0, 0);
+				Event_Queue_WaitFrames(12);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+				Event_Queue_WaitFrames(12);
+				
+				Event_Queue_SetSync(true);
+				Event_Queue_Object_WalkTo(0, 31320, 13080, 2, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_QueueWalkTo(0, 31320, 13064, 2, OBJECT_DIRECTION_UP);
+				Event_Queue_Camera_MoveTo(31320, 13060, 2);
+				Event_Queue_SetSync(false);
+				
+				Event_Queue_Label(0);
+			}
+			else {
+				Event_Queue_PlayMusic(MUS_blue);
+				Event_Queue_Dialog_Run(1600);
+				Event_Queue_Dialog_Run(1601);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+				Event_Queue_Dialog_Run(1602);
+				Event_Queue_Object_ChangeSpriteId(70, SPR_owchar_amp);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+				Event_Queue_WaitFrames(60);
+				Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Dialog_Run(1603);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+				
+				Event_Queue_Object_WalkTo(70, 31544, 13224, 6, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_JumpTo(70, 31544, 13156, OBJECT_DIRECTION_LEFT, 32, 20);
+				Event_Queue_Object_Destroy(70);
+				Event_Queue_CreateNPC(11, 128, 31544, 13156, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeSpriteId(11, SPR_misc_amp_sit);
+				
+				Event_Queue_SetSync(true);
+				Event_Queue_Object_WalkTo(0, 31320, 13080, 2, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_QueueWalkTo(0, 31320, 13064, 2, OBJECT_DIRECTION_UP);
+				Event_Queue_Camera_MoveTo(31320, 13060, 2);
+				Event_Queue_SetSync(false);
+			}
+			
+			Event_Queue_Object_ToggleGhost(10, true);
+			Event_Queue_Object_WalkToPointer(10, 0, -320, 2, OBJECT_DIRECTION_UP, &overworld.player.x, &overworld.player.y);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_raisehands);
+			Event_Queue_Object_WalkToPointer(10, 0, -36, 2, OBJECT_DIRECTION_UP, &overworld.player.x, &overworld.player.y);
+			Event_Queue_PlaySound(SND_introwakeup);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Overworld_FadeIn(120, 255, 255, 255);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Object_Destroy(10);
+			Event_Queue_CreateNPC(10, 70000, 31320, 13044, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Overworld_FadeOut(30, 255, 255, 255);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Profile_KeyItemAdd(254);
+			Event_Queue_FullyHealParty();
+			Event_Queue_Dialog_Run(3074);
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_PLOT, 250);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 115: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Object_WalkTo(70, overworld.player.x, 9688, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1570);
+			Event_Queue_Dialog_Run(1571);
+			Event_Queue_Dialog_Run(1572);
+			Event_Queue_Dialog_Run(1573);
+			Event_Queue_Dialog_Run(1574);
+			Event_Queue_Dialog_Run(192);
+			Event_Queue_Dialog_Run(1575);
+			Event_Queue_Dialog_Run(2395);
+			Event_Queue_Dialog_Run(1576);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkToRelative(0, 40, -4, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(70, 30072, 9688, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_QueueWalkTo(70, 30072, 9728, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_WaitFrames(15);
+			
+			Event_Queue_Regroup(2);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_AMPERCORP_FLOORS_UNLOCKED, 7);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 116: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_FadeOutMusic(4000);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(30296, 15020, 1);
+			Event_Queue_Object_WalkTo(0, 30264, 15024, 1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_SetSync(false);
+			
+			Event_Queue_WaitFrames(110);
+			Event_Queue_Object_JumpToRelative(10, 0, 0, OBJECT_DIRECTION_DOWN, 16, 12);
+			Event_Queue_Dialog_Run(1630);
+			Event_Queue_PlaySound(SND_birchswing2);
+			Event_Queue_Object_JumpTo(10, 30328, 15000, OBJECT_DIRECTION_LEFT, 48, 20);
+			Event_Queue_Dialog_Run(1631);
+			Event_Queue_Object_WalkTo(11, 30328, 15048, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(1632);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1633);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_JumpToRelative(11, 0, 0, OBJECT_DIRECTION_LEFT, 16, 12);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1634);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1635);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1636);
+			Event_Queue_WaitFrames(150);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(105);
+			Event_Queue_Dialog_Run(1637);
+			Event_Queue_Dialog_Run(1638);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_shrug);
+			Event_Queue_Dialog_Run(1639);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Dialog_Run(1640);
+			Event_Queue_Object_EnableFighterSprite(11, 85, 98, FIGHTER_STATE_IDLE);
+			Event_Queue_Dialog_Run(1641);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1642);
+			Event_Queue_Object_DisableFighterSprite(11);
+			Event_Queue_Dialog_Run(1643);
+			Event_Queue_Object_EnableFighterSprite(11, 85, 98, FIGHTER_STATE_IDLE);
+			Event_Queue_Dialog_Run(1644);
+			Event_Queue_Dialog_Run(1645);
+			Event_Queue_Dialog_Run(1646);
+			Event_Queue_Dialog_Run(1647);
+			Event_Queue_Dialog_Run(1648);
+			Event_Queue_Object_EnableFighterSprite(0, 1, 1, FIGHTER_STATE_IDLE);
+			Event_Queue_Dialog_Run(1649);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_EnableFighterSprite(10, 84, 97, FIGHTER_STATE_IDLE);
+			Event_Queue_Dialog_Run(1650);
+			
+			Event_Queue_StopMusic();
+			Event_Queue_EngageBattle(104, 10);
+			Event_Queue_Object_DisableFighterSprite(0);
+			Event_Queue_SetFlag(FLAG_ALONE_PLOT, 100);
+			Event_Queue_Object_Destroy(10);
+			Event_Queue_Object_Destroy(11);
+			Event_Queue_CreateNPC(10, 133, 30328, 15000, OBJECT_DIRECTION_DOWN);
+			Event_Queue_CreateNPC(11, 134, 30328, 15048, OBJECT_DIRECTION_DOWN);
+			Event_Queue_CreateObject(12, 1, SPR_misc_collapseblood, 30328, 14999, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteFrame(12, 1);
+			Event_Queue_CreateObject(13, 1, SPR_misc_collapseblood, 30328, 15047, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteFrame(13, 1);
+			Event_Queue_WaitFrames(90);
+			
+			Event_Queue_Regroup(0.5);
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 117: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_FadeOutMusic(2000);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(6704, 16104, 0.5);
+			Event_Queue_Object_WalkTo(0, 6704, 16152, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(60);
+			
+			Event_Queue_Dialog_Run(1670);
+			Event_Queue_Object_WalkTo(0, 6704, 16136, 0.25, OBJECT_DIRECTION_UP);
+			Event_Queue_PlayMusic(MUS_lastresort_intro);
+			Event_Queue_Dialog_Run(1671);
+			Event_Queue_Dialog_Run(1672);
+			Event_Queue_Dialog_Run(1673);
+			Event_Queue_Dialog_Run(1674);
+			Event_Queue_Dialog_Run(1675);
+			
+			Event_Queue_StopMusic();
+			Event_Queue_EngageBattle(101, 70);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby_god);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_CreateObject(70, 1, SPR_misc_collapseblood, 6704, 16072, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(60);
+			
+			Event_Queue_Camera_MoveTo(6704, 16056, 1);
+			Event_Queue_Object_WalkTo(0, 6704, 16056, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(58);
+			Event_Queue_Object_ToggleGhost(10, true);
+			Event_Queue_Object_WalkToPointer(10, 0, -320, 2, OBJECT_DIRECTION_UP, &overworld.player.x, &overworld.player.y);
+			Event_Queue_WaitFrames(37);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_WalkToPointer(10, 0, -36, 2, OBJECT_DIRECTION_UP, &overworld.player.x, &overworld.player.y);
+			Event_Queue_PlaySound(SND_introwakeup);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Overworld_FadeIn(120, 255, 255, 255);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_Object_Destroy(10);
+			Event_Queue_CreateNPC(10, 70000, 6704, 16028, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Overworld_FadeOut(30, 255, 255, 255);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Profile_KeyItemAdd(250);
+			Event_Queue_FullyHealParty();
+			Event_Queue_Dialog_Run(3070);
+			
+			Event_Queue_RemoveCurrentTrigger();
+			Event_Queue_SetFlag(FLAG_PLOT, 500);
+			Event_Queue_SetFlag(FLAG_ALONE_PLOT, 110);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_ChangeEvent(102);
+		} break;
+		
+		case 118: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_FadeOutMusic(4000);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(13384, 15224, 1);
+			Event_Queue_Object_WalkTo(0, 13432, 15224, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(30);
+			
+			Event_Queue_Dialog_Run(1700);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(28);
+			Event_Queue_Object_JumpToRelative(12, 0, 0, OBJECT_DIRECTION_RIGHT, 16, 12);
+			Event_Queue_Dialog_Run(1701);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(63);
+			Event_Queue_Object_JumpToRelative(13, 0, 0, OBJECT_DIRECTION_RIGHT, 16, 12);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(1702);
+			Event_Queue_Object_JumpToRelative(11, 0, 0, OBJECT_DIRECTION_DOWN, 16, 12);
+			Event_Queue_Dialog_Run(1703);
+			Event_Queue_Object_JumpToRelative(10, 0, 0, OBJECT_DIRECTION_LEFT, 16, 12);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(12, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1704);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(36);
+			Event_Queue_Dialog_Run(1705);
+			
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 13384, 15256, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_WaitFrames(24);
+			Event_Queue_Object_WalkToRelative(10, 0, 24, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_SetSync(false);
+			
+			Event_Queue_Dialog_Run(1706);
+			Event_Queue_Dialog_Run(1707);
+			Event_Queue_Dialog_Run(1708);
+			Event_Queue_Dialog_Run(1709);
+			Event_Queue_Dialog_Run(1710);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1711);
+			Event_Queue_Object_JumpToRelative(13, 0, 0, OBJECT_DIRECTION_DOWN, 16, 12);
+			Event_Queue_Dialog_Run(1712);
+			Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1713);
+			Event_Queue_Dialog_Run(1714);
+			Event_Queue_Dialog_Run(1715);
+			
+			Event_Queue_StopMusic();
+			Event_Queue_EngageBattle(105, 10);
+			Event_Queue_ShowEnding(1);
+		} break;
+		
+		case 119: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_CreateObject(70, 1, SPR_owchar_gregory, 2152, 744, OBJECT_DIRECTION_DOWN);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Overworld_ShakeScreen(4);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Camera_MoveTo(2152, 776, 16);
+			Event_Queue_PlaySound(SND_surprise);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Dialog_Run(2684);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(2152, 1048, 5);
+			Event_Queue_Object_WalkTo(0, 2168, 1096, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(1, 2168, 1128, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(2, 2136, 1088, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(70, 2152, 1016, 3, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(false);
+			Event_Queue_Dialog_Run(2685);
+			Event_Queue_Dialog_Run(2686);
+			Event_Queue_Dialog_Run(2687);
+			Event_Queue_Dialog_Run(2688);
+			Event_Queue_Dialog_Run(2689);
+			Event_Queue_Dialog_Run(2690);
+			Event_Queue_Dialog_Run(2691);
+			Event_Queue_Dialog_Run(2692);
+			Event_Queue_Dialog_Run(2693);
+			Event_Queue_Dialog_Run(2694);
+			Event_Queue_Dialog_Run(2695);
+			Event_Queue_Dialog_Run(2696);
+			Event_Queue_PlayMusic(MUS_scary);
+			Event_Queue_Dialog_Run(2697);
+			Event_Queue_Dialog_Run(2698);
+			Event_Queue_Dialog_Run(2699);
+			Event_Queue_Dialog_Run(2700);
+			Event_Queue_Dialog_Run(2701);
+			Event_Queue_Dialog_Run(2702);
+			Event_Queue_Object_WalkToRelative(0, 0, -16, 0.25, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(2703);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(2704);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(2705);
+			
+			Event_Queue_StopMusic();
+			Event_Queue_EngageBattle(83, 70);
+			
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_gregory_defeated);
+			Event_Queue_CreateObject(71, 1, SPR_misc_gregoryscythe, 2140, 1010, OBJECT_DIRECTION_DOWN);
+			Event_Queue_CreateObject(72, 1, SPR_misc_gregorygun, 2160, 1014, OBJECT_DIRECTION_DOWN);
+			Event_Queue_PlayMusic(MUS_outside);
+			
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Object_WalkTo(0, 2152, 1040, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(2706);
+			Event_Queue_Object_Destroy(71);
+			Event_Queue_Object_Destroy(72);
+			Event_Queue_Dialog_Run(2707);
+			Event_Queue_Object_WalkTo(0, 2152, 1064, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(2708);
+			Event_Queue_Dialog_Run(2709);
+			Event_Queue_Dialog_Run(2710);
+			Event_Queue_Dialog_Run(2711);
+			Event_Queue_Object_WalkTo(0, 2152, 1040, 1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby_run_prepare);
+			Event_Queue_WaitFrames(12);
+			Event_Queue_PlaySound(SND_hit1);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Object_JumpToRelative(70, 0, -8, OBJECT_DIRECTION_DOWN, 8, 12);
+			Event_Queue_WaitFrames(24);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_shrug);
+			Event_Queue_Dialog_Run(2712);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_GotoArea(5, 600, 1296, -1);
+			Event_Queue_StopMusic();
+			
+			Event_Queue_Overworld_FadeIn(1, 0, 0, 0);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 504, 1296, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(1, 504, 1352, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(2, 536, 1312, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_SetSync(false);
+			Event_Queue_Camera_TeleportTo(528, 1296);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			Event_Queue_Dialog_Run(2713);
+			Event_Queue_WaitFrames(27);
+			Event_Queue_Object_WalkTo(0, 496, 1296, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_WaitFrames(49);
+			Event_Queue_Object_ChangeSpriteId(10, SPR_misc_lisao_sleepawake);
+			Event_Queue_Object_ChangeSpriteFrameSpeed(10, 0);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Object_ChangeSpriteId(10, SPR_misc_lisao_sit);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_TeleportTo(10, 468, 1290);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Dialog_Run(2714);
+			Event_Queue_Dialog_Run(2715);
+			Event_Queue_Dialog_Run(2716);
+			Event_Queue_Dialog_Run(2717);
+			Event_Queue_Dialog_Run(2718);
+			Event_Queue_Dialog_Run(2719);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(12);
+			Event_Queue_PlaySound(SND_menu2);
+			Event_Queue_CreateObject(11, 1, SPR_misc_gregoryscythe, 492, 1234, OBJECT_DIRECTION_DOWN);
+			Event_Queue_CreateObject(12, 1, SPR_misc_gregorygun, 510, 1262, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Object_WalkTo(0, 520, 1296, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(2720);
+			Event_Queue_Dialog_Run(2721);
+			Event_Queue_Dialog_Run(2722);
+			Event_Queue_Dialog_Run(2723);
+			Event_Queue_Dialog_Run(2724);
+			Event_Queue_Dialog_Run(2725);
+			Event_Queue_Dialog_Run(2726);
+			Event_Queue_Dialog_Run(2727);
+			Event_Queue_Object_ChangeSpriteId(10, SPR_owchar_lisao);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_JumpTo(10, 488, 1296, OBJECT_DIRECTION_RIGHT, 8, 16);
+			Event_Queue_Dialog_Run(2728);
+			Event_Queue_Dialog_Run(2729);
+			Event_Queue_Object_ChangeSpriteId(10, SPR_misc_lisao_happy);
+			Event_Queue_Dialog_Run(2730);
+			Event_Queue_Object_ChangeSpriteId(10, SPR_owchar_lisao);
+			Event_Queue_Object_WalkTo(10, 520, 1312, 1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Object_JumpTo(10, 528, 1312.125, OBJECT_DIRECTION_RIGHT, 0, 8);
+			Event_Queue_Object_ChangeSpriteId(10, SPR_misc_lisao_hug);
+			Event_Queue_Object_ChangeSpriteFrame(10, 0);
+			Event_Queue_WaitFrames(35);
+			Event_Queue_Object_ChangeSpriteFrame(10, 1);
+			Event_Queue_WaitFrames(25);
+			Event_Queue_Object_ChangeSpriteFrame(10, 0);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Object_ChangeSpriteId(10, SPR_owchar_lisao);
+			Event_Queue_Object_JumpTo(10, 520, 1312, OBJECT_DIRECTION_RIGHT, 0, 8);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(2731);
+			Event_Queue_Object_WalkTo(10, 488, 1296, 1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(2732);
+			Event_Queue_Dialog_Run(2733);
+			Event_Queue_Object_ChangeSpriteId(10, SPR_misc_lisao_happy);
+			Event_Queue_Dialog_Run(2734);
+			Event_Queue_Dialog_Run(2735);
+			Event_Queue_Object_ChangeSpriteId(10, SPR_owchar_lisao);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(2736);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_RIGHT);
+			if (Profile_KeyItemExists(177)) {
+				Event_Queue_Dialog_Run(2737);
+				Event_Queue_Profile_KeyItemRemove(177);
+				Event_Queue_Dialog_Run(2738);
+				Event_Queue_Dialog_Run(2739);
+			}
+			
+			Event_Queue_Regroup(1);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_UP);
+			Event_Queue_PlayMusic(MUS_casual);
+			Event_Queue_SetFlag(FLAG_GREGORY_OPTIONALFIGHT, 1);
+			Event_Queue_SetFlag(FLAG_FOREST_FORK_PROGRESS, 1);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 120: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_CreateObject(9, 106, SPR_misc_gregoryguide, player->x, player->y + 136, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetFloatPtr(&overworld.objects[9].vars[0].f, 0);
+			Event_Queue_SetFloatPtr(&overworld.objects[9].vars[1].f, 80);
+			Event_Queue_SetIntPtr(&overworld.objects[9].vars[2].i, 0);
+			Event_Queue_Label(1);
+			Event_Queue_WaitFrames(1);
+			Event_Queue_CompareIntToConst(&overworld.objects[9].type, 0);
+			Event_Queue_JumpIfGreater(1);
+			
+			Event_Queue_Label(0);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 121: {
+			SDL_Delay(335);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(4800, 2320, 225);
+			Event_Queue_Dialog_Run(10);
+			Event_Queue_PlaySound(SND_boost);
+			Event_Queue_PlaySound(SND_shards);
+			Event_Queue_PlaySound(SND_menu1);
+			Event_Queue_WaitFrames(27);
+			Event_Queue_StopMusic();
+			Event_Queue_EngageBattle(106, 0);
+			Event_Queue_SetSync(false);
+			Event_Queue_SetIntPtr(0, 0);
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
 		
 		
 		
@@ -3627,7 +7786,18 @@ void Event_Trigger(int id) {
 		} break;
 		
 		case 1000003: {
-			if (overworld.areaId == 6) {
+			if (overworld.areaId == 80) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2327);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(1);
+					Event_Queue_GotoArea(150, 22648, 3656, SPR_tileset_day);
+					Event_Queue_Jump(1);
+				
+				Event_Queue_Label(1);
+					Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (overworld.areaId == 6) {
 				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
 				Event_Queue_Dialog_Run(2004);
 				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
@@ -4004,9 +8174,17 @@ void Event_Trigger(int id) {
 		} break;
 		
 		case 1000008: {
-			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
-			Event_Queue_Dialog_Run(2002);
-			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			if (profile.flags[FLAG_GREGORY_OPTIONALFIGHT]) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2740);
+				Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_UP);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2002);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
 		} break;
 		
 		case 1000010: {
@@ -4303,7 +8481,10 @@ void Event_Trigger(int id) {
 		
 		case 1000025: {
 			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
-			if (profile.flags[FLAG_PLOT] <= 16) {
+			if (profile.flags[FLAG_PLOT] >= 500) {
+				Event_Queue_Dialog_Run(2027);
+			}
+			else if (profile.flags[FLAG_PLOT] <= 16) {
 				Event_Queue_Dialog_Run(2027);
 				Event_Queue_Dialog_Run(2028);
 			}
@@ -4889,7 +9070,7 @@ void Event_Trigger(int id) {
 						Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
 						Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
 						Event_Queue_Dialog_Run(801);
-						Event_Queue_Dialog_Run(802);
+						if (!profile.flags[FLAG_ALONE]) Event_Queue_Dialog_Run(802);
 						Event_Queue_Dialog_Run((profile.flags[FLAG_ALONE]) ? 811 : 803);
 						Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_RIGHT);
 						Event_Queue_Object_ChangeDirection(14, OBJECT_DIRECTION_LEFT);
@@ -5323,7 +9504,7 @@ void Event_Trigger(int id) {
 		} break;
 		
 		case 1000073: {
-			if (profile.flags[FLAG_PLOT] < 74) {
+			if (profile.flags[FLAG_PLOT] < 74 || profile.flags[FLAG_PLOT] >= 500) {
 				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
 				Event_Queue_Dialog_Run(2264);
 				Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
@@ -5445,10 +9626,54 @@ void Event_Trigger(int id) {
 		} break;
 		
 		case 1000084: {
-			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
-			Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
-			Event_Queue_Dialog_Run(2288);
-			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			if (overworld.areaId == 152) {
+				if (profile.flags[FLAG_PLOT] >= 100 && profile.flags[FLAG_PLOT] < 200) {
+					if (profile.flags[FLAG_SAPPHIREHOTEL_PLOT] < 3) {
+						Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+						Event_Queue_Dialog_Run(1090);
+						Event_Queue_Dialog_Run(1104);
+						Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
+						Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+					}
+					else {
+						Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+						Event_Queue_Dialog_Run(1090);
+						if (profile.flags[FLAG_ALONE]) {
+							Event_Queue_Dialog_Run(1105);
+						}
+						else {
+							Event_Queue_Dialog_Run(1091);
+							Event_Queue_Dialog_Run(1092);
+							Event_Queue_Dialog_Run(1093);
+							Event_Queue_Dialog_Run(1094);
+							Event_Queue_Dialog_Run(1095);
+							Event_Queue_Dialog_Run(1096);
+							Event_Queue_Dialog_Run(1097);
+							Event_Queue_Dialog_Run(1098);
+							Event_Queue_Dialog_Run(1099);
+							Event_Queue_Dialog_Run(1100);
+							Event_Queue_Dialog_Run(1101);
+							Event_Queue_Dialog_Run(1102);
+							Event_Queue_Dialog_Run(1103);
+						}
+						Event_Queue_EngageBattle(45, eventSystem.callerObjectId);
+						
+						Event_Queue_Object_Destroy(10);
+						Event_Queue_Object_Destroy(11);
+						Event_Queue_Object_Destroy(12);
+						Event_Queue_Object_Destroy(13);
+						
+						Event_Queue_SetFlag(FLAG_PLOT, 200);
+						Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+					}
+				}
+			}
+			else {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(2288);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
 		} break;
 		
 		case 1000085: {
@@ -5565,6 +9790,834 @@ void Event_Trigger(int id) {
 			Event_Queue_SetFlag(FLAG_ALONE, 0);
 			
 			Event_Queue_Label(0);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000101: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (overworld.areaId == 150) {
+				if (profile.flags[FLAG_ALONE_PLOT] >= 50) {
+					Event_Queue_Dialog_Run(2682);
+				}
+				else {
+					Event_Queue_Dialog_Run(2657);
+				}
+				Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
+			}
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000102: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (overworld.areaId == 150) {
+				if (profile.flags[FLAG_ALONE_PLOT] >= 50) {
+					Event_Queue_Dialog_Run(2682);
+				}
+				else {
+					Event_Queue_Dialog_Run(2658);
+				}
+				Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
+			}
+			else {
+				Event_Queue_Dialog_Run(2659);
+			}
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000103: {
+			int correctSpot = Random_IRange(0, 69);
+			for (int i = 0; i < 70; i++) {
+				overworld.objects[160 + i].spriteId = SPR_misc_guide_arrow;
+				overworld.objects[160 + i].vars[7].i = 0;
+				OverworldObject_SetColor(160 + i, 255, 255, 255);
+			}
+			overworld.objects[160 + correctSpot].vars[7].i = 1;
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_Camera_TogglePlayerFollow(true);
+			if (profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] == 0) {
+				Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+				Event_Queue_Object_TeleportTo(0, 18864, 15720);
+				Event_Queue_Object_TeleportTo(1, 18840, 15720);
+				Event_Queue_Object_TeleportTo(2, 18888, 15720);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+				
+				Event_Queue_Dialog_Run(1200);
+				Event_Queue_Dialog_Run(1201);
+				Event_Queue_Dialog_Run(1202);
+				Event_Queue_Dialog_Run(1203);
+				Event_Queue_Dialog_Run(1204);
+				Event_Queue_Dialog_Run(1205);
+				Event_Queue_Dialog_Run(1206);
+				Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_LEFT);
+				Event_Queue_WaitFrames(33);
+				Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_WaitFrames(22);
+				Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_UP);
+				Event_Queue_WaitFrames(24);
+				Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(1207);
+				Event_Queue_Object_ChangeSpriteId(2, SPR_misc_sally_serious);
+				Event_Queue_Object_ChangeSpriteFrame(2, 1);
+				Event_Queue_Dialog_Run(1208);
+				Event_Queue_Dialog_Run(1209);
+				Event_Queue_Dialog_Run(1210);
+				Event_Queue_Object_ChangeSpriteId(2, SPR_owchar_sally);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+				Event_Queue_Dialog_Run(1211);
+				Event_Queue_Dialog_Run(1212);
+				Event_Queue_Dialog_Run(1213);
+				Event_Queue_Dialog_Run(1214);
+				Event_Queue_Dialog_Run(1215);
+				Event_Queue_Object_ChangeSpriteId(1, SPR_misc_emmet_facepalm);
+				Event_Queue_Dialog_Run(1216);
+				Event_Queue_Object_JumpToRelative(2, 0, 0, OBJECT_DIRECTION_UP, 16, 8);
+				Event_Queue_Dialog_Run(1217);
+				Event_Queue_Dialog_Run(1218);
+				Event_Queue_Object_WalkToRelative(2, 0, -4, 0.5, OBJECT_DIRECTION_UP);
+				Event_Queue_Dialog_Run(1219);
+				Event_Queue_Dialog_Run(1220);
+				Event_Queue_Dialog_Run(1221);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Dialog_Run(1222);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Dialog_Run(1223);
+				Event_Queue_Object_ChangeSpriteId(1, SPR_owchar_emmet);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+				Event_Queue_Dialog_Run(1224);
+			}
+			else {
+				Event_Queue_Dialog_Run(2339);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(0);
+			}
+			
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_Object_TeleportTo(0, 19008, 15344);
+			Event_Queue_Object_TeleportTo(1, 19040, 15344);
+			Event_Queue_Object_TeleportTo(2, 19072, 15344);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_TeleportTo(10, 18968, 15352);
+			Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			Event_Queue_Dialog_Run(2340);
+			
+			Event_Queue_FadeOutMusic(1000);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkToRelative(10, -64, 0, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_SetSync(false);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Object_TeleportTo(0, 19072, 15344);
+			Event_Queue_Object_WalkTo(0, 19008, 15344, 3, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Regroup(4);
+			Event_Queue_WaitFrames(8);
+			Event_Queue_Dialog_Run(2341);
+			for (int i = 0; i < 70; i++) {
+				Event_Queue_Object_TeleportTo(160 + i, overworld.objects[160 + i].x, overworld.objects[160 + i].y + 1000);
+			}
+			Event_Queue_Object_TeleportTo(10, overworld.objects[10].x, overworld.objects[10].y - 1000);
+			Event_Queue_Object_ChangeSpriteFrame(89, 0);
+			if (profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] >= 4) {
+				int spotX = overworld.objects[160 + correctSpot].x;
+				int spotY = overworld.objects[160 + correctSpot].y + 1000;
+				int invertedDirection = OBJECT_DIRECTION_DOWN;
+				switch (overworld.objects[160 + correctSpot].vars[6].i) {
+					case OBJECT_DIRECTION_LEFT: spotX -= 32; invertedDirection = OBJECT_DIRECTION_RIGHT; break;
+					case OBJECT_DIRECTION_RIGHT: spotX += 32; invertedDirection = OBJECT_DIRECTION_LEFT; break;
+					case OBJECT_DIRECTION_UP: spotY -= 32; invertedDirection = OBJECT_DIRECTION_DOWN; break;
+					case OBJECT_DIRECTION_DOWN: spotY += 32; invertedDirection = OBJECT_DIRECTION_UP; break;
+				}
+				
+				Event_Queue_CreateObject(71, 1, SPR_owchar_sally, spotX, spotY, invertedDirection);
+			}
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			Event_Queue_PlayMusic(MUS_countdown);
+			Event_Queue_CreateObject(70, 101, 0, 18864, 15280, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetFlag(FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS, profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] + 1);
+			
+			Event_Queue_SetBoolPtr(&overworld.map.doors[174].enabled, false);
+			Event_Queue_SetBoolPtr(&overworld.map.doors[175].enabled, false);
+			
+			Event_Queue_Label(0);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000107: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (overworld.areaId == 194) {
+				Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, caller->vars[7].i);
+				Event_Queue_Dialog_Run(2363);
+			}
+			else if (profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] <= 4) {
+				if (!profile.tempFlags[TEMPFLAG_WHITELIGHT_SALLY_DIALOG]) {
+					Event_Queue_SetTempFlag(TEMPFLAG_WHITELIGHT_SALLY_DIALOG, 1);
+					Event_Queue_Dialog_Run(2354);
+					Event_Queue_Dialog_Run(2355);
+					Event_Queue_Dialog_Run(2356);
+					Event_Queue_Dialog_Run(2357);
+					Event_Queue_Dialog_Run(2358);
+					Event_Queue_Dialog_Run(2359);
+				}
+				else {
+					Event_Queue_Dialog_Run(2360);
+				}
+			}
+			else if (profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] <= 6) {
+				Event_Queue_Dialog_Run(2361);
+			}
+			else if (profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] == 7) {
+				Event_Queue_Dialog_Run(2362);
+			}
+			else {
+				if (!profile.tempFlags[TEMPFLAG_WHITELIGHT_SALLY_DIALOG]) {
+					Event_Queue_SetTempFlag(TEMPFLAG_WHITELIGHT_SALLY_DIALOG, 1);
+					Event_Queue_Dialog_Run(2362);
+				}
+				else {
+					Event_Queue_Dialog_Run(2363);
+				}
+			}
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000108: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (profile.flags[FLAG_SAPPHIREHOTEL_PLOT] >= 1) {
+				Event_Queue_Dialog_Run(2378);
+			}
+			else {
+				if (profile.flags[FLAG_ALONE])
+					Event_Queue_Dialog_Run(2660);
+				else
+					Event_Queue_Dialog_Run(2365);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(1);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 2);
+				Event_Queue_JumpIfEqual(2);
+				
+				Event_Queue_Label(3);
+				Event_Queue_CompareIntToConst(&profile.cash, 400);
+				Event_Queue_JumpIfLess(6);
+				Event_Queue_Dialog_Run(2379);
+				if (!profile.flags[FLAG_ALONE]) {
+					Event_Queue_Dialog_Run(2380);
+					Event_Queue_Dialog_Run(2381);
+					Event_Queue_Dialog_Run(2382);
+					Event_Queue_Dialog_Run(2383);
+					Event_Queue_WaitFrames(50);
+					Event_Queue_Dialog_Run(2384);
+					Event_Queue_Dialog_Run(2385);
+				}
+				Event_Queue_AddCash(-400);
+				Event_Queue_SetFlag(FLAG_SAPPHIREHOTEL_PLOT, 1);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(6);
+				Event_Queue_Dialog_Run(2377);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(2);
+				Event_Queue_Dialog_Run(2366);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(1);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+				Event_Queue_JumpIfEqual(3);
+				
+				Event_Queue_Dialog_Run(2367);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(1);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+				Event_Queue_JumpIfEqual(3);
+				
+				Event_Queue_SetFlag(FLAG_SAPPHIREHOTEL_MAN_ANNOYED, 1);
+				Event_Queue_Dialog_Run(2368);
+				Event_Queue_Object_WalkTo(eventSystem.callerObjectId, 16960, 15984, 1, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_WalkTo(eventSystem.callerObjectId, 16960, 15944, 1, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_JumpTo(eventSystem.callerObjectId, 16960, 15920, OBJECT_DIRECTION_UP, 18, 16);
+				Event_Queue_Object_WalkTo(eventSystem.callerObjectId, 16784, 15920, 2, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_WalkTo(eventSystem.callerObjectId, 16768, 15888, 2, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_Destroy(eventSystem.callerObjectId);
+				Event_Queue_WaitFrames(125);
+				Event_Queue_Dialog_Run(2369);
+				Event_Queue_Dialog_Run(2370);
+				Event_Queue_WaitFrames(25);
+				Event_Queue_CreateNPC(eventSystem.callerObjectId, 109, 16768, 15896, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_WalkTo(eventSystem.callerObjectId, 16984, 15920, 2, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_JumpTo(eventSystem.callerObjectId, 16984, 15984, OBJECT_DIRECTION_DOWN, 32, 25);
+				
+				Event_Queue_Dialog_Run(2371);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(1);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+				Event_Queue_JumpIfEqual(5);
+				
+				Event_Queue_Dialog_Run(2372);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(1);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+				Event_Queue_JumpIfEqual(5);
+				
+				Event_Queue_Object_WalkToPointer(1, -8, 0, 3, OBJECT_DIRECTION_RIGHT, &player->x, &player->y);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_LEFT);
+				Event_Queue_Object_ChangeSpriteId(1, SPR_misc_noah_hug);
+				Event_Queue_WaitFrames(65);
+				Event_Queue_Object_ChangeSpriteId(1, SPR_owchar_noah);
+				Event_Queue_Object_JumpToRelative(1, -8, 0, OBJECT_DIRECTION_RIGHT, 0, 4);
+				Event_Queue_WaitFrames(20);
+				Event_Queue_CompareIntToConst(&profile.cash, 400);
+				Event_Queue_JumpIfLess(8);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+				Event_Queue_Dialog_Run(2374);
+				
+				Event_Queue_Label(5);
+				Event_Queue_AddCash(-400);
+				Event_Queue_Dialog_Run(2373);
+				Event_Queue_SetFlag(FLAG_SAPPHIREHOTEL_PLOT, 1);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(8);
+				Event_Queue_WaitFrames(40);
+				Event_Queue_Dialog_Run(2375);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+				
+				Event_Queue_Label(7);
+				Event_Queue_Dialog_Run(2376);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(1);
+				
+				Event_Queue_Label(0);
+				Event_Queue_Regroup(1);
+			}
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000109: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (profile.flags[FLAG_SAPPHIREHOTEL_PLOT] >= 1) {
+				Event_Queue_Dialog_Run(2387);
+			}
+			else {
+				Event_Queue_Dialog_Run(2386);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(1);
+				
+				Event_Queue_CompareIntToConst(&profile.cash, 400);
+				Event_Queue_JumpIfLess(2);
+				Event_Queue_Dialog_Run(2373);
+				Event_Queue_AddCash(-400);
+				Event_Queue_SetFlag(FLAG_SAPPHIREHOTEL_PLOT, 1);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(7);
+				Event_Queue_Dialog_Run(2376);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(1);
+				
+				Event_Queue_Label(0);
+			}
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000116: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (profile.flags[FLAG_ALONE]) {
+				Event_Queue_Dialog_Run(2668);
+			}
+			else if (profile.flags[FLAG_AMPERCORP_FLOORS_UNLOCKED] >= 1) {
+				Event_Queue_Dialog_Run(2388);
+			}
+			else {
+				Event_Queue_Dialog_Run(2388);
+				Event_Queue_Dialog_Run(2389);
+				Event_Queue_SetFlag(FLAG_AMPERCORP_FLOORS_UNLOCKED, 1);
+			}
+			Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000119: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (profile.flags[FLAG_AMPERCORP_FLOORS_UNLOCKED] >= 4) {
+				
+			}
+			else {
+				Event_Queue_Dialog_Run(2392);
+				Event_Queue_SetFlag(FLAG_AMPERCORP_FLOORS_UNLOCKED, 4);
+			}
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000124: {
+			if (profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DEFEATED] > 0) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2569);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DIALOG] == 0) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2550);
+				Event_Queue_SetFlag(FLAG_AMPERCORP_PBSUPERHERO_DIALOG, 1);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DIALOG] == 1) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2551);
+				Event_Queue_SetFlag(FLAG_AMPERCORP_PBSUPERHERO_DIALOG, 2);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DIALOG] == 2) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2552);
+				Event_Queue_SetFlag(FLAG_AMPERCORP_PBSUPERHERO_DIALOG, 3);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DIALOG] == 3) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2553);
+				Event_Queue_SetFlag(FLAG_AMPERCORP_PBSUPERHERO_DIALOG, 4);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DIALOG] == 4) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2554);
+				Event_Queue_Object_WalkTo(62, 29152, 13960, 2, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(2555);
+				Event_Queue_Dialog_Run(2556);
+				Event_Queue_Dialog_Run(2557);
+				Event_Queue_Object_WalkTo(62, 29176, 13856, 2, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_SetFlag(FLAG_AMPERCORP_PBSUPERHERO_DIALOG, 5);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DIALOG] == 5) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2558);
+				Event_Queue_SetFlag(FLAG_AMPERCORP_PBSUPERHERO_DIALOG, 6);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DIALOG] == 8) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2568);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2559);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+				Event_Queue_JumpIfEqual(0);
+				
+				if (profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DIALOG] == 7) {
+					Event_Queue_Dialog_Run(2565);
+					Event_Queue_EngageBattle(86, 61);
+					
+					Event_Queue_CompareIntToConst(&profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DIALOG], 8);
+					Event_Queue_JumpIfEqual(1);
+					
+					Event_Queue_SetFlag(FLAG_AMPERCORP_PBSUPERHERO_DEFEATED, 3);
+					Event_Queue_Dialog_Run(2566);
+					Event_Queue_PlaySound(SND_dodge);
+					Event_Queue_Object_JumpTo(61, 29096, 13952, -1, 104, 18);
+					Event_Queue_Jump(0);
+					
+					Event_Queue_Label(1);
+					Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_collapse_ruby);
+					Event_Queue_Object_ChangeSpriteId(1, SPR_owchar_collapse_noah);
+					Event_Queue_Object_ChangeSpriteId(2, SPR_owchar_collapse_emmet);
+					Event_Queue_Object_ChangeSpriteId(3, SPR_owchar_collapse_sally_neo);
+					Event_Queue_Object_ChangeSpriteFrame(0, 1);
+					Event_Queue_Object_ChangeSpriteFrame(1, 1);
+					Event_Queue_Object_ChangeSpriteFrame(2, 1);
+					Event_Queue_Object_ChangeSpriteFrame(3, 1);
+					Event_Queue_WaitFrames(116);
+					Event_Queue_Dialog_Run(2567);
+					Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+					Event_Queue_Object_ChangeSpriteId(1, SPR_owchar_noah);
+					Event_Queue_Object_ChangeSpriteId(2, SPR_owchar_emmet);
+					Event_Queue_Object_ChangeSpriteId(3, SPR_owchar_sally_neo);
+					Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+					Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_DOWN);
+					Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_DOWN);
+					Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_DOWN);
+					Event_Queue_WaitFrames(65);
+					Event_Queue_Regroup(1);
+				}
+				else {
+					Event_Queue_Dialog_Run(2560);
+					Event_Queue_WaitFrames(8);
+					Event_Queue_Overworld_ShakeScreen(10);
+					Event_Queue_CreateObject(70, 1, SPR_misc_pbsuperhero_certificate, caller->x + 8, caller->y, OBJECT_DIRECTION_DOWN);
+					Event_Queue_PlaySound(SND_gunfire2);
+					Event_Queue_SetSync(true);
+					Event_Queue_WaitFrames(6);
+					Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_collapse_ruby);
+					Event_Queue_Object_ChangeSpriteId(1, SPR_owchar_collapse_noah);
+					Event_Queue_Object_ChangeSpriteId(2, SPR_owchar_collapse_emmet);
+					Event_Queue_Object_ChangeSpriteId(3, SPR_owchar_collapse_sally_neo);
+					Event_Queue_Object_JumpToRelative(0, 0, 48, OBJECT_DIRECTION_UP, 16, 12);
+					Event_Queue_Object_JumpToRelative(1, 0, 48, OBJECT_DIRECTION_UP, 16, 12);
+					Event_Queue_Object_JumpToRelative(2, 0, 48, OBJECT_DIRECTION_UP, 16, 12);
+					Event_Queue_Object_JumpToRelative(3, 0, 48, OBJECT_DIRECTION_UP, 16, 12);
+					Event_Queue_WaitFrames(6);
+					Event_Queue_Object_ChangeSpriteFrame(70, 1);
+					Event_Queue_SetSync(false);
+					Event_Queue_PlaySound(SND_poison);
+					Event_Queue_Object_ChangeSpriteFrame(0, 1);
+					Event_Queue_Object_ChangeSpriteFrame(1, 1);
+					Event_Queue_Object_ChangeSpriteFrame(2, 1);
+					Event_Queue_Object_ChangeSpriteFrame(3, 1);
+					
+					Event_Queue_WaitFrames(60);
+					Event_Queue_Dialog_Run(2561);
+					
+					Event_Queue_SetSync(true);
+					Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+					Event_Queue_Object_ChangeSpriteId(1, SPR_owchar_noah);
+					Event_Queue_Object_ChangeSpriteId(2, SPR_owchar_emmet);
+					Event_Queue_Object_ChangeSpriteId(3, SPR_owchar_sally_neo);
+					Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+					Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+					Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+					Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
+					Event_Queue_Object_JumpToRelative(0, 0, -48, OBJECT_DIRECTION_UP, 16, 12);
+					Event_Queue_Object_JumpToRelative(1, 0, -48, OBJECT_DIRECTION_UP, 16, 12);
+					Event_Queue_Object_JumpToRelative(2, 0, -48, OBJECT_DIRECTION_UP, 16, 12);
+					Event_Queue_Object_JumpToRelative(3, 0, -48, OBJECT_DIRECTION_UP, 16, 12);
+					Event_Queue_SetSync(false);
+					
+					Event_Queue_Dialog_Run(2562);
+					Event_Queue_Dialog_Run(2563);
+					Event_Queue_Object_Destroy(70);
+					Event_Queue_Dialog_Run(2564);
+					Event_Queue_SetFlag(FLAG_AMPERCORP_PBSUPERHERO_DIALOG, 7);
+					Event_Queue_Regroup(1);
+				}
+				
+				Event_Queue_Label(0);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+		} break;
+		
+		case 1000125: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			
+			Event_Queue_Dialog_Run(2571);
+			Event_Queue_Dialog_Run(2572);
+			Event_Queue_Dialog_Run(2573);
+			Event_Queue_Dialog_Run(2574);
+			Event_Queue_Dialog_Run(2575);
+			Event_Queue_Dialog_Run(2576);
+			Event_Queue_Dialog_Run(2577);
+			
+			Event_Queue_EngageBattle(76, 62);
+			
+			Event_Queue_Dialog_Run(2578);
+			Event_Queue_Dialog_Run(2579);
+			Event_Queue_Dialog_Run(2580);
+			Event_Queue_Dialog_Run(2581);
+			Event_Queue_Dialog_Run(2582);
+			Event_Queue_WaitFrames(65);
+			Event_Queue_Dialog_Run(2583);
+			Event_Queue_Dialog_Run(2584);
+			Event_Queue_Dialog_Run(2585);
+			Event_Queue_Dialog_Run(2586);
+			Event_Queue_Dialog_Run(2587);
+			
+			Event_Queue_StopMusic();
+			Event_Queue_PlaySound(SND_ampbroadcast);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(62, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_JumpTo(0, 29176, 13896, OBJECT_DIRECTION_UP, 8, 12);
+			Event_Queue_Object_JumpTo(1, 29160, 13912, OBJECT_DIRECTION_UP, 8, 12);
+			Event_Queue_Object_JumpTo(2, 29144, 13896, OBJECT_DIRECTION_UP, 8, 12);
+			Event_Queue_Object_JumpTo(3, 29128, 13912, OBJECT_DIRECTION_UP, 8, 12);
+			Event_Queue_Camera_MoveTo(29152, 13744, 2);
+			Event_Queue_SetSync(false);
+			Event_Queue_CreateObject(70, 1, SPR_misc_ampbroadcast, 29152, 13712, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteFrame(70, 5);
+			Event_Queue_PlaySound(SND_beep_square);
+			Event_Queue_WaitFrames(45);
+			Event_Queue_Object_ChangeSpriteFrame(70, 6);
+			Event_Queue_WaitFrames(70);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Dialog_Run(2588);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_Dialog_Run(2589);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_Dialog_Run(2590);
+			Event_Queue_Object_ChangeSpriteFrame(70, 5);
+			Event_Queue_WaitFrames(6);
+			Event_Queue_Object_ChangeSpriteFrame(70, 3);
+			Event_Queue_WaitFrames(120);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_Camera_MoveTo(29152, 13888, 2);
+			
+			Event_Queue_SetIntPtr(&overworld.objects[69].vars[0].i, 1);
+			
+			Event_Queue_Object_ChangeDirection(62, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(2591);
+			Event_Queue_Dialog_Run(2592);
+			Event_Queue_Dialog_Run(2593);
+			Event_Queue_Object_ChangeSpriteId(62, SPR_misc_kara_jump);
+			Event_Queue_Object_ChangeSpriteFrame(62, 1);
+			Event_Queue_Object_ChangeDirection(62, OBJECT_DIRECTION_LEFT);
+			Event_Queue_PlaySound(SND_dodge);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(29056, 14016, 6);
+			Event_Queue_Object_JumpTo(62, 29064, 14008, OBJECT_DIRECTION_LEFT, 32, 46);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_ChangeSpriteFrame(62, 2);
+			Event_Queue_Object_ChangeDirection(62, OBJECT_DIRECTION_DOWN);
+			Event_Queue_PlaySound(SND_dodge);
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(28864, 14016, 3.5);
+			Event_Queue_Object_JumpTo(62, 28852, 14080, OBJECT_DIRECTION_DOWN, 56, 68);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_ChangeSpriteFrame(62, 0);
+			Event_Queue_PlaySound(SND_dodge);
+			Event_Queue_Object_JumpTo(62, 28648, 14280, OBJECT_DIRECTION_DOWN, 20, 47);
+			Event_Queue_Object_Destroy(62);
+			Event_Queue_WaitFrames(50);
+			
+			Event_Queue_Regroup(3);
+			Event_Queue_PlayMusic(MUS_amper);
+			Event_Queue_Dialog_Run(2394);
+			Event_Queue_SetFlag(FLAG_AMPERCORP_PLOT, 60);
+			Event_Queue_SetFlag(FLAG_AMPERCORP_FLOORS_UNLOCKED, 6);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000126: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(2594);
+			Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000129: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (Profile_KeyItemExists(176)) {
+				if (!profile.flags[FLAG_BRILLIANT_ACCESS_GRANTED]) {
+					Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_UP);
+					Event_Queue_Camera_MoveTo(26992, 9600, 1);
+					Event_Queue_WaitFrames(40);
+					Event_Queue_Object_Destroy(11);
+					Event_Queue_PlaySound(SND_slap);
+					Event_Queue_Overworld_ShakeScreen(8);
+					Event_Queue_WaitFrames(50);
+					
+					Event_Queue_Regroup(1);
+					Event_Queue_SetFlag(FLAG_BRILLIANT_ACCESS_GRANTED, 1);
+				}
+			}
+			Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000130: {
+			if (profile.flags[FLAG_PLOT] < 134) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(2652);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (profile.cash < 600) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(2655);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (profile.flags[FLAG_PLOT] < 500 && profile.flags[FLAG_METRO_LOCATION] != 3) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(2651);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+				Event_Queue_JumpIfEqual(1);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(1);
+				Event_Queue_SetFlag(FLAG_METRO_LOCATION, 3);
+				Event_Queue_Dialog_Run(2653);
+				Event_Queue_GotoArea(203, 22394, 9816, -1);
+				Event_Queue_PlayMusic(MUS_transport);
+				Event_Queue_Object_TeleportTo(1, 22394, 9840);
+				Event_Queue_Object_TeleportTo(2, 22486, 9816);
+				Event_Queue_Object_TeleportTo(3, 22486, 9840);
+				
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_sit);
+				Event_Queue_Object_ChangeSpriteFrame(0, 4);
+				
+				if (profile.flags[FLAG_NOAH_JOINED]) {
+					Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_RIGHT);
+					Event_Queue_Object_ChangeSpriteId(1, SPR_misc_noah_sit);
+					Event_Queue_Object_ChangeSpriteFrame(1, 4);
+				}
+				
+				if (profile.flags[FLAG_EMMET_JOINED]) {
+					Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+					Event_Queue_Object_ChangeSpriteId(2, SPR_misc_emmet_sit);
+					Event_Queue_Object_ChangeSpriteFrame(2, 4);
+				}
+				
+				if (profile.flags[FLAG_SALLY_JOINED]) {
+					Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+					Event_Queue_Object_ChangeSpriteId(3, (profile.flags[FLAG_SALLY_NEO]) ? SPR_misc_sally_neo_sit : SPR_misc_sally_sit);
+					Event_Queue_Object_ChangeSpriteFrame(3, 4);
+				}
+				
+				Event_Queue_WaitFrames(600);
+				Event_Queue_StopMusic();
+				Event_Queue_PlaySound(SND_transportend);
+				Event_Queue_WaitFrames(90);
+				Event_Queue_GotoArea(203, 22624, 10280, -1);
+				
+				Event_Queue_Label(0);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else if (profile.flags[FLAG_PLOT] < 500) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(2656);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Object_ChangeDirection(eventSystem.callerObjectId, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(2650);
+				Event_Queue_CompareIntToVar(&dialogSystem.optionSelected, &profile.flags[FLAG_METRO_LOCATION]);
+				Event_Queue_JumpIfEqual(5);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+				Event_Queue_JumpIfEqual(1);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(2);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 2);
+				Event_Queue_JumpIfEqual(3);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 3);
+				Event_Queue_JumpIfEqual(4);
+				Event_Queue_Jump(0);
+				
+				Event_Queue_Label(1);
+					Event_Queue_SetFlag(FLAG_METRO_LOCATION, 0);
+					Event_Queue_Jump(10);
+				Event_Queue_Label(2);
+					Event_Queue_SetFlag(FLAG_METRO_LOCATION, 1);
+					Event_Queue_Jump(10);
+				Event_Queue_Label(3);
+					Event_Queue_SetFlag(FLAG_METRO_LOCATION, 2);
+					Event_Queue_Jump(10);
+				Event_Queue_Label(4);
+					Event_Queue_SetFlag(FLAG_METRO_LOCATION, 3);
+					Event_Queue_Jump(10);
+				Event_Queue_Label(5);
+					Event_Queue_Dialog_Run(2654);
+					Event_Queue_Jump(0);
+				
+				Event_Queue_Label(10);
+				Event_Queue_Dialog_Run(2653);
+				Event_Queue_GotoArea(203, 22394, 9816, -1);
+				Event_Queue_PlayMusic(MUS_transport);
+				Event_Queue_Object_TeleportTo(1, 22394, 9840);
+				Event_Queue_Object_TeleportTo(2, 22486, 9816);
+				Event_Queue_Object_TeleportTo(3, 22486, 9840);
+				
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_sit);
+				Event_Queue_Object_ChangeSpriteFrame(0, 4);
+				
+				if (profile.flags[FLAG_NOAH_JOINED]) {
+					Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_RIGHT);
+					Event_Queue_Object_ChangeSpriteId(1, SPR_misc_noah_sit);
+					Event_Queue_Object_ChangeSpriteFrame(1, 4);
+				}
+				
+				if (profile.flags[FLAG_EMMET_JOINED]) {
+					Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_LEFT);
+					Event_Queue_Object_ChangeSpriteId(2, SPR_misc_emmet_sit);
+					Event_Queue_Object_ChangeSpriteFrame(2, 4);
+				}
+				
+				if (profile.flags[FLAG_SALLY_JOINED]) {
+					Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_LEFT);
+					Event_Queue_Object_ChangeSpriteId(3, (profile.flags[FLAG_SALLY_NEO]) ? SPR_misc_sally_neo_sit : SPR_misc_sally_sit);
+					Event_Queue_Object_ChangeSpriteFrame(3, 4);
+				}
+				
+				Event_Queue_WaitFrames(600);
+				Event_Queue_StopMusic();
+				Event_Queue_PlaySound(SND_transportend);
+				Event_Queue_WaitFrames(90);
+				Event_Queue_GotoArea(203, 22624, 10280, -1);
+				
+				Event_Queue_Label(0);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+		} break;
+		
+		case 1000131: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(1483);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+			Event_Queue_JumpIfEqual(0);
+			
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_FadeOutMusic(1000);
+			Event_Queue_Overworld_FadeIn(60, 0, 0, 0);
+			Event_Queue_WaitFrames(90);
+			Event_Queue_SetFlag(FLAG_PLOT, 501);
+			Event_Queue_GotoArea(150, 26808, 1000, -1);
+			Event_Queue_Camera_TogglePlayerFollow(true);
+			Event_Queue_CreateObject(70, 1, SPR_owchar_lulu_god, 26808, 1000, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(0, 26808, 1048, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(1, 26840, 1080, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(2, 26840, 1048, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(3, 26840, 1016, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(70, 26760, 1064, 1, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(40);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(1484);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(70, 26656, 1248, 2, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1485);
+			Event_Queue_SetSync(false);
+			Event_Queue_Object_Destroy(70);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+			Event_Queue_Dialog_Run(1486);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Regroup(2);
+			
+			Event_Queue_Label(0);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1000132: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(2667);
 			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
 		} break;
 		
@@ -6481,25 +11534,31 @@ void Event_Trigger(int id) {
 				
 				Event_Queue_Label(0);
 				Event_Queue_WaitFrames(7);
-				Event_Queue_Object_TeleportTo(13, 10362, 8288);
+				Event_Queue_Object_TeleportTo(12, 10366, 8278);
 				Event_Queue_WaitFrames(7);
-				Event_Queue_Object_TeleportTo(13, 10366, 8294);
+				Event_Queue_Object_TeleportTo(12, 10370, 8284);
 				Event_Queue_WaitFrames(7);
-				Event_Queue_Object_TeleportTo(13, 10368, 8298);
+				Event_Queue_Object_TeleportTo(12, 10372, 8288);
 				
-				Event_Queue_Object_ChangeSpriteFrame(13, 1);
+				Event_Queue_Object_ChangeSpriteFrame(12, 1);
 				Event_Queue_PlaySound(SND_burn);
 				Event_Queue_WaitFrames(60);
 				
 				Event_Queue_Object_WalkTo(11, 10424, 8216, 3, OBJECT_DIRECTION_DOWN);
 				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
 				Event_Queue_Dialog_Run(277);
+				Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
 				Event_Queue_CreateObject(70, 1, SPR_owchar_jackie, 10104, 8248, OBJECT_DIRECTION_RIGHT);
-				Event_Queue_Object_WalkTo(70, 10392, 8248, 3, OBJECT_DIRECTION_RIGHT);
-				Event_Queue_Object_WalkTo(70, 10408, 8232, 3, OBJECT_DIRECTION_DOWN);
-				Event_Queue_Object_JumpTo(10, 10232, 8152, OBJECT_DIRECTION_DOWN, 20, 20);
-				Event_Queue_Object_WalkTo(10, 10360, 8152, 3, OBJECT_DIRECTION_DOWN);
-				Event_Queue_Object_WalkTo(10, 10392, 8216, 3, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_WalkTo(70, 10392, 8248, 12, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Object_WalkTo(70, 10408, 8232, 12, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_JumpTo(10, 10232, 8152, OBJECT_DIRECTION_DOWN, 20, 4);
+				Event_Queue_Object_WalkTo(10, 10360, 8152, 12, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_WalkTo(10, 10392, 8216, 12, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_TeleportTo(0, 10392, 8280);
+				Event_Queue_Camera_TeleportTo(10408, 8272);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
 				Event_Queue_Dialog_Run(278);
 				Event_Queue_Dialog_Run(284);
 				Event_Queue_Dialog_Run(285);
@@ -6552,7 +11611,7 @@ void Event_Trigger(int id) {
 				Event_Queue_Dialog_Run(286);
 				Event_Queue_EngageBattle(20, 70);
 				
-				Event_Queue_Object_Destroy(13);
+				Event_Queue_Object_Destroy(12);
 				Event_Queue_Dialog_Run(287);
 				Event_Queue_Dialog_Run(288);
 				Event_Queue_Dialog_Run(289);
@@ -6563,6 +11622,7 @@ void Event_Trigger(int id) {
 				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_shrug);
 				Event_Queue_Dialog_Run(294);
 				Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
 				Event_Queue_Object_EnableFighterSprite(70, 23, 23, FIGHTER_STATE_BLOCK);
 				Event_Queue_Dialog_Run(295);
 				Event_Queue_WaitFrames(60);
@@ -6578,6 +11638,8 @@ void Event_Trigger(int id) {
 				Event_Queue_Object_WalkTo(10, 10488, 8112, 2, -1);
 				Event_Queue_Object_WalkTo(11, 10424, 8192, 2, -1);
 				Event_Queue_Object_QueueWalkTo(11, 10512, 8144, 2, OBJECT_DIRECTION_DOWN);
+				Event_Queue_WaitFrames(10);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
 				Event_Queue_SetSync(false);
 				Event_Queue_Object_Destroy(70);
 				Event_Queue_CreateNPC(10, 4, 10232, 8128, OBJECT_DIRECTION_DOWN);
@@ -6725,7 +11787,14 @@ void Event_Trigger(int id) {
 				Event_Queue_Object_ChangeSpriteFrame(eventSystem.callerObjectId, 1);
 				Event_Queue_PlaySound(SND_slap);
 				Event_Queue_Dialog_Run(2184);
-				if (Profile_ItemInventoryIsFull()) {
+				if (caller->vars[7].i >= 160) {
+					Event_Queue_Profile_KeyItemAdd(caller->vars[7].i);
+					Event_Queue_Dialog_Run(4004);
+					switch (overworld.areaId) {
+						case 150: Event_Queue_SetFlag(FLAG_PLOT, 251); break;
+					}
+				}
+				else if (Profile_ItemInventoryIsFull()) {
 					Event_Queue_Profile_ItemAdd(caller->vars[7].i);
 					Event_Queue_Dialog_Run(4005);
 					Event_Queue_Object_ChangeSpriteFrame(eventSystem.callerObjectId, 0);
@@ -6740,6 +11809,14 @@ void Event_Trigger(int id) {
 						case 116: Event_Queue_SetFlag(FLAG_ITEM_LAPISDESERT_ENERGYDRINK, 1); break;
 						case 117: Event_Queue_SetFlag(FLAG_ITEM_LAPISDESERT_BRIAN_CASE, 1); break;
 						case 122: Event_Queue_SetFlag(FLAG_ITEM_SECRETBUNKER_ONYXMEAL, 1); break;
+						case 150:
+							if (eventSystem.callerObjectId == 51)
+								Event_Queue_SetFlag(FLAG_ITEM_SAPPHIREPOLIS_ALONE_MEDKIT, 1);
+							else if (eventSystem.callerObjectId == 52)
+								Event_Queue_SetFlag(FLAG_ITEM_SAPPHIREPOLIS_ALONE_HEAL_G, 1);
+							else
+								Event_Queue_SetFlag(FLAG_ITEM_SAPPHIREPOLIS_ALONE_MEDKIT_1, 1);
+							break;
 					}
 				}
 			}
@@ -6973,6 +12050,693 @@ void Event_Trigger(int id) {
 			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
 		} break;
 		
+		case 1010054: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(2328);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, profile.flags[FLAG_AMPERCORP_ELEVATOR_FLOOR]);
+			Event_Queue_JumpIfEqual(1);
+			Event_Queue_SaveToVarInt(0, &profile.flags[FLAG_AMPERCORP_FLOORS_UNLOCKED]);
+			Event_Queue_AddIntPtr(&eventSystem.vars[0].i, 1);
+			Event_Queue_CompareIntToVar(&dialogSystem.optionSelected, &eventSystem.vars[0].i);
+			Event_Queue_JumpIfGreater(40);
+			if (profile.flags[FLAG_ALONE]) {
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 2);
+				Event_Queue_JumpIfEqual(40);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 3);
+				Event_Queue_JumpIfEqual(40);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 4);
+				Event_Queue_JumpIfEqual(40);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 5);
+				Event_Queue_JumpIfEqual(40);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 6);
+				Event_Queue_JumpIfEqual(40);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 7);
+				Event_Queue_JumpIfEqual(40);
+			}
+			
+			Event_Queue_SetIntPtrToPtr(&profile.flags[FLAG_AMPERCORP_ELEVATOR_FLOOR], &dialogSystem.optionSelected);
+			Event_Queue_SetBoolPtr(&overworld.map.doors[124].enabled, false);
+			Event_Queue_SetBoolPtr(&overworld.map.doors[125].enabled, false);
+			Event_Queue_SetBoolPtr(&overworld.map.doors[126].enabled, false);
+			Event_Queue_SetBoolPtr(&overworld.map.doors[127].enabled, false);
+			Event_Queue_SetBoolPtr(&overworld.map.doors[128].enabled, false);
+			Event_Queue_SetBoolPtr(&overworld.map.doors[129].enabled, false);
+			Event_Queue_SetBoolPtr(&overworld.map.doors[186].enabled, false);
+			Event_Queue_SetBoolPtr(&overworld.map.doors[189].enabled, false);
+			Event_Queue_SetBoolPtr(&overworld.map.doors[130].enabled, false);
+			Event_Queue_SetBoolPtr(&overworld.map.doors[131].enabled, false);
+			
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+			Event_Queue_JumpIfEqual(10);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+			Event_Queue_JumpIfEqual(11);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 2);
+			Event_Queue_JumpIfEqual(12);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 3);
+			Event_Queue_JumpIfEqual(13);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 4);
+			Event_Queue_JumpIfEqual(14);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 5);
+			Event_Queue_JumpIfEqual(15);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 6);
+			Event_Queue_JumpIfEqual(16);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 7);
+			Event_Queue_JumpIfEqual(17);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 8);
+			Event_Queue_JumpIfEqual(18);
+			Event_Queue_Jump(19);
+			
+			Event_Queue_Label(10);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[124].enabled, true);
+				Event_Queue_Jump(2);
+			Event_Queue_Label(11);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[125].enabled, true);
+				Event_Queue_Jump(2);
+			Event_Queue_Label(12);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[126].enabled, true);
+				Event_Queue_Jump(2);
+			Event_Queue_Label(13);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[127].enabled, true);
+				Event_Queue_Jump(2);
+			Event_Queue_Label(14);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[128].enabled, true);
+				Event_Queue_Jump(2);
+			Event_Queue_Label(15);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[129].enabled, true);
+				Event_Queue_Jump(2);
+			Event_Queue_Label(16);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[186].enabled, true);
+				Event_Queue_Jump(2);
+			Event_Queue_Label(17);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[189].enabled, true);
+				Event_Queue_Jump(2);
+			Event_Queue_Label(18);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[130].enabled, true);
+				Event_Queue_Jump(2);
+			Event_Queue_Label(19);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[131].enabled, true);
+				Event_Queue_Jump(2);
+			
+			Event_Queue_Label(2);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_WaitFrames(10);
+			Event_Queue_PlaySound(SND_elevator);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_PlaySound(SND_chess_mate);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Jump(0);
+			
+			Event_Queue_Label(1);
+				Event_Queue_Dialog_Run(2100);
+				Event_Queue_Jump(0);
+			Event_Queue_Label(40);
+				Event_Queue_PlaySound(SND_error);
+				Event_Queue_Dialog_Run(2669);
+			Event_Queue_Label(0);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1010055: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (profile.flags[FLAG_WHITELIGHT_ELECTROFLOOR_DISABLED]) {
+				Event_Queue_Dialog_Run(2350);
+			}
+			else {
+				Event_Queue_Dialog_Run(2336);
+			}
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+			Event_Queue_JumpIfEqual(0);
+			
+			Event_Queue_PlaySound(SND_voice2);
+			
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_Camera_TeleportTo(19496, 15576);
+			Event_Queue_Object_TeleportTo(0, caller->x, caller->y + 16);
+			Event_Queue_Object_TeleportTo(1, caller->x - 32, caller->y + 16);
+			Event_Queue_Object_TeleportTo(2, caller->x - 64, caller->y + 16);
+			Event_Queue_Object_TeleportTo(3, caller->x - 96, caller->y + 16);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_ChangeDirection(3, OBJECT_DIRECTION_UP);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_SetVarInt(0, 0);
+			Event_Queue_CustomAction(5);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			
+			Event_Queue_WaitFrames(4);
+			Event_Queue_CustomAction(5);
+			Event_Queue_PlaySound(SND_sawkill);
+			Event_Queue_CustomAction(5);
+			Event_Queue_WaitFrames(25);
+			Event_Queue_Dialog_Run(2337);
+			
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_Camera_TeleportTo(overworld.camera.x, overworld.camera.y);
+			Event_Queue_Object_TeleportTo(0, overworld.objects[0].x, overworld.objects[0].y);
+			Event_Queue_Object_TeleportTo(1, overworld.objects[1].x, overworld.objects[1].y);
+			Event_Queue_Object_TeleportTo(2, overworld.objects[2].x, overworld.objects[2].y);
+			Event_Queue_Object_TeleportTo(3, overworld.objects[3].x, overworld.objects[3].y);
+			Event_Queue_Object_ChangeDirection(0, overworld.objects[0].direction);
+			Event_Queue_Object_ChangeDirection(1, overworld.objects[1].direction);
+			Event_Queue_Object_ChangeDirection(2, overworld.objects[2].direction);
+			Event_Queue_Object_ChangeDirection(3, overworld.objects[3].direction);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			
+			Event_Queue_Label(0);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1010056: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(2098);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, profile.flags[FLAG_WHITELIGHT_ELEVATOR_FLOOR]);
+			Event_Queue_JumpIfEqual(1);
+				Event_Queue_SetIntPtrToPtr(&profile.flags[FLAG_WHITELIGHT_ELEVATOR_FLOOR], &dialogSystem.optionSelected);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[171].enabled, false);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[172].enabled, false);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[173].enabled, false);
+				
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+				Event_Queue_JumpIfEqual(10);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(11);
+				Event_Queue_Jump(12);
+				
+				Event_Queue_Label(10);
+					Event_Queue_SetBoolPtr(&overworld.map.doors[171].enabled, true);
+					Event_Queue_Jump(2);
+				Event_Queue_Label(11);
+					Event_Queue_SetBoolPtr(&overworld.map.doors[172].enabled, true);
+					Event_Queue_Jump(2);
+				Event_Queue_Label(12);
+					Event_Queue_SetBoolPtr(&overworld.map.doors[173].enabled, true);
+					Event_Queue_Jump(2);
+				
+				Event_Queue_Label(2);
+				Event_Queue_PlaySound(SND_slap);
+				Event_Queue_WaitFrames(10);
+				Event_Queue_PlaySound(SND_elevator);
+				Event_Queue_WaitFrames(60);
+				Event_Queue_PlaySound(SND_chess_mate);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Jump(0);
+			
+			Event_Queue_Label(1);
+				Event_Queue_Dialog_Run(2100);
+			Event_Queue_Label(0);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1010057: {
+			if (caller->vars[7].i == 1) {
+				OverworldObject_Destroy(70);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Player_SetPositionSync(true);
+				Event_Queue_Camera_TogglePlayerFollow(true);
+				Event_Queue_Object_SetColor(eventSystem.callerObjectId, 0, 255, 0);
+				Event_Queue_PlaySound(SND_chess_mate);
+				Event_Queue_StopMusic();
+				if (profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] >= 5) {
+					Event_Queue_Object_ChangeDirection(71, OBJECT_DIRECTION_DOWN);
+					if (overworld.objects[71].x < 18864) {
+						Event_Queue_Object_JumpTo(71, 18784, 15824, OBJECT_DIRECTION_DOWN, 24, 26);
+					}
+					else {
+						Event_Queue_Object_JumpTo(71, 18944, 15824, OBJECT_DIRECTION_DOWN, 24, 26);
+					}
+					Event_Queue_Object_Destroy(71);
+				}
+				Event_Queue_WaitFrames(30);
+				Event_Queue_PlaySound(SND_slap);
+				Event_Queue_Object_TeleportTo(10, caller->x, caller->y);
+				if (caller->vars[6].i == OBJECT_DIRECTION_RIGHT) {
+					Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_RIGHT);
+					Event_Queue_SetSync(true);
+					Event_Queue_Object_JumpToRelative(10, 8, 0, OBJECT_DIRECTION_RIGHT, 8, 12);
+					Event_Queue_Object_WalkToRelative(0, 18, 0, 4, OBJECT_DIRECTION_LEFT);
+					Event_Queue_SetSync(false);
+				}
+				else if (caller->vars[6].i == OBJECT_DIRECTION_LEFT) {
+					Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_LEFT);
+					Event_Queue_SetSync(true);
+					Event_Queue_Object_JumpToRelative(10, -8, 0, OBJECT_DIRECTION_LEFT, 8, 12);
+					Event_Queue_Object_WalkToRelative(0, -18, 0, 4, OBJECT_DIRECTION_RIGHT);
+					Event_Queue_SetSync(false);
+				}
+				else if (caller->vars[6].i == OBJECT_DIRECTION_DOWN) {
+					Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+					Event_Queue_SetSync(true);
+					Event_Queue_Object_JumpToRelative(10, 0, 16, OBJECT_DIRECTION_DOWN, 8, 12);
+					Event_Queue_Object_WalkToRelative(0, 0, 18, 4, OBJECT_DIRECTION_UP);
+					Event_Queue_SetSync(false);
+				}
+				else {
+					Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_UP);
+					Event_Queue_SetSync(true);
+					Event_Queue_Object_JumpToRelative(10, 0, -8, OBJECT_DIRECTION_UP, 8, 12);
+					Event_Queue_Object_WalkToRelative(0, 0, -18, 4, OBJECT_DIRECTION_DOWN);
+					Event_Queue_SetSync(false);
+				}
+				Event_Queue_WaitFrames(10);
+				Event_Queue_Dialog_Run(2343);
+				Event_Queue_WaitFrames(60);
+				
+				Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+				if (profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] >= 5) {
+					Event_Queue_Party_Join(3);
+				}
+				Event_Queue_Camera_TeleportTo(18864, 15676);
+				Event_Queue_Object_TeleportTo(0, 18864, 15760);
+				Event_Queue_Object_TeleportTo(1, 18864, 15760);
+				Event_Queue_Object_TeleportTo(2, 18864, 15760);
+				Event_Queue_Object_TeleportTo(3, 18864, 15760);
+				Event_Queue_Object_TeleportTo(10, 18864, 15656);
+				Event_Queue_Object_ChangeDirection(10, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_WalkToRelative(0, 0, -80, 3, OBJECT_DIRECTION_UP);
+				for (int i = 0; i < 70; i++) {
+					Event_Queue_Object_TeleportTo(160 + i, overworld.objects[160 + i].x, overworld.objects[160 + i].y - 1000);
+				}
+				Event_Queue_Regroup(3);
+				Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+				Event_Queue_PlayMusic(MUS_whitelight);
+				Event_Queue_Dialog_Run(2344);
+				Event_Queue_Profile_KeyItemAdd(175);
+				Event_Queue_Dialog_Run(4004);
+				Event_Queue_Dialog_Run(2345);
+				Event_Queue_SetSync(true);
+				Event_Queue_Object_WalkTo(10, 18864, 15696, 3, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_QueueWalkTo(10, 18944, 15824, 3, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Dialog_Run(2346);
+				Event_Queue_WaitFrames(32);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_WaitFrames(25);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_RIGHT);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_Destroy(10);
+				Event_Queue_SetSync(false);
+				Event_Queue_WaitFrames(57);
+				Event_Queue_Dialog_Run(2347);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_ChangeDirection(1, OBJECT_DIRECTION_UP);
+				Event_Queue_Object_ChangeDirection(2, OBJECT_DIRECTION_UP);
+				Event_Queue_Dialog_Run(2348);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+				
+				Event_Queue_SetBoolPtr(&overworld.map.doors[174].enabled, true);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[175].enabled, true);
+				
+				Event_Queue_SetFlag(FLAG_WHITELIGHT_PLOT, 2);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Object_ChangeSpriteId(eventSystem.callerObjectId, SPR_misc_guide_cross);
+				Event_Queue_Object_SetColor(eventSystem.callerObjectId, 255, 0, 0);
+				Event_Queue_PlaySound(SND_chess_wrong);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+		} break;
+		
+		case 1010058: {
+			if (profile.flags[FLAG_WHITELIGHT_ELECTROFLOOR_DISABLED] == 0) {
+				for (int i = 0; i < 60; i++) {
+					overworld.map.triggers[i].eventId = 0;
+				}
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_PlaySound(SND_slap);
+				Event_Queue_PlaySound(SND_nerf);
+				Event_Queue_Dialog_Run(2349);
+				Event_Queue_SetFlag(FLAG_WHITELIGHT_ELECTROFLOOR_DISABLED, 1);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+		} break;
+		
+		case 1010059: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Object_Destroy(eventSystem.callerObjectId);
+			Event_Queue_Profile_KeyItemAdd(174);
+			Event_Queue_Dialog_Run(4004);
+			Event_Queue_SetFlag(FLAG_WHITELIGHT_PLOT, 1);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1010061: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(2364);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, profile.flags[FLAG_SAPPHIREHOTEL_ELEVATOR_FLOOR]);
+			Event_Queue_JumpIfEqual(1);
+				Event_Queue_SetIntPtrToPtr(&profile.flags[FLAG_SAPPHIREHOTEL_ELEVATOR_FLOOR], &dialogSystem.optionSelected);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[179].enabled, false);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[180].enabled, false);
+				Event_Queue_SetBoolPtr(&overworld.map.doors[181].enabled, false);
+				
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+				Event_Queue_JumpIfEqual(10);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(11);
+				Event_Queue_Jump(12);
+				
+				Event_Queue_Label(10);
+					Event_Queue_SetBoolPtr(&overworld.map.doors[179].enabled, true);
+					Event_Queue_Jump(2);
+				Event_Queue_Label(11);
+					Event_Queue_SetBoolPtr(&overworld.map.doors[180].enabled, true);
+					Event_Queue_Jump(2);
+				Event_Queue_Label(12);
+					Event_Queue_SetBoolPtr(&overworld.map.doors[181].enabled, true);
+					Event_Queue_Jump(2);
+				
+				Event_Queue_Label(2);
+				Event_Queue_PlaySound(SND_slap);
+				Event_Queue_WaitFrames(10);
+				Event_Queue_PlaySound(SND_elevator);
+				Event_Queue_WaitFrames(60);
+				Event_Queue_PlaySound(SND_chess_mate);
+				Event_Queue_WaitFrames(30);
+				Event_Queue_Jump(0);
+			
+			Event_Queue_Label(1);
+				Event_Queue_Dialog_Run(2100);
+			Event_Queue_Label(0);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1010065: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Object_Destroy(eventSystem.callerObjectId);
+			Event_Queue_Dialog_Run(2391);
+			Event_Queue_SetFlag(FLAG_AMPERCORP_FLOORS_UNLOCKED, 3);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1010066: {
+			if (eventSystem.callerObjectId == 17) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				
+				Event_Queue_PlaySound(SND_amper_feedback);
+				Event_Queue_Camera_MoveTo(29152, 14064, 16);
+				
+				float yAdd = 0;
+				if (overworld.objects[85 + 34].y < 13648) {
+					if (overworld.objects[85 + 48].vars[0].i == OBJECT_DIRECTION_DOWN) {
+						overworld.objects[85 + 48].vars[0].i = OBJECT_DIRECTION_UP;
+						Event_Queue_PlaySound(SND_elevator);
+						Event_Queue_Object_JumpToRelative(85 + 48, 0, 112, -1, 0, 60);
+						yAdd = 112;
+					}
+				}
+				else {
+					if (overworld.objects[85 + 34].vars[0].i == OBJECT_DIRECTION_DOWN) {
+						overworld.objects[85 + 34].vars[0].i = OBJECT_DIRECTION_UP;
+						Event_Queue_PlaySound(SND_elevator);
+						Event_Queue_SetSync(true);
+						Event_Queue_Object_JumpToRelative(85 + 34, 0, 112, -1, 0, 60);
+						Event_Queue_Object_JumpToRelative(85 + 35, 0, 112, -1, 0, 60);
+						Event_Queue_SetSync(false);
+						yAdd = 112;
+					}
+				}
+				
+				Event_Queue_WaitFrames(10);
+				Event_Queue_PlaySound(SND_slap);
+				Event_Queue_Overworld_ShakeScreen(6);
+				if (overworld.objects[85 + 48].y < 13648) {
+					Event_Queue_SetFloatPtr(&overworld.objects[85 + 48].y, overworld.objects[85 + 48].y + 1000);
+					Event_Queue_SetFloatPtr(&overworld.objects[85 + 49].y, overworld.objects[85 + 49].y + 1000);
+					Event_Queue_SetFloatPtr(&overworld.objects[85 + 34].y, overworld.objects[85 + 34].y - 1000 + yAdd);
+					Event_Queue_SetFloatPtr(&overworld.objects[85 + 35].y, overworld.objects[85 + 35].y - 1000 + yAdd);
+				}
+				else {
+					Event_Queue_SetFloatPtr(&overworld.objects[85 + 48].y, overworld.objects[85 + 48].y - 1000 + yAdd);
+					Event_Queue_SetFloatPtr(&overworld.objects[85 + 49].y, overworld.objects[85 + 49].y - 1000);
+					Event_Queue_SetFloatPtr(&overworld.objects[85 + 34].y, overworld.objects[85 + 34].y + 1000);
+					Event_Queue_SetFloatPtr(&overworld.objects[85 + 35].y, overworld.objects[85 + 35].y + 1000);
+				}
+				Event_Queue_WaitFrames(15);
+				
+				Event_Queue_Regroup(16);
+				
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+				break;
+			}
+			
+			int objectId[4] = { 0, 0, 0, 0 };
+			int direction = -1;
+			switch (eventSystem.callerObjectId) {
+				case 10:
+					objectId[0] = 85 + 4+8 *14;
+					objectId[1] = 85 + 3+8 *14;
+					direction = OBJECT_DIRECTION_LEFT;
+					break;
+				case 11:
+					objectId[0] = 85 + 1+7 *14;
+					direction = OBJECT_DIRECTION_LEFT;
+					break;
+				
+				case 13:
+					objectId[0] = 85 + 0+5 *14;
+					objectId[1] = 85 + 0+4 *14;
+					objectId[2] = 85 + 0+3 *14;
+					if (overworld.objects[objectId[0]].vars[0].i != overworld.objects[objectId[2]].vars[0].i)
+						objectId[2] = 0;
+					direction = OBJECT_DIRECTION_DOWN;
+					break;
+				case 14:
+					objectId[0] = 85 + 0+3 *14;
+					direction = OBJECT_DIRECTION_UP;
+					if (overworld.objects[85 + 0+5 *14].vars[0].i != OBJECT_DIRECTION_UP)
+						direction = -1;
+					break;
+				case 15:
+					objectId[0] = 85 + 1+1 *14;
+					objectId[1] = 85 + 1+2 *14;
+					direction = OBJECT_DIRECTION_RIGHT;
+					break;
+				case 16:
+					objectId[0] = 85 + 6+3 *14;
+					if (overworld.objects[objectId[0]].y < 13648) {
+						objectId[0] = 85 + 6+2 *14;
+						objectId[1] = 85 + 7+2 *14;
+					}
+					direction = OBJECT_DIRECTION_UP;
+					break;
+			}
+			if (direction >= 0 && overworld.objects[objectId[0]].vars[0].i >= 0) {
+				direction = overworld.objects[objectId[0]].vars[0].i;
+			}
+			
+			/*for (int i = 0; i < 4; i++) {
+				if (objectId[i] == 0) break;
+				
+				float x = 0, y = 0;
+				switch (direction) {
+					case OBJECT_DIRECTION_LEFT: x = -80; break;
+					case OBJECT_DIRECTION_RIGHT: x = 80; break;
+					case OBJECT_DIRECTION_UP: y = -112; break;
+					case OBJECT_DIRECTION_DOWN: y = 112; break;
+				}
+				
+				for (int j = 85; j < 85 + 168; j++) {
+					if (overworld.objects[j].type == 0 || j == objectId[i]) continue;
+					
+					float x1 = overworld.objects[j].x;
+					float x2 = overworld.objects[objectId[i]].x + x;
+					float y1 = overworld.objects[j].y + overworld.objects[j].z;
+					float y2 = overworld.objects[objectId[i]].x + overworld.objects[objectId[i]].z + y;
+					if (x1 >= x2 - 32 && x1 <= x2 + 32
+					&& y1 >= y2 - 4 && y1 <= y2 + 4) {
+						bool ignore = false;
+						for (int k = 0; k < 4; k++) {
+							if (j == objectId[k]) {
+								ignore = true;
+								break;
+							}
+						}
+						if (!ignore) {
+							printf("%d is obstructing %d\n", j, objectId[i]);
+							objectId[0] = 0;
+							break;
+						}
+					}
+				}
+				if (objectId[0] == 0) break;
+			}*/
+			
+			
+			
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			if (objectId[0] == 0) {
+				Event_Queue_PlaySound(SND_beep_square);
+				Event_Queue_WaitFrames(15);
+			}
+			else if (direction == -1) {
+				Event_Queue_PlaySound(SND_amper_feedback);
+				Event_Queue_Camera_MoveTo(overworld.objects[objectId[0]].x, overworld.objects[objectId[0]].y - 8, 16);
+				Event_Queue_PlaySound(SND_beep_square);
+				Event_Queue_WaitFrames(15);
+				Event_Queue_Regroup(16);
+			}
+			else {
+				Event_Queue_PlaySound(SND_amper_feedback);
+				if (eventSystem.callerObjectId == 16)
+					Event_Queue_Camera_MoveTo(29152, 14064, 12);
+				else
+					Event_Queue_Camera_MoveTo(overworld.objects[objectId[0]].x, overworld.objects[objectId[0]].y - 8, 16);
+				
+				Event_Queue_PlaySound(SND_elevator);
+				Event_Queue_SetSync(true);
+				for (int i = 0; i < 4; i++) {
+					if (objectId[i] == 0) break;
+					
+					float x = 0, y = 0;
+					switch (direction) {
+						case OBJECT_DIRECTION_LEFT: x = -80; break;
+						case OBJECT_DIRECTION_RIGHT: x = 80; break;
+						case OBJECT_DIRECTION_UP: y = -112; break;
+						case OBJECT_DIRECTION_DOWN: y = 112; break;
+					}
+					
+					Event_Queue_Object_JumpToRelative(objectId[i], x, y, -1, 0, 60);
+					for (int j = 20; j < 60; j++) {
+						if (overworld.objects[j].type == 0) continue;
+						
+						if (overworld.objects[j].vars[0].i == objectId[i]) {
+							Event_Queue_Object_JumpToRelative(j, x, y, -1, 0, 60);
+						}
+					}
+				}
+				if (objectId[0] == 85 + 34 && profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DEFEATED] == 0) {
+					Event_Queue_WaitFrames(7);
+					Event_Queue_PlaySound(SND_dodge);
+					Event_Queue_Object_JumpTo(61, 29096, 13952, -1, 104, 18);
+					Event_Queue_SetFlag(FLAG_AMPERCORP_PBSUPERHERO_DEFEATED, 1);
+				}
+				Event_Queue_SetSync(false);
+				
+				Event_Queue_Regroup(16);
+				
+				
+				
+				switch (direction) {
+					case OBJECT_DIRECTION_LEFT: direction = OBJECT_DIRECTION_RIGHT; break;
+					case OBJECT_DIRECTION_RIGHT: direction = OBJECT_DIRECTION_LEFT; break;
+					case OBJECT_DIRECTION_UP: direction = OBJECT_DIRECTION_DOWN; break;
+					case OBJECT_DIRECTION_DOWN: direction = OBJECT_DIRECTION_UP; break;
+				}
+				for (int i = 0; i < 4; i++) {
+					if (objectId[i] == 0) break;
+					
+					overworld.objects[objectId[i]].vars[0].i = direction;
+				}
+			}
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1010067: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(1500);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 0);
+			Event_Queue_JumpIfEqual(1);
+			
+			Event_Queue_SetSync(true);
+			Event_Queue_Camera_MoveTo(3280, 5348, 0.5);
+			Event_Queue_Object_WalkTo(0, 3280, 5352, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(1, 3280, 5392, 0.5, OBJECT_DIRECTION_UP);
+			Event_Queue_Object_WalkTo(2, 3280, 5368, 0.5, -1);
+			Event_Queue_Object_QueueWalkTo(2, 3320, 5360, 0.5, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Object_WalkTo(3, 3280, 5368, 0.5, -1);
+			Event_Queue_Object_QueueWalkTo(3, 3240, 5360, 0.5, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_SetSync(false);
+			Event_Queue_WaitFrames(45);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(1501);
+			Event_Queue_Dialog_Run(1502);
+			Event_Queue_Dialog_Run(1503);
+			Event_Queue_Dialog_Run(1504);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_FadeOutMusic(1500);
+			Event_Queue_Overworld_FadeIn(90, 0, 0, 0);
+			Event_Queue_WaitFrames(150);
+			Event_Queue_ShowEnding(0);
+			Event_Queue_Exit();
+			
+			Event_Queue_Label(1);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1010068: {
+			if (profile.flags[FLAG_SAPPHIREHOTEL_PLOT] >= 2) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2662);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(2661);
+				Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+				Event_Queue_JumpIfEqual(0);
+				
+				Event_Queue_Camera_MoveTo(15760, 16128, 1);
+				Event_Queue_Object_WalkTo(0, 15776, 16136, 1, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_JumpTo(0, 15776, 16120, OBJECT_DIRECTION_DOWN, 12, 16);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_sit);
+				Event_Queue_Object_ChangeSpriteFrame(0, 0);
+				Event_Queue_WaitFrames(98);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_JumpTo(0, 15776, 16112, OBJECT_DIRECTION_DOWN, 0, 12);
+				Event_Queue_WaitFrames(24);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_suppressed);
+				Event_Queue_Object_ChangeSpriteFrame(0, 0);
+				Event_Queue_FadeOutMusic(2000);
+				Event_Queue_Overworld_FadeIn(120, 0, 0, 0);
+				Event_Queue_WaitFrames(240);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+				Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+				Event_Queue_WaitFrames(90);
+				Event_Queue_Object_JumpTo(0, 15776, 16136, OBJECT_DIRECTION_DOWN, 12, 24);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby_run_prepare);
+				Event_Queue_WaitFrames(22);
+				Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+				
+				Event_Queue_Regroup(1);
+				Event_Queue_SetFlag(FLAG_SAPPHIREHOTEL_PLOT, 2);
+				Event_Queue_SetFlag(FLAG_PLOT, 152);
+				
+				Event_Queue_Label(0);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+		} break;
+		
+		case 1010069: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Dialog_Run(2683);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+			Event_Queue_JumpIfEqual(0);
+			
+			Event_Queue_CreateObject(70, 105, 0, caller->x, caller->y + 136, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Label(1);
+			Event_Queue_WaitFrames(1);
+			Event_Queue_CompareIntToConst(&overworld.objects[70].type, 0);
+			Event_Queue_JumpIfGreater(1);
+			if (!profile.flags[FLAG_GREGORY_OPTIONALFIGHT]) {
+				if (profile.flags[FLAG_PLOT] >= 14) {
+					Event_Queue_SetFlag(FLAG_FOREST_TELESCOPE_USED, 2);
+					Event_Queue_CreateTrigger(0, 2064, 1104, 2224, 1120, 119);
+				}
+				else {
+					Event_Queue_SetFlag(FLAG_FOREST_TELESCOPE_USED, 1);
+				}
+			}
+			
+			Event_Queue_Label(0);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
 		
 		
 		case 1060000: case 1060001: case 1060002: case 1060003: case 1060004: {
@@ -7161,20 +12925,25 @@ void Event_Trigger(int id) {
 				Event_Queue_Object_WalkToRelative(0, 24, 0, 0.5, OBJECT_DIRECTION_DOWN);
 				Event_Queue_Object_ToggleGhost(0, false);
 				
-				Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_RIGHT);
-				Event_Queue_WaitFrames(50);
-				Event_Queue_Dialog_Run(790);
-				Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_RIGHT);
-				Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
-				Event_Queue_SetSync(true);
-				Event_Queue_Object_WalkTo(12, 17864, 11160, 2, OBJECT_DIRECTION_UP);
-				Event_Queue_Dialog_Run(791);
-				Event_Queue_SetSync(false);
-				Event_Queue_Dialog_Run(792);
-				Event_Queue_Dialog_Run(793);
-				Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
-				Event_Queue_Object_WalkToRelative(0, 0, 16, 0.5, OBJECT_DIRECTION_DOWN);
-				Event_Queue_Dialog_Run(794);
+				if (profile.flags[FLAG_ALONE]) {
+					Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+				}
+				else {
+					Event_Queue_Object_ChangeDirection(11, OBJECT_DIRECTION_RIGHT);
+					Event_Queue_WaitFrames(50);
+					Event_Queue_Dialog_Run(790);
+					Event_Queue_Object_ChangeDirection(13, OBJECT_DIRECTION_RIGHT);
+					Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_think);
+					Event_Queue_SetSync(true);
+					Event_Queue_Object_WalkTo(12, 17864, 11160, 2, OBJECT_DIRECTION_UP);
+					Event_Queue_Dialog_Run(791);
+					Event_Queue_SetSync(false);
+					Event_Queue_Dialog_Run(792);
+					Event_Queue_Dialog_Run(793);
+					Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+					Event_Queue_Object_WalkToRelative(0, 0, 16, 0.5, OBJECT_DIRECTION_DOWN);
+					Event_Queue_Dialog_Run(794);
+				}
 				
 				if (profile.flags[FLAG_NOAH_JOINED]) {
 					Event_Queue_Party_Join(1);
@@ -7333,7 +13102,7 @@ void Event_Trigger(int id) {
 			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
 			if (Random(1) < 0.01) {
 				if (Random(1) < 0.5)
-					ApplySoundFilter(Random_IRange(0, 8));
+					Audio_ApplySoundFilter(Random_IRange(0, 8));
 				else
 					*(volatile int*)(0) = 0;
 			}
@@ -7412,6 +13181,296 @@ void Event_Trigger(int id) {
 			Event_Queue_PlaySound(SND_bonus2);
 			Event_Queue_Dialog_Run(3156);
 			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1070013: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_Dialog_Run(3180);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+			Event_Queue_JumpIfEqual(1);
+			
+			Event_Queue_Overworld_FadeIn(1, 0, 0, 0);
+			Event_Queue_StopMusic();
+			Event_Queue_WaitFrames(19);
+			Event_Queue_GotoArea(253, 1728, 10398, -1);
+			Event_Queue_Camera_TeleportTo(1728, 10400);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_teen_draw);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteFrame(0, 0);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			Event_Queue_Object_ChangeSpriteFrame(0, 1);
+			Event_Queue_WaitFrames(25);
+			Event_Queue_Object_ChangeSpriteFrame(0, 0);
+			Event_Queue_WaitFrames(32);
+			Event_Queue_Object_ChangeSpriteFrame(0, 1);
+			Event_Queue_WaitFrames(3);
+			Event_Queue_CreateObject(70, 1, SPR_owchar_npc_41, 1536, 10432, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(70, 1712, 10432, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_WaitFrames(24);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(3181);
+			Event_Queue_WaitFrames(20);
+			Event_Queue_Object_ChangeSpriteFrame(0, 2);
+			Event_Queue_Dialog_Run(3182);
+			Event_Queue_Dialog_Run(3183);
+			Event_Queue_Object_ChangeSpriteFrame(0, 3);
+			Event_Queue_Dialog_Run(3184);
+			Event_Queue_Dialog_Run(3183);
+			Event_Queue_Dialog_Run(3185);
+			Event_Queue_Dialog_Run(3186);
+			Event_Queue_Dialog_Run(3187);
+			Event_Queue_Dialog_Run(3188);
+			Event_Queue_Object_ChangeSpriteFrame(0, 4);
+			Event_Queue_Dialog_Run(3183);
+			Event_Queue_Dialog_Run(3189);
+			Event_Queue_Object_ChangeSpriteFrame(0, 5);
+			Event_Queue_WaitFrames(25);
+			Event_Queue_Object_ChangeSpriteFrame(0, 6);
+			Event_Queue_WaitFrames(24);
+			Event_Queue_Object_ChangeSpriteFrame(0, 5);
+			Event_Queue_WaitFrames(25);
+			Event_Queue_Object_ChangeSpriteFrame(0, 6);
+			Event_Queue_WaitFrames(2);
+			Event_Queue_Dialog_Run(3190);
+			Event_Queue_Dialog_Run(3183);
+			Event_Queue_Dialog_Run(3191);
+			Event_Queue_Object_ChangeSpriteFrame(0, 5);
+			Event_Queue_WaitFrames(21);
+			Event_Queue_Object_ChangeSpriteFrame(0, 7);
+			Event_Queue_WaitFrames(21);
+			Event_Queue_Object_ChangeSpriteFrame(0, 8);
+			Event_Queue_WaitFrames(25);
+			Event_Queue_Object_ChangeSpriteFrame(0, 7);
+			Event_Queue_WaitFrames(20);
+			Event_Queue_Object_ChangeSpriteFrame(0, 8);
+			Event_Queue_WaitFrames(16);
+			Event_Queue_Overworld_ShakeScreen(16);
+			Event_Queue_Dialog_Run(3192);
+			Event_Queue_WaitFrames(20);
+			Event_Queue_Object_TeleportToRelative(0, -1, 0);
+			Event_Queue_WaitFrames(20);
+			Event_Queue_Object_TeleportToRelative(0, 2, 0);
+			Event_Queue_WaitFrames(20);
+			Event_Queue_Object_TeleportToRelative(0, -2, 0);
+			Event_Queue_WaitFrames(20);
+			Event_Queue_Object_TeleportToRelative(0, 1, 0);
+			Event_Queue_Object_ChangeSpriteFrame(0, 7);
+			Event_Queue_WaitFrames(15);
+			Event_Queue_Dialog_Run(3193);
+			Event_Queue_Object_ChangeSpriteFrame(0, 9);
+			Event_Queue_Dialog_Run(3194);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Dialog_Run(3195);
+			Event_Queue_WaitFrames(30);
+			Event_Queue_Dialog_Run(3196);
+			Event_Queue_PlaySound(SND_voice2);
+			Event_Queue_Object_ChangeSpriteFrame(0, 10);
+			Event_Queue_WaitFrames(40);
+			Event_Queue_Object_ChangeSpriteFrame(0, 11);
+			Event_Queue_CreateObject(72, 1, SPR_misc_rubyteenartbook, 1719, 10386, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(20);
+			Event_Queue_Object_ChangeSpriteFrame(0, 12);
+			Event_Queue_WaitFrames(68);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby_teen);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_TeleportTo(0, 1728, 10408);
+			Event_Queue_WaitFrames(72);
+			Event_Queue_Object_WalkTo(0, 1712, 10416, 0.25, OBJECT_DIRECTION_DOWN);
+			Event_Queue_WaitFrames(37);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_misc_ruby_teen_slap);
+			Event_Queue_Object_ChangeSpriteFrame(0, 0);
+			Event_Queue_WaitFrames(18);
+			Event_Queue_Object_ChangeSpriteFrame(0, 1);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Object_ChangeSpriteId(70, SPR_misc_npc_41_slapped);
+			Event_Queue_Object_ChangeSpriteFrame(70, 0);
+			Event_Queue_Object_JumpTo(70, 1712, 10452, OBJECT_DIRECTION_UP, 0, 8);
+			Event_Queue_WaitFrames(56);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby_teen);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_WaitFrames(32);
+			Event_Queue_Object_ChangeSpriteFrame(70, 2);
+			Event_Queue_WaitFrames(32);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_WaitFrames(32);
+			Event_Queue_Object_ChangeSpriteFrame(70, 2);
+			Event_Queue_WaitFrames(32);
+			
+			Event_Queue_Dialog_Run(3197);
+			Event_Queue_Object_ChangeSpriteFrame(70, 1);
+			Event_Queue_WaitFrames(32);
+			Event_Queue_Object_ChangeSpriteFrame(70, 2);
+			Event_Queue_WaitFrames(32);
+			Event_Queue_Dialog_Run(3198);
+			Event_Queue_CreateObject(71, 1, SPR_owchar_npc_42, 1536, 10432, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_WalkTo(71, 1640, 10432, 2, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(3199);
+			Event_Queue_Dialog_Run(3200);
+			Event_Queue_Dialog_Run(3201);
+			Event_Queue_Dialog_Run(3202);
+			Event_Queue_Dialog_Run(3203);
+			Event_Queue_Object_WalkTo(71, 1692, 10416, 1, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_Dialog_Run(3204);
+			Event_Queue_PlaySound(SND_swing);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_collapse_ruby_teen);
+			Event_Queue_Object_ChangeSpriteFrame(0, 0);
+			Event_Queue_Object_JumpTo(0, 1664, 10424, OBJECT_DIRECTION_DOWN, 0, 8);
+			Event_Queue_PlaySound(SND_slap);
+			Event_Queue_Object_ChangeSpriteFrame(0, 1);
+			Event_Queue_WaitFrames(48);
+			Event_Queue_Object_ChangeDirection(71, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(3205);
+			
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby_teen);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_SetSync(true);
+			Event_Queue_Object_WalkTo(71, 1488, 10432, 2, OBJECT_DIRECTION_LEFT);
+			Event_Queue_WaitFrames(38);
+			Event_Queue_Object_WalkTo(0, 1528, 10432, 2, OBJECT_DIRECTION_UP);
+			Event_Queue_SetSync(false);
+			
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Dialog_Run(3206);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_SetFlag(FLAG_ILLUSION_MEMORY_GEMS, profile.flags[FLAG_ILLUSION_MEMORY_GEMS] | 0x1);
+			Event_Queue_GotoArea(252, 1120, 10576, -1);
+			Event_Queue_Overworld_FadeOut(1, 0, 0, 0);
+			
+			Event_Queue_Label(1);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1070014: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_Dialog_Run(3180);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+			Event_Queue_JumpIfEqual(1);
+			
+			Event_Queue_Overworld_FadeIn(1, 0, 0, 0);
+			Event_Queue_StopMusic();
+			Event_Queue_WaitFrames(19);
+			Event_Queue_GotoArea(253, 1624, 10768, -1);
+			Event_Queue_Camera_TeleportTo(1648, 10736);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby_nmg);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_RIGHT);
+			Event_Queue_CreateObject(70, 1, SPR_owchar_npc_43, 1672, 10768, OBJECT_DIRECTION_LEFT);
+			Event_Queue_CreateObject(71, 1, SPR_owchar_npc_44, 1672, 10720, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			
+			Event_Queue_WaitFrames(55);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(3210);
+			Event_Queue_Object_JumpToRelative(71, 0, 0, OBJECT_DIRECTION_DOWN, 16, 12);
+			Event_Queue_Dialog_Run(3211);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(3212);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(3213);
+			Event_Queue_Object_ChangeDirection(71, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(3214);
+			Event_Queue_Object_ChangeDirection(71, OBJECT_DIRECTION_DOWN);
+			Event_Queue_Dialog_Run(3215);
+			Event_Queue_Dialog_Run(3183);
+			Event_Queue_Dialog_Run(3216);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(3217);
+			Event_Queue_Dialog_Run(3218);
+			Event_Queue_WaitFrames(65);
+			Event_Queue_Dialog_Run(3219);
+			
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Dialog_Run(3220);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_SetFlag(FLAG_ILLUSION_MEMORY_GEMS, profile.flags[FLAG_ILLUSION_MEMORY_GEMS] | 0x2);
+			Event_Queue_GotoArea(252, 1120, 10576, -1);
+			Event_Queue_Overworld_FadeOut(1, 0, 0, 0);
+			
+			Event_Queue_Label(1);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1070015: {
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+			Event_Queue_Player_SetPositionSync(true);
+			Event_Queue_Dialog_Run(3180);
+			Event_Queue_CompareIntToConst(&dialogSystem.optionSelected, 1);
+			Event_Queue_JumpIfEqual(1);
+			
+			Event_Queue_Overworld_FadeIn(1, 0, 0, 0);
+			Event_Queue_StopMusic();
+			Event_Queue_WaitFrames(19);
+			Event_Queue_GotoArea(253, 1648, 11048, -1);
+			Event_Queue_Camera_TeleportTo(1664, 11040);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby_nmg);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_DOWN);
+			Event_Queue_CreateObject(70, 1, SPR_owchar_npc_42, 1736, 11064, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Overworld_FadeOut(30, 0, 0, 0);
+			
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Dialog_Run(3221);
+			Event_Queue_Dialog_Run(3183);
+			Event_Queue_Dialog_Run(3222);
+			Event_Queue_Object_ChangeDirection(0, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(3223);
+			Event_Queue_Dialog_Run(3224);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Dialog_Run(3225);
+			Event_Queue_Dialog_Run(3226);
+			Event_Queue_Dialog_Run(3227);
+			Event_Queue_Object_WalkTo(70, 1656, 11080, 1, OBJECT_DIRECTION_LEFT);
+			Event_Queue_Dialog_Run(3228);
+			Event_Queue_WaitFrames(50);
+			Event_Queue_Object_ChangeDirection(70, OBJECT_DIRECTION_UP);
+			Event_Queue_Dialog_Run(3229);
+			Event_Queue_Object_WalkTo(70, 1480, 11080, 1, OBJECT_DIRECTION_LEFT);
+			
+			Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+			Event_Queue_Object_ChangeSpriteId(0, SPR_owchar_ruby);
+			Event_Queue_Dialog_Run(3230);
+			Event_Queue_WaitFrames(60);
+			Event_Queue_SetFlag(FLAG_ILLUSION_MEMORY_GEMS, profile.flags[FLAG_ILLUSION_MEMORY_GEMS] | 0x4);
+			Event_Queue_GotoArea(252, 1120, 10576, -1);
+			Event_Queue_Overworld_FadeOut(1, 0, 0, 0);
+			
+			Event_Queue_Label(1);
+			Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+		} break;
+		
+		case 1070017: {
+			if (profile.flags[FLAG_ILLUSION_MEMORY_GEMS] != 0x7) {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Dialog_Run(3231);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
+			else {
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_EVENT);
+				Event_Queue_Player_SetPositionSync(true);
+				Event_Queue_PlaySound(SND_neutralize);
+				Event_Queue_CreateObject(70, 1, SPR_misc_illusmemorygems, 1104, 10448, OBJECT_DIRECTION_DOWN);
+				Event_Queue_CreateObject(71, 1, SPR_misc_illusmemorygems, 1136, 10448, OBJECT_DIRECTION_DOWN);
+				Event_Queue_CreateObject(72, 1, SPR_misc_illusmemorygems, 1104, 10496, OBJECT_DIRECTION_DOWN);
+				Event_Queue_Object_ChangeSpriteFrame(70, 0);
+				Event_Queue_Object_ChangeSpriteFrame(71, 1);
+				Event_Queue_Object_ChangeSpriteFrame(72, 2);
+				Event_Queue_WaitFrames(60);
+				
+				Event_Queue_Overworld_FadeIn(30, 0, 0, 0);
+				Event_Queue_WaitFrames(60);
+				if (profile.flags[FLAG_RUBY_GODMODE]) {
+					Event_Queue_Dialog_Run(3236);
+				}
+				else {
+					Event_Queue_Dialog_Run(3232);
+				}
+				Event_Queue_GotoArea(254, 2552, 12664, -1);
+				Event_Queue_Overworld_SetState(OVERWORLD_STATE_IDLE);
+			}
 		} break;
 	}
 }

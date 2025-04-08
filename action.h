@@ -42,6 +42,8 @@ enum {
 	ACTIONCONDITION_EXHAUST,
 	ACTIONCONDITION_HPHALF,
 	ACTIONCONDITION_STATUSCOST,
+	ACTIONCONDITION_AZTEC_1,
+	ACTIONCONDITION_EXHAUST_HPHALF,
 };
 
 enum {
@@ -179,6 +181,122 @@ int Action_Update__44(Fighter* attacker, Fighter* target);
 
 int Action_Update__45(Fighter* attacker, Fighter* target);
 
+int Action_Update__46(Fighter* attacker, Fighter* target);
+
+int Action_Update__47(Fighter* attacker, Fighter* target);
+void Action_Draw__47(Fighter* attacker, Fighter* target);
+
+int Action_Update__48(Fighter* attacker, Fighter* target);
+
+int Action_Update__49(Fighter* attacker, Fighter* target);
+void Action_Draw__49(Fighter* attacker, Fighter* target);
+
+int Action_Update__50(Fighter* attacker, Fighter* target);
+
+int Action_Update__51(Fighter* attacker, Fighter* target);
+
+int Action_Update__52(Fighter* attacker, Fighter* target);
+
+int Action_Update__53(Fighter* attacker, Fighter* target);
+
+int Action_Update__54(Fighter* attacker, Fighter* target);
+
+int Action_Update__55(Fighter* attacker, Fighter* target);
+
+int Action_Update__56(Fighter* attacker, Fighter* target);
+
+int Action_Update__57(Fighter* attacker, Fighter* target);
+void Action_Draw__57(Fighter* attacker, Fighter* target);
+
+int Action_Update__58(Fighter* attacker, Fighter* target);
+void Action_Draw__58(Fighter* attacker, Fighter* target);
+
+int Action_Update__59(Fighter* attacker, Fighter* target);
+
+int Action_Update__60(Fighter* attacker, Fighter* target);
+
+int Action_Update__61(Fighter* attacker, Fighter* target);
+
+int Action_Update__62(Fighter* attacker, Fighter* target);
+
+int Action_Update__63(Fighter* attacker, Fighter* target);
+
+int Action_Update__64(Fighter* attacker, Fighter* target);
+
+int Action_Update__65(Fighter* attacker, Fighter* target);
+
+int Action_Update__66(Fighter* attacker, Fighter* target);
+
+int Action_Update__67(Fighter* attacker, Fighter* target);
+void Action_Draw__67(Fighter* attacker, Fighter* target);
+
+int Action_Update__68(Fighter* attacker, Fighter* target);
+void Action_Draw__68(Fighter* attacker, Fighter* target);
+
+int Action_Update__69(Fighter* attacker, Fighter* target);
+
+int Action_Update__70(Fighter* attacker, Fighter* target);
+void Action_Draw__70(Fighter* attacker, Fighter* target);
+
+int Action_Update__71(Fighter* attacker, Fighter* target);
+
+int Action_Update__72(Fighter* attacker, Fighter* target);
+
+int Action_Update__73(Fighter* attacker, Fighter* target);
+
+int Action_Update__74(Fighter* attacker, Fighter* target);
+
+int Action_Update__75(Fighter* attacker, Fighter* target);
+
+int Action_Update__76(Fighter* attacker, Fighter* target);
+
+int Action_Update__77(Fighter* attacker, Fighter* target);
+
+int Action_Update__78(Fighter* attacker, Fighter* target);
+
+int Action_Update__79(Fighter* attacker, Fighter* target);
+
+int Action_Update__80(Fighter* attacker, Fighter* target);
+
+int Action_Update__81(Fighter* attacker, Fighter* target);
+
+int Action_Update__82(Fighter* attacker, Fighter* target);
+void Action_Draw__82(Fighter* attacker, Fighter* target);
+
+int Action_Update__83(Fighter* attacker, Fighter* target);
+void Action_Draw__83(Fighter* attacker, Fighter* target);
+
+int Action_Update__84(Fighter* attacker, Fighter* target);
+
+int Action_Update__85(Fighter* attacker, Fighter* target);
+void Action_Draw__85(Fighter* attacker, Fighter* target);
+
+int Action_Update__86(Fighter* attacker, Fighter* target);
+
+int Action_Update__87(Fighter* attacker, Fighter* target);
+
+int Action_Update__88(Fighter* attacker, Fighter* target);
+
+int Action_Update__89(Fighter* attacker, Fighter* target);
+
+int Action_Update__90(Fighter* attacker, Fighter* target);
+void Action_Draw__90(Fighter* attacker, Fighter* target);
+
+int Action_Update__91(Fighter* attacker, Fighter* target);
+
+int Action_Update__92(Fighter* attacker, Fighter* target);
+
+int Action_Update__93(Fighter* attacker, Fighter* target);
+void Action_Draw__93(Fighter* attacker, Fighter* target);
+
+int Action_Update__94(Fighter* attacker, Fighter* target);
+
+int Action_Update__95(Fighter* attacker, Fighter* target);
+
+int Action_Update__96(Fighter* attacker, Fighter* target);
+
+int Action_Update__97(Fighter* attacker, Fighter* target);
+
 
 int Action_Update__191(Fighter* attacker, Fighter* target);
 void Action_Draw__191(Fighter* attacker, Fighter* target);
@@ -290,3 +408,110 @@ void Action_AnimUpdate__36(Fighter* attacker, Fighter* target);
 void Action_AnimDraw__36(Fighter* attacker, Fighter* target);
 
 void Action_AnimUpdate__37(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__38(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__38(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__39(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__39(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__40(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__40(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__41(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__41(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__42(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__42(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__43(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__43(Fighter* attacker, Fighter* target);
+
+void Action_AnimDraw__44(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__45(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__45(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__46(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__46(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__47(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__47(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__48(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__48(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__49(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__49(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__50(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__50(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__51(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__51(Fighter* attacker, Fighter* target);
+
+void Action_AnimDraw__52(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__53(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__54(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__54(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__55(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__55(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__56(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__56(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__57(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__57(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__58(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__58(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__59(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__59(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__60(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__60(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__61(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__61(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__62(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__62(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__63(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__63(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__64(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__64(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__65(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__65(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__66(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__66(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__67(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__67(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__68(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__68(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__69(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__69(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__70(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__70(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__71(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__72(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__72(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__73(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__73(Fighter* attacker, Fighter* target);
+
+void Action_AnimUpdate__74(Fighter* attacker, Fighter* target);
+void Action_AnimDraw__74(Fighter* attacker, Fighter* target);

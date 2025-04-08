@@ -19,5 +19,5 @@ void Passive_OnSkillUse(int passiveId, Fighter* fighter);
 void Passive_OnSkillEnd(int passiveId, Fighter* fighter);
 void Passive_OnDealDamage(int passiveId, Fighter* fighter, Fighter* target, int* damagePointer, unsigned int* flagsPointer);
 void Passive_OnTakeDamage(int passiveId, Fighter* fighter, Fighter* attacker, int* damagePointer, unsigned int* flagsPointer);
-void Passive_OnTakeStatus(int passiveId, Fighter* fighter, Fighter* attacker, int* statusIdPointer, int* countPointer);
+void Passive_OnTakeStatus(int passiveId, Fighter* fighter, Fighter* attacker, int* statusIdPointer, int* countPointer, int damageFlags);
 void Passive_OnFighterDefeat(int passiveId, Fighter* fighter, Fighter* target);

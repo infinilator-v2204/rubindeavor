@@ -101,6 +101,9 @@ void Event_Queue_Object_SetColor(int objectId, uint8_t r, uint8_t g, uint8_t b);
 void Event_Queue_CreateSpark(int id, float x, float y, int depth);
 void Event_Queue_Object_SetCollisionSize(int objectId, int w, int h);
 void Event_Queue_Object_SetPositionZ(int objectId, float z);
+void Event_Queue_ChangeMenu(int id);
+void Event_Queue_CreateWall(int objectId, float x, float y, float w, float h);
+void Event_Queue_Object_TeleportToRelative(int id, float x, float y);
 
 void Event_Queue_RemoveCurrentTrigger();
 void Event_Queue_SetSync(bool value);
@@ -136,6 +139,10 @@ void Event_Queue_FullyHealParty();
 void Event_Queue_SetTempFlag(int id, int value);
 void Event_Queue_AddFlag(int id, int value);
 void Event_Queue_SetBoolPtr(bool* p, bool value);
+void Event_Queue_Profile_UnequipAll(int partyId);
+void Event_Queue_StopAllSounds();
+void Event_Queue_ChangeEvent(int id);
+void Event_Queue_ShowEnding(int id);
 
 void Event_Queue_Jump(int label);
 void Event_Queue_JumpIfEqual(int label);

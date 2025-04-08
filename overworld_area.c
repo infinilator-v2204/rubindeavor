@@ -30,6 +30,8 @@ void Overworld_ChangeArea(int id) {
 	}
 	
 	overworld.overlayId = 0;
+	overworld.backgroundId = 0;
+	overworld.cameraClamping = false;
 	overworld.areaWrap = false;
 	overworld.player.dashEnabled = true;
 	Party_UpdateCaterpillar();
@@ -38,149 +40,229 @@ void Overworld_ChangeArea(int id) {
 	
 	switch (id) {
 		case 0:
-			if (profile.flags[FLAG_PLOT] <= 2)
-				PlayMusic(MUS_outside);
+			if (profile.flags[FLAG_PLOT] <= 2 || profile.flags[FLAG_FOREST_FORK_PROGRESS] >= 1006)
+				Audio_PlayMusic(MUS_outside);
 			else if (overworld.map.tilesetSpriteId == SPR_tileset_day_autumn)
-				PlayMusic(MUS_mysterious);
+				Audio_PlayMusic(MUS_mysterious);
 			else if (overworld.map.tilesetSpriteId == SPR_tileset_day_forest)
-				PlayMusic(MUS_forest);
+				Audio_PlayMusic(MUS_forest);
 			else
-				PlayMusic(MUS_field);
+				Audio_PlayMusic(MUS_field);
 			
 			profile.flags[FLAG_DEFAULT_BATTLE_BG] = 0;
+			profile.flags[FLAG_METRO_LOCATION] = 0;
 			
-			Overworld_CreateNPC(73, 10000, 3056, 864, OBJECT_DIRECTION_DOWN);
-			Overworld_CreateNPC(74, 10000, 2288, 5120, OBJECT_DIRECTION_DOWN);
-			Overworld_CreateNPC(75, 10000, 3368, 5344, OBJECT_DIRECTION_DOWN);
-			Overworld_CreateNPC(76, 10000, 6440, 3408, OBJECT_DIRECTION_DOWN);
-			Overworld_CreateNPC(77, 10000, 7864, 3488, OBJECT_DIRECTION_DOWN);
-			Overworld_CreateNPC(78, 10000, 3064, 1424, OBJECT_DIRECTION_DOWN);
-			Overworld_CreateNPC(79, 10000, 11136, 4080, OBJECT_DIRECTION_DOWN);
-			
-			Overworld_CreateEnemy(80, 1, 3600, 5456);
-			Overworld_CreateEnemy(81, 1, 5296, 5040);
-			Overworld_CreateEnemy(82, 3, 5456, 4368);
-			Overworld_CreateEnemy(83, 3, 5744, 4528);
-			Overworld_CreateEnemy(84, 2, 4112, 4528);
-			
-			Overworld_CreateEnemy(85, 13, 6672, 4880);
-			Overworld_CreateEnemy(86, 12, 6608, 4480);
-			
-			Overworld_CreateEnemy(87, 12, 9744, 3920);
-			
-			Overworld_CreateEnemy(88, 6, 3696, 3008);
-			Overworld_CreateEnemy(89, 6, 3872, 2848);
-			Overworld_CreateEnemy(90, 7, 3120, 2496);
-			
-			if (Random(1) < 0.25) {
-				Overworld_CreateEnemy(91, 27, 4464, 2000);
-			}
-			
-			Overworld_CreateNPC(19, 14, 8608, 3600, OBJECT_DIRECTION_DOWN);
-			if (profile.flags[FLAG_PLOT] <= 13) {
-				Overworld_CreateNPC(20, 24, 8472, 5216, OBJECT_DIRECTION_DOWN);
-			}
-			else {
-				Overworld_CreateObject(20, 1, SPR_misc_sapphirebus, 8456, 4864, OBJECT_DIRECTION_RIGHT);
-				OverworldObject_ToggleGhost(20, true);
-			}
-			Overworld_CreateNPC(21, 13, 5536, 3328, OBJECT_DIRECTION_DOWN);
-			
-			Overworld_CreateNPC(29, 10007, 4376, 4360, OBJECT_DIRECTION_DOWN);
-			
-			//Overworld_CreateNPC_Wandering(30, 1000, 8400, 3648, OBJECT_DIRECTION_DOWN);
-			//Overworld_CreateNPC_Wandering(31, 1001, 8832, 3680, OBJECT_DIRECTION_DOWN);
-			//Overworld_CreateNPC_Wandering(32, 1000, 8688, 3824, OBJECT_DIRECTION_DOWN);
-			//Overworld_CreateNPC_Wandering(33, 1001, 8992, 3776, OBJECT_DIRECTION_DOWN);
-			//Overworld_CreateNPC_Wandering(34, 1000, 9280, 3568, OBJECT_DIRECTION_DOWN);
-			//Overworld_CreateNPC_Wandering(35, 1001, 8720, 3984, OBJECT_DIRECTION_DOWN);
-			//Overworld_CreateNPC_Wandering(36, 1002, 8656, 3584, OBJECT_DIRECTION_DOWN);
-			//Overworld_CreateNPC_Wandering(37, 1003, 8992, 3584, OBJECT_DIRECTION_DOWN);
-			
-			if (profile.flags[FLAG_PLOT] <= 2) {
-				Overworld_CreateTrigger(7, 3216, 5328, 3344, 5392, 23);
-			}
-			if (profile.flags[FLAG_PLOT] <= 4) {
-				Overworld_CreateTrigger(0, 5632, 3872, 5664, 4064, 2);
-				Overworld_CreateObject(11, 1, SPR_owchar_navygang, 5664, 3952, OBJECT_DIRECTION_LEFT);
-				Overworld_CreateObject(12, 1, SPR_owchar_navygang, 5664, 3984, OBJECT_DIRECTION_LEFT);
-			}
-			if (profile.flags[FLAG_PLOT] <= 5) {
-				Overworld_CreateTrigger(1, 5888, 3872, 5920, 4032, 3);
-				Overworld_CreateObject(13, 1, SPR_owchar_sally, 6016, 3888, OBJECT_DIRECTION_UP);
-				Overworld_CreateObject(14, 1, SPR_owchar_frank, 6000, 3920, OBJECT_DIRECTION_UP);
-				Overworld_CreateObject(15, 1, SPR_owchar_river, 6032, 3920, OBJECT_DIRECTION_UP);
-				Overworld_CreateObject(16, 1, SPR_owchar_emmet, 6016, 3840, OBJECT_DIRECTION_DOWN);
-			}
-			if (profile.flags[FLAG_PLOT] <= 9) {
-				if (profile.flags[FLAG_SILVERBLOCK_PUSHED] == 0)
-					Overworld_CreateNPC(17, 6, 7568, 3536, OBJECT_DIRECTION_DOWN);
-				else
-					Overworld_CreateNPC(17, 6, 7624, 3536, OBJECT_DIRECTION_DOWN);
-				OverworldObject_SetCollisionSize(17, 16, 28);
-				Overworld_CreateNPC(18, 1, 7728, 3488, OBJECT_DIRECTION_DOWN);
-			}
-			if (profile.flags[FLAG_PLOT] <= 10) {
-				Overworld_CreateTrigger(2, 8304, 3552, 8352, 4048, 4);
-			}
-			if (profile.flags[FLAG_PLOT] == 10) {
-				//Overworld_CreateTrigger(3, 7488, 3488, 7504, 3552, 5);
-			}
-			if (profile.flags[FLAG_PLOT] <= 11) {
-				Overworld_CreateNPC(22, 2, 3712, 3344, OBJECT_DIRECTION_RIGHT);
-				Overworld_CreateNPC(23, 2, 3712, 3376, OBJECT_DIRECTION_RIGHT);
-				Overworld_CreateWall(24, 3712, 3392, 16, 80);
-			}
-			if (profile.flags[FLAG_PLOT] == 12) {
-				Overworld_CreateTrigger(4, 3232, 1392, 3248, 1504, 7);
-				Overworld_CreateObject(11, 1, SPR_owchar_leafcrew_alt, 3296, 1456, OBJECT_DIRECTION_LEFT);
-			}
-			if (profile.flags[FLAG_PLOT] == 13) {
-				Overworld_CreateTrigger(5, 3024, 528, 3088, 560, 8);
-				Overworld_CreateObject(11, 1, SPR_owchar_lisao, 3056, 448, OBJECT_DIRECTION_UP);
-			}
-			if (profile.flags[FLAG_PLOT] == 14) {
-				Overworld_CreateTrigger(5, 3040, 576, 3072, 592, 44);
-			}
-			if (profile.flags[FLAG_PLOT] == 15) {
-				Overworld_CreateTrigger(6, 3008, 1904, 3072, 1920, 13);
-			}
-			if (profile.flags[FLAG_PLOT] <= 16) {
-				Overworld_CreateNPC(25, 19, 3424, 1072, OBJECT_DIRECTION_DOWN);
-				Overworld_CreateNPC(26, 20, 3496, 1424, OBJECT_DIRECTION_LEFT);
-				if (!profile.flags[FLAG_LEAFCREW_OPTIONALFIGHT]) Overworld_CreateNPC(27, 21, 3608, 1168, OBJECT_DIRECTION_DOWN);
-				Overworld_CreateNPC(28, 22, 3784, 1168, OBJECT_DIRECTION_DOWN);
-			}
-			if (profile.flags[FLAG_PURCHASED_BUS_TICKET]) {
-				Overworld_CreateTrigger(8, 8288, 4976, 8400, 5152, 25);
-			}
-			if (!profile.flags[FLAG_BRICKWALL_REMOVED]) {
-				Overworld_CreateNPC(30, 10027, 6528, 3840, OBJECT_DIRECTION_DOWN);
+			if (profile.flags[FLAG_FUN_RIVERGREEN_MYSTERY_ROOM]) {
+				overworld.map.doors[43].x1 = 9952;
+				overworld.map.doors[43].y1 = 4480;
 				
-				if (profile.flags[FLAG_PLOT] >= 11) {
-					Overworld_CreateTrigger(9, 6400, 3424, 6576, 3472, 30);
+				if (overworld.player.x >= 10016 && (profile.flags[FLAG_FUN] == 0 || Random(1) < 0.9)) {
+					profile.flags[FLAG_FUN] = 0;
+					Audio_StopMusic();
+					Audio_PlayMusic(MUS_field);
+					overworld.map.doors[43].x1 = 10272;
+					overworld.map.doors[43].y1 = 4480;
+					
+					Event_Queue_Party_Leave(1);
+					Event_Queue_Party_Leave(2);
+					Event_Queue_Party_Leave(3);
+					if (profile.flags[FLAG_NOAH_JOINED]) {
+						Event_Queue_Party_Join(1);
+					}
+					if (profile.flags[FLAG_EMMET_JOINED]) {
+						Event_Queue_Party_Join(2);
+					}
+					if (profile.flags[FLAG_SALLY_JOINED]) {
+						Event_Queue_Party_Join(3);
+					}
+					
+					profile.flags[FLAG_FUN_RIVERGREEN_MYSTERY_ROOM] = 0;
+				}
+				else if (overworld.player.x < 10016) {
+					profile.flags[FLAG_FUN] = 0;
+					profile.party[1] = -1;
+					profile.party[2] = -1;
+					profile.party[3] = -1;
+					profile.party[4] = -1;
+					Party_UpdateCaterpillar();
+					Audio_StopMusic();
+					Audio_PlayMusic(MUS_field);
+					Overworld_CreateTrigger(0, 0, 0, 8523, 8924, 121);
 				}
 			}
-			if (profile.flags[FLAG_PLOT] >= 11) {
-				Overworld_CreateNPC(31, 32, 2008, 5080, OBJECT_DIRECTION_LEFT);
+			else if (profile.flags[FLAG_FOREST_FORK_PROGRESS] >= 1006) {
+				overworld.map.doors[9].x2 = 2248;
+				overworld.map.doors[9].y2 = 1296;
+				
+				Overworld_CreateNPC(75, 10000, 2304, 784, OBJECT_DIRECTION_DOWN);
+				
+				Overworld_CreateNPC(10, 10069, 2560, 400, OBJECT_DIRECTION_DOWN);
+				
+				if (profile.flags[FLAG_FOREST_TELESCOPE_USED] == 2 && !profile.flags[FLAG_GREGORY_OPTIONALFIGHT]) {
+					Overworld_CreateTrigger(0, 2064, 1104, 2224, 1120, 119);
+				}
 			}
-			Overworld_CreateNPC(32, 33, 9384, 3512, OBJECT_DIRECTION_DOWN);
-			
-			if (!profile.flags[FLAG_ITEM_LEAFCREW_TOMATOSOUP]) {
-				Overworld_CreateNPC(50, 10006, 3240, 2200, OBJECT_DIRECTION_DOWN);
+			else if (overworld.map.tilesetSpriteId == SPR_tileset_day_forest) {
+				if (profile.flags[FLAG_FOREST_FORK_PROGRESS] >= 104) {
+					overworld.map.doors[10].x2 = 4104;
+					overworld.map.doors[10].y2 = 1424;
+				}
+				else {
+					overworld.map.doors[10].x2 = 2600;
+					overworld.map.doors[10].y2 = 1552;
+				}
+				overworld.map.doors[9].x2 = 3032;
+				overworld.map.doors[9].y2 = 1536;
+				
+				Overworld_CreateNPC(75, 10000, 3064, 1424, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(76, 10000, 3056, 864, OBJECT_DIRECTION_DOWN);
+				
+				Overworld_CreateEnemy(80, 6, 3696, 3008);
+				Overworld_CreateEnemy(81, 6, 3872, 2848);
+				Overworld_CreateEnemy(82, 7, 3120, 2496);
+				
+				if (profile.flags[FLAG_BASHURA_PLOT] == 0 && profile.flags[FLAG_PLOT] < 14) {
+					Overworld_CreateEnemy(83, 27, 4464, 2000);
+				}
+				
+				if (profile.flags[FLAG_PLOT] <= 11) {
+					Overworld_CreateNPC(22, 2, 3712, 3344, OBJECT_DIRECTION_RIGHT);
+					Overworld_CreateNPC(23, 2, 3712, 3376, OBJECT_DIRECTION_RIGHT);
+					Overworld_CreateWall(24, 3712, 3392, 16, 80);
+				}
+				if (profile.flags[FLAG_PLOT] == 12) {
+					Overworld_CreateTrigger(4, 3232, 1392, 3248, 1504, 7);
+					Overworld_CreateObject(11, 1, SPR_owchar_leafcrew_alt, 3296, 1456, OBJECT_DIRECTION_LEFT);
+				}
+				if (profile.flags[FLAG_PLOT] == 13) {
+					Overworld_CreateTrigger(5, 3024, 528, 3088, 560, 8);
+					Overworld_CreateObject(11, 1, SPR_owchar_lisao, 3056, 448, OBJECT_DIRECTION_UP);
+				}
+				if (profile.flags[FLAG_PLOT] == 14) {
+					Overworld_CreateTrigger(5, 3040, 576, 3072, 592, 44);
+				}
+				if (profile.flags[FLAG_PLOT] == 15) {
+					Overworld_CreateTrigger(6, 3008, 1904, 3072, 1920, 13);
+				}
+				if (profile.flags[FLAG_PLOT] <= 16) {
+					Overworld_CreateNPC(25, 19, 3424, 1072, OBJECT_DIRECTION_DOWN);
+					Overworld_CreateNPC(26, 20, 3496, 1424, OBJECT_DIRECTION_LEFT);
+					if (!profile.flags[FLAG_LEAFCREW_OPTIONALFIGHT]) Overworld_CreateNPC(27, 21, 3608, 1168, OBJECT_DIRECTION_DOWN);
+					Overworld_CreateNPC(28, 22, 3784, 1168, OBJECT_DIRECTION_DOWN);
+				}
+				
+				if (!profile.flags[FLAG_ITEM_LEAFCREW_TOMATOSOUP]) {
+					Overworld_CreateNPC(50, 10006, 3240, 2200, OBJECT_DIRECTION_DOWN);
+				}
+				if (!profile.flags[FLAG_ITEM_LEAFCREW_HEAL_B]) {
+					Overworld_CreateNPC(51, 10041, 2448, 1120, OBJECT_DIRECTION_DOWN);
+				}
 			}
-			if (!profile.flags[FLAG_ITEM_LEAFCREW_HEAL_B]) {
-				Overworld_CreateNPC(51, 10041, 2448, 1120, OBJECT_DIRECTION_DOWN);
+			else {
+				overworld.map.doors[0].enabled = profile.flags[FLAG_PLOT] < 500;
+				
+				if (profile.flags[FLAG_PLOT] >= 500) {
+					Overworld_CreateNPC(69, 10067, 3280, 5336, OBJECT_DIRECTION_DOWN);
+				}
+				
+				Overworld_CreateTrigger(200, 9280, 5280, 9392, 5296, 107);
+				
+				Overworld_CreateNPC(75, 10000, 3368, 5344, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(76, 10000, 6440, 3408, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(77, 10000, 7864, 3488, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(78, 10000, 2288, 5120, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(79, 10000, 11136, 4080, OBJECT_DIRECTION_DOWN);
+				
+				Overworld_CreateEnemy(80, 1, 3600, 5456);
+				Overworld_CreateEnemy(81, 1, 5296, 5040);
+				Overworld_CreateEnemy(82, 3, 5456, 4368);
+				Overworld_CreateEnemy(83, 3, 5744, 4528);
+				Overworld_CreateEnemy(84, 2, 4112, 4528);
+				
+				Overworld_CreateEnemy(85, 13, 6672, 4880);
+				Overworld_CreateEnemy(86, 12, 6608, 4480);
+				
+				Overworld_CreateEnemy(87, 12, 9744, 3920);
+				
+				Overworld_CreateNPC(19, 14, 8608, 3600, OBJECT_DIRECTION_DOWN);
+				if (profile.flags[FLAG_PLOT] <= 13) {
+					Overworld_CreateNPC(20, 24, 8472, 5216, OBJECT_DIRECTION_DOWN);
+				}
+				else {
+					Overworld_CreateObject(20, 1, SPR_misc_sapphirebus, 8456, 4864, OBJECT_DIRECTION_RIGHT);
+					OverworldObject_ToggleGhost(20, true);
+				}
+				Overworld_CreateNPC(21, 13, 5536, 3328, OBJECT_DIRECTION_DOWN);
+				
+				Overworld_CreateNPC(29, 10007, 4376, 4360, OBJECT_DIRECTION_DOWN);
+				
+				//Overworld_CreateNPC_Wandering(30, 1000, 8400, 3648, OBJECT_DIRECTION_DOWN);
+				//Overworld_CreateNPC_Wandering(31, 1001, 8832, 3680, OBJECT_DIRECTION_DOWN);
+				//Overworld_CreateNPC_Wandering(32, 1000, 8688, 3824, OBJECT_DIRECTION_DOWN);
+				//Overworld_CreateNPC_Wandering(33, 1001, 8992, 3776, OBJECT_DIRECTION_DOWN);
+				//Overworld_CreateNPC_Wandering(34, 1000, 9280, 3568, OBJECT_DIRECTION_DOWN);
+				//Overworld_CreateNPC_Wandering(35, 1001, 8720, 3984, OBJECT_DIRECTION_DOWN);
+				//Overworld_CreateNPC_Wandering(36, 1002, 8656, 3584, OBJECT_DIRECTION_DOWN);
+				//Overworld_CreateNPC_Wandering(37, 1003, 8992, 3584, OBJECT_DIRECTION_DOWN);
+				
+				if (profile.flags[FLAG_PLOT] <= 2) {
+					Overworld_CreateTrigger(7, 3216, 5328, 3344, 5392, 23);
+				}
+				if (profile.flags[FLAG_PLOT] <= 4) {
+					Overworld_CreateTrigger(0, 5632, 3872, 5664, 4064, 2);
+					Overworld_CreateObject(11, 1, SPR_owchar_navygang, 5664, 3952, OBJECT_DIRECTION_LEFT);
+					Overworld_CreateObject(12, 1, SPR_owchar_navygang, 5664, 3984, OBJECT_DIRECTION_LEFT);
+				}
+				if (profile.flags[FLAG_PLOT] <= 5) {
+					Overworld_CreateTrigger(1, 5888, 3872, 5920, 4032, 3);
+					Overworld_CreateObject(13, 1, SPR_owchar_sally, 6016, 3888, OBJECT_DIRECTION_UP);
+					Overworld_CreateObject(14, 1, SPR_owchar_frank, 6000, 3920, OBJECT_DIRECTION_UP);
+					Overworld_CreateObject(15, 1, SPR_owchar_river, 6032, 3920, OBJECT_DIRECTION_UP);
+					Overworld_CreateObject(16, 1, SPR_owchar_emmet, 6016, 3840, OBJECT_DIRECTION_DOWN);
+				}
+				if (profile.flags[FLAG_PLOT] <= 9) {
+					if (profile.flags[FLAG_SILVERBLOCK_PUSHED] == 0)
+						Overworld_CreateNPC(17, 6, 7568, 3536, OBJECT_DIRECTION_DOWN);
+					else
+						Overworld_CreateNPC(17, 6, 7624, 3536, OBJECT_DIRECTION_DOWN);
+					OverworldObject_SetCollisionSize(17, 16, 28);
+					Overworld_CreateNPC(18, 1, 7728, 3488, OBJECT_DIRECTION_DOWN);
+				}
+				if (profile.flags[FLAG_PLOT] <= 10) {
+					Overworld_CreateTrigger(2, 8304, 3552, 8352, 4048, 4);
+				}
+				if (profile.flags[FLAG_PLOT] == 10) {
+					//Overworld_CreateTrigger(3, 7488, 3488, 7504, 3552, 5);
+				}
+				if (profile.flags[FLAG_PURCHASED_BUS_TICKET]) {
+					Overworld_CreateTrigger(8, 8288, 4976, 8400, 5152, 25);
+				}
+				if (!profile.flags[FLAG_BRICKWALL_REMOVED]) {
+					Overworld_CreateNPC(30, 10027, 6528, 3840, OBJECT_DIRECTION_DOWN);
+					
+					if (profile.flags[FLAG_PLOT] >= 11) {
+						Overworld_CreateTrigger(9, 6400, 3424, 6576, 3472, 30);
+					}
+				}
+				if (profile.flags[FLAG_PLOT] >= 11 && profile.flags[FLAG_PLOT] <= 13) {
+					Overworld_CreateNPC(31, 32, 2008, 5080, OBJECT_DIRECTION_LEFT);
+				}
+				Overworld_CreateNPC(32, 33, 9384, 3512, OBJECT_DIRECTION_DOWN);
+				
+				if (profile.flags[FLAG_PLOT] >= 500 && profile.flags[FLAG_PLOT] <= 501) {
+					Overworld_CreateTrigger(0, 8544, 5344, 8672, 5392, 109);
+				}
+				
+				if (!profile.flags[FLAG_ITEM_VILLAGE_DANDELION]) {
+					Overworld_CreateNPC(50, 10053, 11080, 4040, OBJECT_DIRECTION_DOWN);
+				}
+				Overworld_CreateNPC(51, 10043, 7520, 3904, OBJECT_DIRECTION_DOWN);
+				overworld.objects[51].vars[7].i = 12;
+				if (profile.flags[FLAG_ITEM_VILLAGE_GREENTEA]) OverworldObject_ChangeSpriteFrame(51, 1);
 			}
-			if (!profile.flags[FLAG_ITEM_VILLAGE_DANDELION]) {
-				Overworld_CreateNPC(52, 10053, 11080, 4040, OBJECT_DIRECTION_DOWN);
-			}
-			Overworld_CreateNPC(53, 10043, 7520, 3904, OBJECT_DIRECTION_DOWN);
-			overworld.objects[53].vars[7].i = 12;
-			if (profile.flags[FLAG_ITEM_VILLAGE_GREENTEA]) OverworldObject_ChangeSpriteFrame(53, 1);
 			break;
 		case 1:
-			StopMusic();
+			Audio_StopMusic();
 			Overworld_CreateNPC(10, 0, -5712, 2680, OBJECT_DIRECTION_LEFT);
 			Overworld_CreateNPC(11, 10003, 752, 2680, OBJECT_DIRECTION_DOWN);
 			if (profile.flags[FLAG_PLOT] <= 1) Overworld_CreateNPC(12, 10005, 552, 2656, OBJECT_DIRECTION_DOWN);
@@ -188,10 +270,10 @@ void Overworld_ChangeArea(int id) {
 			if (profile.flags[FLAG_PLOT] == -1) Overworld_CreateTrigger(0, 64, 2416, 632, 2992, 1);
 			break;
 		case 2:
-			PlayMusic(MUS_cave);
+			Audio_PlayMusic(MUS_cave);
 			break;
 		case 3:
-			PlayMusic(MUS_cave);
+			Audio_PlayMusic(MUS_cave);
 			
 			Overworld_CreateEnemy(80, 24, 1680, 9456);
 			Overworld_CreateEnemy(81, 24, 1504, 9696);
@@ -210,18 +292,30 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 5:
-			PlayMusic(MUS_secretambience);
+			if (profile.flags[FLAG_GREGORY_OPTIONALFIGHT])
+				Audio_PlayMusic(MUS_casual);
+			else
+				Audio_PlayMusic(MUS_secretambience);
 			
-			Overworld_CreateNPC(10, 8, 464, 1272, OBJECT_DIRECTION_DOWN);
-			if (profile.flags[FLAG_PLOT] <= 14) {
-				Overworld_CreateTrigger(0, 496, 1328, 672, 1408, 9);
-				Overworld_CreateNPC(11, 60001, 552, 1268, OBJECT_DIRECTION_DOWN);
+			if (profile.flags[FLAG_GREGORY_OPTIONALFIGHT]) {
+				Overworld_CreateNPC(10, 8, 488, 1296, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(11, 1, SPR_misc_gregoryscythe, 492, 1234, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateObject(12, 1, SPR_misc_gregorygun, 510, 1262, OBJECT_DIRECTION_DOWN);
+			}
+			else {
+				Overworld_CreateNPC(10, 8, 464, 1272, OBJECT_DIRECTION_DOWN);
+				if (profile.flags[FLAG_PLOT] <= 14) {
+					Overworld_CreateTrigger(0, 496, 1328, 672, 1408, 9);
+					Overworld_CreateNPC(11, 60001, 552, 1268, OBJECT_DIRECTION_DOWN);
+				}
 			}
 			break;
 		case 6:
-			PlayMusic(MUS_town);
+			Audio_PlayMusic(MUS_town);
 			
 			profile.flags[FLAG_DEFAULT_BATTLE_BG] = 11;
+			profile.flags[FLAG_METRO_LOCATION] = 1;
+			Overworld_CreateTrigger(200, 14400, 7472, 14512, 7488, 107);
 			
 			overworld.map.doors[17].enabled = profile.flags[FLAG_PLOT] >= 55 && profile.flags[FLAG_ALONE_PLOT] != 2;
 			
@@ -265,7 +359,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			if (profile.flags[FLAG_PLOT] >= 59 && profile.flags[FLAG_SALLY_JOINED] == 0 && profile.flags[FLAG_SALLY_SPIDERTRAP] == 0) {
 				Overworld_CreateTrigger(1, 14240, 6576, 14464, 6800, 21);
-				Overworld_CreateTrigger(2, 14240, 6880, 14320, 7024, 21);
+				Overworld_CreateTrigger(2, 14208, 6880, 14336, 7024, 21);
 				Overworld_CreateObject(13, 1, SPR_owchar_sally, 14400, 6672, OBJECT_DIRECTION_UP);
 			}
 			if (profile.flags[FLAG_PLOT] == 73) {
@@ -276,7 +370,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			Overworld_CreateNPC(17, 73, 20416, 7136, OBJECT_DIRECTION_DOWN);
 			Overworld_CreateNPC(20, 74, 20200, 7128, OBJECT_DIRECTION_DOWN);
-			if (profile.flags[FLAG_PLOT] >= 74) {
+			if (profile.flags[FLAG_PLOT] >= 74 && profile.flags[FLAG_PLOT] < 500) {
 				//Overworld_CreateTrigger(1, 20192, 7104, 20256, 7200, 29);
 				Overworld_CreateObject(13, 1, SPR_misc_sapphireship, 20328, 7096, OBJECT_DIRECTION_RIGHT);
 				OverworldObject_ToggleGhost(13, true);
@@ -336,13 +430,13 @@ void Overworld_ChangeArea(int id) {
 			break;
 		
 		case 7:
-			PlayMusic(MUS_casual);
+			Audio_PlayMusic(MUS_casual);
 			
 			Overworld_CreateNPC(10, 4, 10232, 8128, OBJECT_DIRECTION_DOWN);
 			Overworld_CreateNPC(11, 5, 10512, 8144, OBJECT_DIRECTION_DOWN);
 			if (!profile.flags[FLAG_JACKIECAFE_BROKENGLASS]) {
-				Overworld_CreateNPC(12, 57, 10360, 8272, OBJECT_DIRECTION_DOWN);
-				Overworld_CreateNPC(13, 10034, 10356, 8284, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(12, 10034, 10356, 8284, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(13, 57, 10360, 8272, OBJECT_DIRECTION_DOWN);
 			}
 			if (profile.flags[FLAG_PLOT] <= 52 && !profile.flags[FLAG_ALONE]) {
 				Overworld_CreateTrigger(0, 9920, 8384, 10544, 8432, 16);
@@ -351,9 +445,9 @@ void Overworld_ChangeArea(int id) {
 		
 		case 9:
 			if (!profile.flags[FLAG_ALONE_PERRY_SPARED] && (profile.flags[FLAG_PLOT] == 57 || profile.flags[FLAG_PLOT] == 58 || profile.flags[FLAG_ALONE_PLOT] >= 2))
-				StopMusic();
+				Audio_StopMusic();
 			else
-				PlayMusic(MUS_casual);
+				Audio_PlayMusic(MUS_casual);
 			
 			overworld.map.doors[17].enabled = true;
 			
@@ -404,9 +498,9 @@ void Overworld_ChangeArea(int id) {
 			break;
 		case 12:
 			if (!profile.flags[FLAG_ALONE_PERRY_SPARED] && (profile.flags[FLAG_PLOT] == 57 || profile.flags[FLAG_PLOT] == 58 || profile.flags[FLAG_ALONE_PLOT] >= 2))
-				StopMusic();
+				Audio_StopMusic();
 			else
-				PlayMusic(MUS_casual);
+				Audio_PlayMusic(MUS_casual);
 			
 			overworld.map.doors[21].enabled = profile.flags[FLAG_PLOT] >= 56;
 			if (profile.flags[FLAG_PLOT] < 56) {
@@ -415,7 +509,7 @@ void Overworld_ChangeArea(int id) {
 			break;
 		case 13:
 			if (profile.flags[FLAG_ALONE_PLOT] < 2 || profile.flags[FLAG_ALONE_PERRY_SPARED])
-				PlayMusic(MUS_cave);
+				Audio_PlayMusic(MUS_cave);
 			
 			overworld.overlayId = 1 + profile.flags[FLAG_FLASHLIGHT];
 			overworld.player.dashEnabled = false;
@@ -424,7 +518,7 @@ void Overworld_ChangeArea(int id) {
 			if (profile.flags[FLAG_ALONE_PLOT] > 2) {
 				Overworld_CreateNPC(10, 58, 9450, 9160, OBJECT_DIRECTION_DOWN);
 				Overworld_CreateObject(11, 1, SPR_misc_collapseblood, 9450, 9159, OBJECT_DIRECTION_DOWN);
-				OverworldObject_ChangeSpriteFrame(11, 2);
+				OverworldObject_ChangeSpriteFrame(11, 1);
 			}
 			else if (profile.flags[FLAG_ALONE_PLOT] == 2 && !profile.flags[FLAG_ALONE_PERRY_SPARED]) {
 				Overworld_CreateNPC(10, 10, 9368, 9144, OBJECT_DIRECTION_UP);
@@ -448,18 +542,18 @@ void Overworld_ChangeArea(int id) {
 			break;
 		case 14:
 			if (profile.flags[FLAG_ALONE_PLOT] >= 20)
-				StopMusic();
+				Audio_StopMusic();
 			else
-				PlayMusic(MUS_mansion);
+				Audio_PlayMusic(MUS_mansion);
 			
 			Overworld_CreateNPC(75, 10000, 8104, 8008, OBJECT_DIRECTION_DOWN);
 			break;
 		
 		case 17:
 			if (profile.flags[FLAG_ALONE_PLOT] >= 20)
-				StopMusic();
+				Audio_StopMusic();
 			else
-				PlayMusic(MUS_mansion);
+				Audio_PlayMusic(MUS_mansion);
 			
 			Overworld_CreateNPC(75, 10000, 7352, 7912, OBJECT_DIRECTION_DOWN);
 			
@@ -470,9 +564,9 @@ void Overworld_ChangeArea(int id) {
 			break;
 		case 18:
 			if (profile.flags[FLAG_ALONE_PLOT] >= 20)
-				StopMusic();
+				Audio_StopMusic();
 			else
-				PlayMusic(MUS_mansion);
+				Audio_PlayMusic(MUS_mansion);
 			
 			if (profile.flags[FLAG_PLOT] <= 71) {
 				Overworld_CreateTrigger(0, 7312, 7664, 7488, 7680, 12);
@@ -481,11 +575,11 @@ void Overworld_ChangeArea(int id) {
 			break;
 		case 19:
 			if (profile.flags[FLAG_ALONE_PLOT] >= 20)
-				StopMusic();
+				Audio_StopMusic();
 			else if (profile.flags[FLAG_PLOT] <= 72)
-				PlayMusic(MUS_secretambience);
+				Audio_PlayMusic(MUS_secretambience);
 			else
-				PlayMusic(MUS_mansion);
+				Audio_PlayMusic(MUS_mansion);
 			
 			if (profile.flags[FLAG_PLOT] <= 72) {
 				Overworld_CreateNPC(10, 27, 7536, 7232, OBJECT_DIRECTION_UP);
@@ -508,14 +602,14 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 21:
-			PlayMusic(MUS_cave);
+			Audio_PlayMusic(MUS_cave);
 			
 			overworld.overlayId = 1 + profile.flags[FLAG_FLASHLIGHT];
 			overworld.player.dashEnabled = false;
 			if (profile.flags[FLAG_FLASHLIGHT]) OverworldObject_ChangeSpriteId(0, SPR_owchar_ruby_flashlight);
 			break;
 		case 22:
-			PlayMusic(MUS_cave);
+			Audio_PlayMusic(MUS_cave);
 			
 			Overworld_CreateNPC(75, 10000, 9696, 9880, OBJECT_DIRECTION_DOWN);
 			
@@ -537,7 +631,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 23:
-			PlayMusic(MUS_secretambience);
+			Audio_PlayMusic(MUS_secretambience);
 			
 			overworld.overlayId = 1 + profile.flags[FLAG_FLASHLIGHT];
 			overworld.player.dashEnabled = false;
@@ -550,9 +644,9 @@ void Overworld_ChangeArea(int id) {
 			break;
 		case 24:
 			if (profile.flags[FLAG_ALONE_PLOT] >= 20)
-				StopMusic();
+				Audio_StopMusic();
 			else
-				PlayMusic(MUS_mansion);
+				Audio_PlayMusic(MUS_mansion);
 			
 			Overworld_CreateNPC(15, 10022, 7672, 9864, OBJECT_DIRECTION_DOWN);
 			
@@ -658,9 +752,9 @@ void Overworld_ChangeArea(int id) {
 			break;
 		case 27:
 			if (profile.flags[FLAG_ALONE_PLOT] >= 20)
-				StopMusic();
+				Audio_StopMusic();
 			else
-				PlayMusic(MUS_mansion);
+				Audio_PlayMusic(MUS_mansion);
 			
 			if (profile.flags[FLAG_MANSION_SOFA_PUSHED]) {
 				Overworld_CreateNPC(10, 10001, 8344, 8016, OBJECT_DIRECTION_DOWN);
@@ -696,7 +790,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 29:
-			PlayMusic(MUS_casual);
+			Audio_PlayMusic(MUS_casual);
 			
 			Overworld_CreateNPC(10, 15, 584, 864, OBJECT_DIRECTION_DOWN);
 			Overworld_CreateNPC(11, 16, 312, 864, OBJECT_DIRECTION_DOWN);
@@ -710,7 +804,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 31:
-			PlayMusic(MUS_casual);
+			Audio_PlayMusic(MUS_casual);
 			break;
 		case 32:
 			Overworld_CreateNPC(11, 10008, 1184, 2436, OBJECT_DIRECTION_DOWN);
@@ -720,7 +814,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 33:
-			PlayMusic(MUS_casual);
+			Audio_PlayMusic(MUS_casual);
 			
 			if (profile.flags[FLAG_PLOT] >= 14) {
 				Overworld_CreateNPC(10, 37, 472, 2400, OBJECT_DIRECTION_DOWN);
@@ -737,9 +831,9 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 36:
-			PlayMusic(MUS_casual);
+			Audio_PlayMusic(MUS_casual);
 			
-			if (profile.flags[FLAG_PURCHASED_BUS_TICKET]) {
+			if (profile.flags[FLAG_PURCHASED_BUS_TICKET] && profile.flags[FLAG_PLOT] < 500) {
 				Overworld_CreateNPC(10, 25, 6824, 7032, OBJECT_DIRECTION_DOWN);
 			}
 			else {
@@ -777,7 +871,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 39:
-			PlayMusic(MUS_casual);
+			Audio_PlayMusic(MUS_casual);
 			
 			Overworld_CreateNPC(10, 29, 10328, 8864, OBJECT_DIRECTION_DOWN);
 			Overworld_CreateNPC_Wandering(11, 34, 10048, 9008, OBJECT_DIRECTION_LEFT);
@@ -787,7 +881,7 @@ void Overworld_ChangeArea(int id) {
 			Overworld_CreateNPC(11, 31, 10504, 9312, OBJECT_DIRECTION_DOWN);
 			break;
 		case 41:
-			PlayMusic(MUS_hotel);
+			Audio_PlayMusic(MUS_hotel);
 			
 			Overworld_CreateNPC(10, 93, 10328, 9840, OBJECT_DIRECTION_DOWN);
 			break;
@@ -797,7 +891,7 @@ void Overworld_ChangeArea(int id) {
 			break;
 		
 		case 44:
-			PlayMusic(MUS_casual);
+			Audio_PlayMusic(MUS_casual);
 			
 			Overworld_CreateNPC(10, 85, 10896, 9136, OBJECT_DIRECTION_DOWN);
 			Overworld_CreateNPC(11, 86, 10952, 9128, OBJECT_DIRECTION_DOWN);
@@ -805,10 +899,12 @@ void Overworld_ChangeArea(int id) {
 			break;
 		
 		case 80:
-			PlayMusic(MUS_city);
+			Audio_PlayMusic(MUS_city);
 			
 			overworld.map.doors[56].enabled = profile.flags[FLAG_PLOT] < 122 || profile.flags[FLAG_RCCLUB_PLOT] < 112;
 			profile.flags[FLAG_DEFAULT_BATTLE_BG] = 5;
+			profile.flags[FLAG_METRO_LOCATION] = 2;
+			Overworld_CreateTrigger(200, 26864, 6816, 26976, 6832, 107);
 			
 			Overworld_CreateNPC(75, 10000, 22440, 8608, OBJECT_DIRECTION_DOWN);
 			Overworld_CreateNPC(76, 10000, 22776, 4568, OBJECT_DIRECTION_DOWN);
@@ -828,8 +924,10 @@ void Overworld_ChangeArea(int id) {
 				if (!profile.flags[FLAG_RCCLUB_CLEAR]) {
 					Overworld_CreateTrigger(1, 22672, 4544, 22768, 4608, 52);
 				}
-				Overworld_CreateTrigger(0, 22984, 4672, 23024, 4768, 36);
-				Overworld_CreateObject(70, 1, SPR_owchar_lulu_omega, 23088, 4416, OBJECT_DIRECTION_DOWN);
+				if (!profile.flags[FLAG_ALONE]) {
+					Overworld_CreateTrigger(0, 22984, 4672, 23024, 4768, 36);
+					Overworld_CreateObject(70, 1, SPR_owchar_lulu_omega, 23088, 4416, OBJECT_DIRECTION_DOWN);
+				}
 			}
 			if (profile.flags[FLAG_PLOT] <= 121) {
 				Overworld_CreateNPC(13, 10050, 27048, 4800, OBJECT_DIRECTION_DOWN);
@@ -857,7 +955,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 81:
-			PlayMusic(MUS_discoquiet);
+			Audio_PlayMusic(MUS_discoquiet);
 			
 			if (profile.flags[FLAG_RCCLUB_PLOT] <= 101) {
 				Overworld_CreateNPC(10, 39, 19936, 10224, OBJECT_DIRECTION_DOWN);
@@ -882,7 +980,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 84:
-			PlayMusic(MUS_discoquiet);
+			Audio_PlayMusic(MUS_discoquiet);
 			
 			Overworld_CreateNPC(75, 10000, 20568, 10104, OBJECT_DIRECTION_DOWN);
 			
@@ -905,7 +1003,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 87:
-			PlayMusic(MUS_disco);
+			Audio_PlayMusic(MUS_disco);
 			
 			overworld.overlayId = 3;
 			
@@ -924,9 +1022,9 @@ void Overworld_ChangeArea(int id) {
 		
 		case 90:
 			if (profile.flags[FLAG_RCCLUB_PLOT] <= 111)
-				StopMusic();
+				Audio_StopMusic();
 			else
-				PlayMusic(MUS_blue);
+				Audio_PlayMusic(MUS_blue);
 			
 			if (profile.flags[FLAG_RCCLUB_PLOT] <= 111) {
 				Overworld_CreateTrigger(0, 19968, 11136, 20064, 11184, 35);
@@ -937,7 +1035,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 91:
-			PlayMusic(MUS_hotel);
+			Audio_PlayMusic(MUS_hotel);
 			
 			Overworld_CreateNPC(10, 45, 18440, 11664, OBJECT_DIRECTION_DOWN);
 			if (profile.flags[FLAG_PLOT] != 114) {
@@ -952,7 +1050,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 92:
-			StopMusic();
+			Audio_StopMusic();
 			
 			overworld.map.doors[68].enabled = profile.flags[FLAG_AZURETOPHOTEL_ELEVATOR_FLOOR] == 0;
 			overworld.map.doors[69].enabled = profile.flags[FLAG_AZURETOPHOTEL_ELEVATOR_FLOOR] == 1;
@@ -965,7 +1063,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 93:
-			PlayMusic(MUS_hotel);
+			Audio_PlayMusic(MUS_hotel);
 			
 			overworld.map.doors[71].enabled = profile.flags[FLAG_PLOT] > 114 && profile.flags[FLAG_AZURETOPHOTEL_PLOT] >= 1;
 			
@@ -973,12 +1071,12 @@ void Overworld_ChangeArea(int id) {
 				Overworld_CreateNPC(10, 47, 18184, 11280, OBJECT_DIRECTION_DOWN);
 			}
 			if (profile.flags[FLAG_PLOT] == 116) {
-				Overworld_CreateTrigger(0, 18240, 11264, 18288, 11344, 38);
+				Overworld_CreateTrigger(0, 18240, 11264, 18288, 11360, 38);
 				Overworld_CreateObject(70, 1, SPR_owchar_npc_16, 18312, 11296, OBJECT_DIRECTION_DOWN);
 			}
 			break;
 		case 94:
-			PlayMusic(MUS_hotel);
+			Audio_PlayMusic(MUS_hotel);
 			break;
 		case 95:
 			Overworld_CreateNPC(10, 10038, 17760, 11156, OBJECT_DIRECTION_DOWN);
@@ -988,15 +1086,17 @@ void Overworld_ChangeArea(int id) {
 				else
 					Overworld_CreateTrigger(0, 17696, 10992, 17920, 11176, 37);
 			}
-			if (profile.flags[FLAG_PLOT] >= 117 && profile.flags[FLAG_PLOT] <= 120) {
-				Overworld_CreateNPC(11, 65, 17776, 11112, OBJECT_DIRECTION_DOWN);
-				Overworld_CreateNPC(12, 66, 17712, 11112, OBJECT_DIRECTION_DOWN);
-				Overworld_CreateNPC(13, 67, 17744, 11112, OBJECT_DIRECTION_DOWN);
-			}
-			if (profile.flags[FLAG_PLOT] == 121) {
-				Overworld_CreateNPC(11, 65, 17776, 11112, OBJECT_DIRECTION_DOWN);
-				Overworld_CreateNPC(12, 66, 17800, 11272, OBJECT_DIRECTION_UP);
-				Overworld_CreateNPC(13, 67, 17744, 11112, OBJECT_DIRECTION_DOWN);
+			if (!profile.flags[FLAG_ALONE]) {
+				if (profile.flags[FLAG_PLOT] >= 117 && profile.flags[FLAG_PLOT] <= 120) {
+					Overworld_CreateNPC(11, 65, 17776, 11112, OBJECT_DIRECTION_DOWN);
+					Overworld_CreateNPC(12, 66, 17712, 11112, OBJECT_DIRECTION_DOWN);
+					Overworld_CreateNPC(13, 67, 17744, 11112, OBJECT_DIRECTION_DOWN);
+				}
+				if (profile.flags[FLAG_PLOT] == 121) {
+					Overworld_CreateNPC(11, 65, 17776, 11112, OBJECT_DIRECTION_DOWN);
+					Overworld_CreateNPC(12, 66, 17800, 11272, OBJECT_DIRECTION_UP);
+					Overworld_CreateNPC(13, 67, 17744, 11112, OBJECT_DIRECTION_DOWN);
+				}
 			}
 			break;
 		case 96:
@@ -1011,10 +1111,10 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 97:
-			PlayMusic(MUS_city);
+			Audio_PlayMusic(MUS_city);
 			break;
 		case 98:
-			PlayMusic(MUS_desert);
+			Audio_PlayMusic(MUS_desert);
 			
 			overworld.map.doors[107].enabled = profile.flags[FLAG_ALONE_PLOT] < 30;
 			
@@ -1057,12 +1157,10 @@ void Overworld_ChangeArea(int id) {
 			break;
 		
 		case 103:
-			if (profile.flags[FLAG_PLOT] == 134)
-				PlayMusic(MUS_lastresort_intro);
-			else if (overworld.player.y <= 12432)
-				PlayMusic(MUS_outside);
+			if (overworld.player.y <= 12432)
+				Audio_PlayMusic(MUS_outside);
 			else
-				PlayMusic(MUS_desert);
+				Audio_PlayMusic(MUS_desert);
 			
 			Overworld_CreateNPC(75, 10000, 12120, 13400, OBJECT_DIRECTION_DOWN);
 			Overworld_CreateNPC(76, 10000, 13160, 11704, OBJECT_DIRECTION_DOWN);
@@ -1097,19 +1195,20 @@ void Overworld_ChangeArea(int id) {
 			}
 			
 			if (profile.flags[FLAG_PLOT] == 134) {
-				Overworld_CreateTrigger(0, 12336, 11728, 12416, 11856, 58);
+				Overworld_CreateObject(70, 1, SPR_owchar_lulu_omega, 11864, 11656, OBJECT_DIRECTION_RIGHT);
+				Overworld_CreateTrigger(0, 12336, 11728, 12416, 11856, 110);
 			}
 			break;
 		case 106:
-			PlayMusic(MUS_desert);
+			Audio_PlayMusic(MUS_desert);
 			
 			Overworld_CreateEnemy(80, 44, 5864, 14168);
 			break;
 		case 107:
-			PlayMusic(MUS_desert);
+			Audio_PlayMusic(MUS_desert);
 			break;
 		case 108:
-			PlayMusic(MUS_casual);
+			Audio_PlayMusic(MUS_casual);
 			
 			Overworld_CreateNPC(10, 76, 17609, 10040, OBJECT_DIRECTION_RIGHT);
 			Overworld_CreateNPC(11, 77, 18103, 10008, OBJECT_DIRECTION_LEFT);
@@ -1122,7 +1221,7 @@ void Overworld_ChangeArea(int id) {
 			Overworld_CreateNPC_Wandering(13, 51, 19184, 11104, OBJECT_DIRECTION_UP);
 			break;
 		case 110:
-			PlayMusic(MUS_outside);
+			Audio_PlayMusic(MUS_outside);
 			
 			Overworld_CreateNPC(75, 10000, 8056, 13576, OBJECT_DIRECTION_DOWN);
 			
@@ -1138,7 +1237,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 111:
-			PlayMusic(MUS_blue);
+			Audio_PlayMusic(MUS_blue);
 			
 			Overworld_CreateNPC(75, 10000, 6392, 12712, OBJECT_DIRECTION_DOWN);
 			
@@ -1152,7 +1251,7 @@ void Overworld_ChangeArea(int id) {
 			break;
 		
 		case 114:
-			PlayMusic(MUS_ozone);
+			Audio_PlayMusic(MUS_ozone);
 			break;
 		case 115:
 			Overworld_CreateNPC(10, 10037, 17559, 12928, OBJECT_DIRECTION_DOWN);
@@ -1175,10 +1274,10 @@ void Overworld_ChangeArea(int id) {
 			if (profile.flags[FLAG_ITEM_LAPISDESERT_BRIAN_CASE]) OverworldObject_ChangeSpriteFrame(10, 1);
 			break;
 		case 118:
-			PlayMusic(MUS_desert);
+			Audio_PlayMusic(MUS_desert);
 			break;
 		case 119:
-			StopMusic();
+			Audio_StopMusic();
 			
 			if (!profile.flags[FLAG_LAPISDESERT_SECRETBUNKER_UNLOCKED]) {
 				overworld.map.doors[112].enabled = false;
@@ -1186,7 +1285,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 120:
-			PlayMusic(MUS_lastresort_pitchdown);
+			Audio_PlayMusic(MUS_lastresort_pitchdown);
 			
 			overworld.overlayId = 1 + profile.flags[FLAG_FLASHLIGHT];
 			overworld.player.dashEnabled = false;
@@ -1195,7 +1294,7 @@ void Overworld_ChangeArea(int id) {
 			Overworld_CreateNPC(75, 10000, 18304, 14920, OBJECT_DIRECTION_DOWN);
 			break;
 		case 121:
-			PlayMusic(MUS_lastresort_pitchdown);
+			Audio_PlayMusic(MUS_lastresort_pitchdown);
 			
 			overworld.overlayId = 1 + profile.flags[FLAG_FLASHLIGHT];
 			overworld.player.dashEnabled = false;
@@ -1216,7 +1315,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 124:
-			PlayMusic(MUS_lastresort_pitchdown);
+			Audio_PlayMusic(MUS_lastresort_pitchdown);
 			
 			overworld.overlayId = 8;
 			
@@ -1242,7 +1341,7 @@ void Overworld_ChangeArea(int id) {
 				}
 			}
 			else if (profile.flags[FLAG_ALONE]) {
-				PlayMusic(MUS_oh);
+				Audio_PlayMusic(MUS_oh);
 				Overworld_CreateObject(70, 1, SPR_owchar_collapse_nekin, 19272, 14784, OBJECT_DIRECTION_DOWN);
 				Overworld_CreateObject(71, 1, SPR_misc_collapseblood, 19272, 14783, OBJECT_DIRECTION_DOWN);
 				OverworldObject_ChangeSpriteFrame(70, 1);
@@ -1257,7 +1356,7 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 126:
-			PlayMusic(MUS_casual);
+			Audio_PlayMusic(MUS_casual);
 			
 			Overworld_CreateNPC(10, 80, 18976, 11616, OBJECT_DIRECTION_DOWN);
 			Overworld_CreateNPC(11, 81, 19144, 11776, OBJECT_DIRECTION_RIGHT);
@@ -1274,14 +1373,986 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 127:
-			PlayMusic(MUS_lastresort_intro);
+			Audio_PlayMusic(MUS_lastresort_intro);
 			
 			Overworld_CreateNPC(10, 84, 19088, 12192, OBJECT_DIRECTION_DOWN);
 			Overworld_CreateNPC(11, 84, 19120, 12192, OBJECT_DIRECTION_DOWN);
 			break;
 		
+		case 150:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_PlayMusic(MUS_outside);
+			else
+				Audio_PlayMusic(MUS_megacity);
+			
+			profile.flags[FLAG_DEFAULT_BATTLE_BG] = 16;
+			profile.flags[FLAG_METRO_LOCATION] = 3;
+			Overworld_CreateTrigger(200, 21840, 3568, 21952, 3584, 107);
+			
+			if (profile.flags[FLAG_ALONE]) {
+				if (profile.flags[FLAG_PLOT] <= 150) {
+					Overworld_CreateTrigger(0, 21840, 3488, 21952, 3504, 111);
+				}
+				
+				if (profile.flags[FLAG_SAPPHIREHOTEL_PLOT] == 2 && profile.flags[FLAG_ALONE_PLOT] >= 30) {
+					Overworld_CreateTrigger(0, 25840, 3520, 25936, 3552, 112);
+					Overworld_CreateObject(70, 1, SPR_owchar_panda, 25976, 3560, OBJECT_DIRECTION_DOWN);
+				}
+				
+				if (profile.flags[FLAG_PLOT] >= 250) {
+					Overworld_CreateNPC(50, 10043, 27520, 3560, OBJECT_DIRECTION_DOWN);
+					overworld.objects[50].vars[7].i = 176;
+					if (profile.flags[FLAG_PLOT] > 250) OverworldObject_ChangeSpriteFrame(50, 1);
+				}
+				
+				if (profile.flags[FLAG_ALONE_PLOT] >= 50) {
+					Overworld_CreateNPC(51, 10043, 27360, 3536, OBJECT_DIRECTION_DOWN);
+					overworld.objects[51].vars[7].i = 28;
+					if (profile.flags[FLAG_ITEM_SAPPHIREPOLIS_ALONE_MEDKIT]) OverworldObject_ChangeSpriteFrame(51, 1);
+					
+					Overworld_CreateNPC(52, 10043, 27392, 3536, OBJECT_DIRECTION_DOWN);
+					overworld.objects[52].vars[7].i = 24;
+					if (profile.flags[FLAG_ITEM_SAPPHIREPOLIS_ALONE_HEAL_G]) OverworldObject_ChangeSpriteFrame(52, 1);
+					
+					Overworld_CreateNPC(53, 10043, 27680, 3536, OBJECT_DIRECTION_DOWN);
+					overworld.objects[53].vars[7].i = 28;
+					if (profile.flags[FLAG_ITEM_SAPPHIREPOLIS_ALONE_MEDKIT_1]) OverworldObject_ChangeSpriteFrame(53, 1);
+				}
+			}
+			else {
+				if (profile.flags[FLAG_PLOT] <= 150) {
+					Overworld_CreateTrigger(0, 26048, 1040, 26304, 1152, 59);
+				}
+				if (profile.flags[FLAG_PLOT] == 152) {
+					Overworld_CreateTrigger(0, 26048, 1040, 26304, 1152, 61);
+					Overworld_CreateObject(70, 1, SPR_owchar_timon, 26344, 1064, OBJECT_DIRECTION_DOWN);
+				}
+				if (profile.flags[FLAG_PLOT] == 250) {
+					Overworld_CreateTrigger(0, 27328, 3512, 27712, 3600, 84);
+					Overworld_CreateObject(70, 1, SPR_owchar_kara, 27520, 3600, OBJECT_DIRECTION_DOWN);
+				}
+				if (profile.flags[FLAG_PLOT] == 500) {
+					Overworld_CreateTrigger(0, 26688, 1056, 26928, 1072, 108);
+				}
+				
+				if (profile.flags[FLAG_SAPPHIREHOTEL_PLOT] == 2) {
+					Overworld_CreateTrigger(0, 25840, 3520, 25936, 3552, 69);
+					Overworld_CreateObject(70, 1, SPR_misc_sally_neo_sit, 26008, 3550, OBJECT_DIRECTION_DOWN);
+				}
+			}
+			
+			if (profile.flags[FLAG_PLOT] <= 151 || profile.flags[FLAG_ALONE_PLOT] >= 50) {
+				Overworld_CreateNPC(10, 101, 29856, 2248, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(11, 102, 29888, 2248, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateWall(12, 29872, 2232, 64, 16);
+			}
+			break;
+		case 151:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_StopMusic();
+			else
+				Audio_PlayMusic(MUS_border);
+			
+			Overworld_CreateObject(10, 1, SPR_misc_spolis_exit, 26896, 9504, OBJECT_DIRECTION_DOWN);
+			if (!profile.flags[FLAG_BRILLIANT_ACCESS_GRANTED]) {
+				Overworld_CreateObject(11, 1, SPR_misc_spolis_exitbarrier, 26992, 9608, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteFrameSpeed(11, 0.25);
+				OverworldObject_SetCollisionSize(11, 192, 8);
+			}
+			
+			Overworld_CreateNPC(12, 129, 26992, 9648, OBJECT_DIRECTION_DOWN);
+			break;
+		case 152:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_PlayMusic(MUS_shutdownslow);
+			else
+				Audio_PlayMusic(MUS_amper);
+			
+			if (profile.flags[FLAG_PLOT] < 200) {
+				Overworld_CreateNPC(10, 84, 27792, 9680, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(11, 84, 27824, 9680, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(12, 84, 27856, 9680, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateWall(13, 27824, 9680, 96, 16);
+			}
+			break;
+		case 153:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_PlayMusic(MUS_shutdownslow);
+			else
+				Audio_PlayMusic(MUS_amper);
+			
+			overworld.map.doors[124].enabled = profile.flags[FLAG_AMPERCORP_ELEVATOR_FLOOR] == 0;
+			overworld.map.doors[125].enabled = profile.flags[FLAG_AMPERCORP_ELEVATOR_FLOOR] == 1;
+			overworld.map.doors[126].enabled = profile.flags[FLAG_AMPERCORP_ELEVATOR_FLOOR] == 2;
+			overworld.map.doors[127].enabled = profile.flags[FLAG_AMPERCORP_ELEVATOR_FLOOR] == 3;
+			overworld.map.doors[128].enabled = profile.flags[FLAG_AMPERCORP_ELEVATOR_FLOOR] == 4;
+			overworld.map.doors[129].enabled = profile.flags[FLAG_AMPERCORP_ELEVATOR_FLOOR] == 5;
+			overworld.map.doors[186].enabled = profile.flags[FLAG_AMPERCORP_ELEVATOR_FLOOR] == 6;
+			overworld.map.doors[189].enabled = profile.flags[FLAG_AMPERCORP_ELEVATOR_FLOOR] == 7;
+			overworld.map.doors[130].enabled = profile.flags[FLAG_AMPERCORP_ELEVATOR_FLOOR] == 8;
+			overworld.map.doors[131].enabled = profile.flags[FLAG_AMPERCORP_ELEVATOR_FLOOR] == 9;
+			
+			Overworld_CreateNPC(10, 10054, 27824, 9296, OBJECT_DIRECTION_DOWN);
+			break;
+		case 154:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_PlayMusic(MUS_shutdownslow);
+			else
+				Audio_PlayMusic(MUS_amper);
+			
+			Overworld_CreateNPC(10, 84, 27792, 9680, OBJECT_DIRECTION_DOWN);
+			break;
+		case 155:
+			Audio_PlayMusic(MUS_amper);
+			
+			Overworld_CreateObject(10, 102, 0, 28904, 10608, OBJECT_DIRECTION_DOWN);
+			OverworldObject_ChangeSpriteId(10, SPR_misc_antiretisheriff);
+			OverworldObject_SetCollisionSize(10, 80, 16);
+			overworld.objects[10].collisionOffsetY = -8;
+			
+			if (profile.flags[FLAG_AMPERCORP_PLOT] == 20) {
+				Overworld_CreateTrigger(0, 28560, 10592, 28608, 10624, 71);
+			}
+			break;
+		case 156:
+			if (overworld.player.x >= 29840 && overworld.player.x <= 29984 && overworld.player.y >= 10416 && overworld.player.y <= 10672) {
+				Audio_PlayMusic(MUS_discodoomsday);
+				overworld.overlayId = 14;
+				
+				Overworld_CreateNPC(10, 10062, 29904, 10544, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(11, 112, 29912, 10532, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteId(11, SPR_misc_npc_35_dj);
+				OverworldObject_ChangeSpriteFrameSpeed(11, 0.1);
+				Overworld_CreateNPC(12, 113, 29880, 10568, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteId(12, SPR_misc_npc_36_floss);
+				OverworldObject_ChangeSpriteFrameSpeed(12, 0.25);
+				Overworld_CreateNPC(13, 114, 29968, 10576, OBJECT_DIRECTION_LEFT);
+				OverworldObject_ChangeSpriteFrameSpeed(13, 0.5);
+				Overworld_CreateNPC(14, 115, 29960, 10612, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteId(14, SPR_misc_npc_38_dance);
+				OverworldObject_ChangeSpriteFrameSpeed(14, 0.25);
+				Overworld_CreateNPC(15, 118, 29864, 10616, OBJECT_DIRECTION_RIGHT);
+				Overworld_CreateNPC(16, 10063, 29860, 10544, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(17, 10063, 29964, 10544, OBJECT_DIRECTION_DOWN);
+				
+				Overworld_CreateObject(18, 1, SPR_misc_discoequalizer, 29856, 10416, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteFrameSpeed(18, 0.25);
+				
+				if (profile.flags[FLAG_AMPERCORP_PLOT] < 20) {
+					Overworld_CreateTrigger(0, 29888, 10640, 29936, 10672, 70);
+				}
+				else if (profile.flags[FLAG_AMPERCORP_PLOT] == 21) {
+					Overworld_CreateTrigger(0, 29888, 10640, 29936, 10672, 75);
+				}
+			}
+			break;
+		case 157:
+			if (overworld.player.x >= 30480 && overworld.player.x <= 30624 && overworld.player.y >= 10416 && overworld.player.y <= 10672) {
+				Overworld_CreateNPC(10, 117, 30520, 10568, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteId(10, SPR_misc_npc_39_sweep);
+				OverworldObject_ChangeSpriteFrameSpeed(10, 0.09);
+				Overworld_CreateNPC(11, 10064, 30496, 10568, OBJECT_DIRECTION_DOWN);
+			}
+			break;
+		case 158:
+			if (profile.flags[FLAG_AMPERCORP_FLOORS_UNLOCKED] <= 2) {
+				Overworld_CreateNPC(10, 10065, 30056, 11096, OBJECT_DIRECTION_DOWN);
+			}
+			break;
+		case 159:
+			Audio_PlayMusic(MUS_tech);
+			
+			Overworld_CreateNPC(10, 119, 28248, 12264, OBJECT_DIRECTION_UP);
+			break;
+		case 160:
+			Audio_PlayMusic(MUS_casualneo);
+			
+			Overworld_CreateObject(10, 1, SPR_misc_ampbroadcastframe, 29104, 12704, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC(11, 120, 29128, 13352, OBJECT_DIRECTION_LEFT);
+			
+			Overworld_CreateNPC(12, 121, 29080, 12920, OBJECT_DIRECTION_RIGHT);
+			Overworld_CreateNPC(13, 122, 29128, 12920, OBJECT_DIRECTION_LEFT);
+			Overworld_CreateNPC(14, 123, 29104, 12952, OBJECT_DIRECTION_UP);
+			
+			if (profile.flags[FLAG_AMPERCORP_PLOT] < 50) {
+				Overworld_CreateTrigger(0, 29040, 12800, 29168, 12832, 76);
+			}
+			break;
+		case 161:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_PlayMusic(MUS_shutdownslow);
+			else
+				Audio_PlayMusic(MUS_amper2);
+			
+			overworld.map.doors[148].enabled = true;
+			
+			if (profile.flags[FLAG_AMPERCORP_PLOT] < 81) {
+				overworld.map.doors[148].enabled = false;
+				Overworld_CreateNPC(10, 10012, 31040, 12288, OBJECT_DIRECTION_DOWN);
+			}
+			break;
+		case 162:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_PlayMusic(MUS_shutdownslow);
+			else
+				Audio_PlayMusic(MUS_amper2);
+			
+			overworld.map.doors[147].enabled = true;
+			
+			if (profile.flags[FLAG_AMPERCORP_PLOT] < 80) {
+				overworld.map.doors[147].enabled = false;
+				Overworld_CreateNPC(10, 10012, 32064, 12680, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateTrigger(0, 32016, 12672, 32160, 12752, 79);
+			}
+			break;
+		case 163:
+			overworld.map.doors[147].enabled = true;
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_PlayMusic(MUS_shutdownslow);
+			else
+				Audio_PlayMusic(MUS_core);
+			
+			if (profile.flags[FLAG_ALONE_PLOT] < 50) {
+				Overworld_CreateNPC(10, 127, 32456, 11784, OBJECT_DIRECTION_DOWN);
+			}
+			if (profile.flags[FLAG_AMPERCORP_PLOT] < 81 && !profile.flags[FLAG_ALONE]) {
+				Overworld_CreateTrigger(0, 32528, 12000, 32592, 12048, 81);
+			}
+			break;
+		case 164:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_StopMusic();
+			else if (profile.flags[FLAG_ALONE_PLOT] >= 40 && profile.flags[FLAG_PLOT] < 250)
+				Audio_PlayMusic(MUS_unnervingslow);
+			else if (profile.flags[FLAG_AMPERCORP_PLOT] >= 91 && profile.flags[FLAG_PLOT] < 250)
+				Audio_PlayMusic(MUS_perspective);
+			else if (profile.flags[FLAG_AMPERCORP_PLOT] != 90)
+				Audio_PlayMusic(MUS_unnerving);
+			break;
+		case 165:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_StopMusic();
+			else if (profile.flags[FLAG_AMPERCORP_PLOT] >= 91 && profile.flags[FLAG_PLOT] < 250 && !profile.flags[FLAG_ALONE])
+				Audio_PlayMusic(MUS_perspective);
+			else
+				Audio_PlayMusic(MUS_ominous);
+			
+			if (profile.flags[FLAG_PLOT] < 250) {
+				if (profile.flags[FLAG_ALONE]) {
+					Overworld_CreateTrigger(0, 30992, 13104, 31024, 13232, 114);
+				}
+				else if (profile.flags[FLAG_AMPERCORP_PLOT] < 90) {
+					Overworld_CreateTrigger(0, 30992, 13104, 31024, 13232, 82);
+				}
+				else {
+					Overworld_CreateTrigger(0, 30992, 13104, 31024, 13232, 83);
+				}
+				Overworld_CreateNPC(10, 60004, 31320, 13044, OBJECT_DIRECTION_DOWN);
+				
+				if (profile.flags[FLAG_ALONE]) {
+					Overworld_CreateObject(70, 1, SPR_misc_amp_sit, 31544, 13156, OBJECT_DIRECTION_LEFT);
+				}
+			}
+			else if (profile.flags[FLAG_ALONE_PLOT] >= 50) {
+				Overworld_CreateNPC(11, 128, 31096, 13168, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateObject(12, 1, SPR_misc_collapseblood, 31096, 13167, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteFrame(12, 1);
+			}
+			else {
+				Overworld_CreateNPC(11, 128, 31544, 13156, OBJECT_DIRECTION_LEFT);
+			}
+			break;
+		case 166:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_PlayMusic(MUS_outside);
+			else if (overworld.player.x >= 2688)
+				Audio_PlayMusic(MUS_forest);
+			else
+				Audio_PlayMusic(MUS_border);
+			
+			if (profile.flags[FLAG_PLOT] < 252) {
+				Overworld_CreateTrigger(0, 2496, 7648, 2528, 7824, 85);
+				Overworld_CreateObject(70, 1, SPR_owchar_lulu_cloak, 2624, 7728, OBJECT_DIRECTION_UP);
+			}
+			break;
+		case 167:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_PlayMusic(MUS_mysteriousalt);
+			else
+				Audio_PlayMusic(MUS_mysterious);
+			
+			profile.flags[FLAG_DEFAULT_BATTLE_BG] = 16;
+			profile.tempFlags[TEMPFLAG_DISABLEBATTLEMUSIC] = 0;
+			
+			overworld.backgroundId = 1;
+			overworld.cameraClamping = true;
+			break;
+		case 168:
+			if (overworld.player.y <= 6416) {
+				if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+					Audio_PlayMusic(MUS_mountainsalt);
+				else
+					Audio_PlayMusic(MUS_mountains);
+			}
+			else {
+				if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+					Audio_PlayMusic(MUS_mysteriousalt);
+				else
+					Audio_PlayMusic(MUS_mysterious);
+			}
+			
+			profile.flags[FLAG_DEFAULT_BATTLE_BG] = 17;
+			
+			if (profile.flags[FLAG_PLOT] < 255) {
+				Overworld_CreateTrigger(0, 30384, 5904, 30496, 5928, 86);
+				Overworld_CreateObject(70, 1, SPR_misc_gemini, 30440, 5832, OBJECT_DIRECTION_DOWN);
+			}
+			Overworld_CreateEnemy(80, 89, 30376, 5416);
+			Overworld_CreateEnemy(81, 92, 29528, 5496);
+			Overworld_CreateEnemy(82, 90, 28584, 5656);
+			Overworld_CreateEnemy(83, 97, 29832, 5048);
+			
+			Overworld_CreateEnemy(84, 93, 30648, 5064);
+			Overworld_CreateEnemy(85, 99, 31896, 4888);
+			Overworld_CreateEnemy(86, 96, 31080, 5640);
+			
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50) {
+				profile.tempFlags[TEMPFLAG_DISABLEBATTLEMUSIC] = 1;
+			}
+			break;
+		case 169:
+			Audio_StopMusic();
+			
+			overworld.map.doors[157].enabled = true;
+			break;
+		case 170:
+			if (overworld.map.doors[157].enabled) {
+				overworld.map.doors[157].enabled = false;
+				overworld.map.doors[158].enabled = true;
+			}
+			else {
+				overworld.map.doors[157].enabled = true;
+				overworld.map.doors[158].enabled = false;
+			}
+			break;
+		case 171:
+			overworld.map.doors[158].enabled = true;
+			
+			Overworld_CreateEnemy(80, 95, 29064, 8904);
+			break;
+		case 172:
+			Audio_PlayMusic(MUS_ominous);
+			
+			profile.tempFlags[TEMPFLAG_DISABLEBATTLEMUSIC] = 0;
+			break;
+		case 173:
+			Audio_PlayMusic(MUS_ominous);
+			break;
+		case 174:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 100)
+				Audio_StopMusic();
+			else if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_PlayMusic(MUS_singularity);
+			else
+				Audio_PlayMusic(MUS_brilliant1);
+			
+			overworld.backgroundId = 2;
+			overworld.overlayId = 13;
+			
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50) {
+				Overworld_CreateNPC(75, 10000, 32384, 15008, OBJECT_DIRECTION_DOWN);
+			}
+			break;
+		case 175:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_PlayMusic(MUS_shutdownslow);
+			else
+				Audio_PlayMusic(MUS_amper);
+			
+			if (profile.flags[FLAG_ALONE_PLOT] < 50) {
+				Overworld_CreateNPC(10, 116, 30088, 9536, OBJECT_DIRECTION_DOWN);
+			}
+			
+			if (profile.flags[FLAG_ALONE] && profile.flags[FLAG_AMPERCORP_FLOORS_UNLOCKED] <= 0) {
+				Overworld_CreateTrigger(0, 29984, 9696, 30208, 9712, 113);
+				Overworld_CreateObject(70, 1, SPR_owchar_kara, 30040, 9608, OBJECT_DIRECTION_LEFT);
+			}
+			break;
+		case 176:
+			Audio_PlayMusic(MUS_amper);
+			
+			Overworld_CreateNPC(10, 10066, 28968, 14464, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC(11, 10066, 28808, 14880, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC(12, 10066, 28568, 15104, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC(13, 10066, 28728, 14464, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC(14, 10066, 28808, 14464, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC(15, 10066, 29416, 14656, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC(16, 10066, 29576, 14464, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC(17, 10066, 29496, 14464, OBJECT_DIRECTION_DOWN);
+			
+			if (profile.flags[FLAG_AMPERCORP_PLOT] < 60) {
+				if (profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DEFEATED] == 0) {
+					Overworld_CreateNPC(61, 124, 29152, 14008, OBJECT_DIRECTION_DOWN);
+				}
+				Overworld_CreateNPC(62, 125, 29176, 13856, OBJECT_DIRECTION_RIGHT);
+			}
+			Overworld_CreateObject(63, 1, SPR_misc_ampbroadcastframe, 29152, 14384, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateObject(64, 1, SPR_misc_ampbroadcastframe, 29152, 13712, OBJECT_DIRECTION_DOWN);
+			
+			Overworld_CreateObject(69, 104, 0, 0, 0, OBJECT_DIRECTION_DOWN);
+			
+			{
+				const int cU = 1, cL = 2, cR = 3, cD = 4;
+				char cubicles[168] = {
+					 0, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0, 0,
+					 0,cL,cU,cU,cL, 0, 0,   0,cU,cU,cU,cL, 0, 0,
+					cU,cU,cU,cL,cL, 0,cR,  cL, 0, 0, 0,cL, 0, 0,
+					cD, 0,cL, 0,cL,cU,cU,  cU,cU,cU,cU,cU,cU,cL,
+					
+					cR, 0, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,cL,
+					cR,cD, 0, 0, 0, 0, 0,   0, 0, 0, 0, 0, 0,cL,
+					
+					 0, 0,cD,cD,cL, 0,cL,  cL, 0,cD,cL,cD,cD,cL,
+					 0,cR,cU,cR,cL,cL,cU,  cU,cL, 0,cL, 0, 0, 0,
+					cU,cR, 0,cR,cD,cL,cL,   0,cU,cU,cL, 0, 0, 0,
+					 0,cR, 0, 0,cL,cU,cL,   0, 0, 0,cL, 0, 0, 0,
+					cD,cU,cU,cD,cL, 0,cL,   0, 0, 0,cL, 0, 0, 0,
+					 0,cL, 0, 0,cR,cU, 0,   0, 0, 0,cL, 0, 0, 0,
+				};
+				
+				int workerCount = 0;
+				for (int i = 0; i < 168; i++) {
+					if (cubicles[i] == 0) continue;
+					int x = 28568 + i % 7 * 80 + (i % 14 >= 7) * (29256-28568);
+					int y = 13904 + i / 14 * 112;
+					
+					int objectId = 85 + i;
+					Overworld_CreateObject(objectId, 1, SPR_misc_amper_cubicle, x, y, OBJECT_DIRECTION_DOWN);
+					OverworldObject_ChangeSpriteFrame(objectId, cubicles[i] - 1);
+					switch (cubicles[i]) {
+						case 1:
+							overworld.objects[objectId].w = 80;
+							overworld.objects[objectId].h = 34;
+							overworld.objects[objectId].y -= 80;
+							overworld.objects[objectId].z += 80;
+							overworld.objects[objectId].collisionOffsetY = 10;
+							break;
+						case 2:
+							overworld.objects[objectId].w = 16;
+							overworld.objects[objectId].h = 96;
+							overworld.objects[objectId].y -= 80;
+							overworld.objects[objectId].z += 80;
+							overworld.objects[objectId].collisionOffsetX = -32;
+							overworld.objects[objectId].collisionOffsetY = 72;
+							break;
+						case 3:
+							overworld.objects[objectId].w = 16;
+							overworld.objects[objectId].h = 96;
+							overworld.objects[objectId].y -= 80;
+							overworld.objects[objectId].z += 80;
+							overworld.objects[objectId].collisionOffsetX = 32;
+							overworld.objects[objectId].collisionOffsetY = 72;
+							break;
+						case 4:
+							overworld.objects[objectId].w = 80;
+							overworld.objects[objectId].h = 6;
+							overworld.objects[objectId].collisionOffsetY = -8;
+							break;
+					}
+					overworld.objects[objectId].vars[0].i = -1;
+					
+					if (i == 34) {
+						overworld.objects[objectId].x += 64;
+						overworld.objects[objectId].y -= 1000;
+						continue;
+					}
+					if (i == 35) {
+						overworld.objects[objectId].x -= 64;
+						overworld.objects[objectId].y -= 1000;
+						continue;
+					}
+					if (i == 48) {
+						overworld.objects[objectId].x += 64;
+						continue;
+					}
+					if (i == 49) {
+						overworld.objects[objectId].x -= 64;
+						continue;
+					}
+					
+					if (i % 3 < 2 && workerCount < 40 && cubicles[i] != 4 && profile.flags[FLAG_AMPERCORP_PLOT] < 60 && (i < 56 || i >= 70)) {
+						if (i > 0)
+						if ((cubicles[i] == 2 && cubicles[i - 1] == 3) || (cubicles[i] == 3 && cubicles[i + 1] == 2)) {
+							continue;
+						}
+						int workerId = 20 + workerCount;
+						Overworld_CreateObject(workerId, 1, SPR_misc_amper_workers, x, y, OBJECT_DIRECTION_DOWN);
+						OverworldObject_ChangeSpriteFrame(workerId, (i % 2) * 4);
+						overworld.objects[workerId].vars[0].i = objectId;
+						switch (cubicles[i]) {
+							case 1:
+								overworld.objects[workerId].y -= 54;
+								overworld.objects[workerId].w = 16;
+								overworld.objects[workerId].h = 4;
+								overworld.objects[workerId].collisionOffsetY = -4;
+								overworld.objects[workerId].direction = OBJECT_DIRECTION_UP;
+								break;
+							case 2:
+								overworld.objects[workerId].x -= 46;
+								overworld.objects[workerId].y -= 46;
+								overworld.objects[workerId].w = 16;
+								overworld.objects[workerId].h = 4;
+								overworld.objects[workerId].collisionOffsetY = -4;
+								overworld.objects[workerId].spriteFrame += 2;
+								overworld.objects[workerId].direction = OBJECT_DIRECTION_RIGHT;
+								break;
+							case 3:
+								overworld.objects[workerId].x += 46;
+								overworld.objects[workerId].y -= 46;
+								overworld.objects[workerId].w = 8;
+								overworld.objects[workerId].h = 4;
+								overworld.objects[workerId].collisionOffsetY = -4;
+								overworld.objects[workerId].spriteFrame += 2;
+								overworld.objects[workerId].direction = OBJECT_DIRECTION_LEFT;
+								break;
+						}
+						workerCount++;
+					}
+				}
+			}
+			break;
+		case 177:
+			Audio_PlayMusic(MUS_amper3);
+			
+			for (int i = 0; i < 54; i++) {
+				Overworld_CreateObject(100 + i, 1, SPR_misc_amper_theatreseat, 29016 + (i % 18) * 16, 15712 + (i / 18) * 48, OBJECT_DIRECTION_DOWN);
+				overworld.objects[100 + i].w = 8;
+				overworld.objects[100 + i].h = 1;
+				overworld.objects[100 + i].collisionOffsetY = -1;
+			}
+			
+			Overworld_CreateNPC(10, 126, 29240, 16312, OBJECT_DIRECTION_DOWN);
+			if (profile.flags[FLAG_AMPERCORP_PLOT] < 70) {
+				Overworld_CreateTrigger(0, 28976, 15520, 29328, 15568, 78);
+				Overworld_CreateNPC(11, 125, overworld.player.x, 15584, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(20, 1, SPR_owchar_kyle, 29112, 15702, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(21, 1, SPR_owchar_dirk, 29144, 15702, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(22, 1, SPR_owchar_tia, 29176, 15702, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(23, 1, SPR_owchar_npc_35, 29144, 15750, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(24, 1, SPR_owchar_npc_36, 29160, 15750, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(25, 1, SPR_owchar_npc_37, 29176, 15750, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(26, 1, SPR_owchar_npc_38, 29192, 15750, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(27, 1, SPR_owchar_camilla, 29240, 15702, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(28, 1, SPR_owchar_reti, 29256, 15798, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(29, 1, SPR_owchar_npc_11, 29288, 15702, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(30, 1, SPR_owchar_npc_12, 29288, 15750, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(31, 1, SPR_owchar_npc_12, 29016, 15798, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(32, 1, SPR_owchar_npc_12, 29032, 15798, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(33, 1, SPR_owchar_agent, 29048, 15798, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(34, 1, SPR_owchar_npc_28, 29064, 15798, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(35, 1, SPR_owchar_agent, 29112, 15798, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(36, 1, SPR_owchar_npc_12, 29080, 15702, OBJECT_DIRECTION_UP);
+			}
+			break;
+		
+		case 186:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_StopMusic();
+			else
+				Audio_PlayMusic(MUS_cozy);
+			
+			Overworld_CreateNPC(10, 78, 20552, 15040, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC(11, 78, 20712, 15040, OBJECT_DIRECTION_DOWN);
+			
+			Overworld_CreateNPC(12, 1004, 20568, 15200, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC(13, 1005, 20714, 15136, OBJECT_DIRECTION_RIGHT);
+			Overworld_CreateNPC(14, 1004, 20774, 15136, OBJECT_DIRECTION_LEFT);
+			Overworld_CreateNPC(15, 1005, 20374, 15136, OBJECT_DIRECTION_LEFT);
+			
+			if (profile.flags[FLAG_PLOT] <= 151 && !profile.flags[FLAG_ALONE]) {
+				Overworld_CreateTrigger(0, 20608, 15248, 20704, 15282, 60);
+			}
+			break;
+		case 187:
+			Overworld_CreateNPC(10, 77, 20727, 15768, OBJECT_DIRECTION_LEFT);
+			
+			Overworld_CreateNPC(11, 1004, 20440, 15728, OBJECT_DIRECTION_DOWN);
+			if (profile.flags[FLAG_WHITELIGHT_PLOT] <= 1 && profile.flags[FLAG_SAPPHIREHOTEL_PLOT] <= 1) {
+				Overworld_CreateNPC(12, 102, 20602, 15760, OBJECT_DIRECTION_RIGHT);
+			}
+			break;
+		case 188:
+			Audio_PlayMusic(MUS_whitelight);
+			
+			overworld.map.doors[171].enabled = profile.flags[FLAG_WHITELIGHT_PLOT] >= 1 || profile.flags[FLAG_ALONE];
+			break;
+		case 189:
+			if (!profile.flags[FLAG_ALONE]) {
+				if (!profile.flags[FLAG_WHITELIGHT_ELECTROFLOOR_DISABLED]) {
+					char safeTiles[30] = {
+						1, 0, 0, 0, 0,
+						1, 0, 1, 1, 1,
+						1, 1, 1, 0, 1,
+						0, 0, 0, 0, 1,
+						1, 1, 1, 1, 1,
+						1, 0, 0, 0, 0,
+					};
+					
+					for (int i = 0; i < 30; i++) {
+						int x = 19412 + i % 5 * 32;
+						int y = 15748 + i / 5 * 32;
+						if (safeTiles[i] == 0)
+							Overworld_CreateTrigger(i, x, y, x + 40, y + 40, 62);
+						
+						y = 15476 + i / 5 * 32;
+						Overworld_CreateTrigger(30 + i, x, y, x + 40, y + 40, 62);
+					}
+					
+					for (int i = 0; i < 30; i++) {
+						int x = 19424 + i % 5 * 32;
+						int y = 15488 + i / 5 * 32;
+						Overworld_CreateObject(20 + i, 1, SPR_tileset_day, x, y, OBJECT_DIRECTION_DOWN);
+						OverworldObject_ChangeSpriteFrame(20 + i, 6241);
+					}
+				}
+				
+				Overworld_CreateNPC(10, 10055, 19592, 15696, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(11, 10058, 19560, 15392, OBJECT_DIRECTION_DOWN);
+				
+				if (profile.flags[FLAG_WHITELIGHT_ELECTROFLOOR_SOLUTION_FOUND] < 2) {
+					Overworld_CreateTrigger(60, 19408, 15696, 19600, 15748, 63);
+				}
+			}
+			break;
+		case 190:
+			Overworld_CreateEnemy(80, 81, 19976, 15920);
+			Overworld_CreateEnemy(81, 82, 20096, 15520);
+			break;
+		case 191:
+			if (profile.flags[FLAG_WHITELIGHT_PLOT] < 1 && !profile.flags[FLAG_ALONE]) {
+				Overworld_CreateNPC(10, 10059, 19800, 15768, OBJECT_DIRECTION_DOWN);
+			}
+			Overworld_CreateNPC(11, 10060, 19720, 15784, OBJECT_DIRECTION_DOWN);
+			break;
+		case 192:
+			overworld.map.doors[171].enabled = profile.flags[FLAG_WHITELIGHT_ELEVATOR_FLOOR] == 0;
+			overworld.map.doors[172].enabled = profile.flags[FLAG_WHITELIGHT_ELEVATOR_FLOOR] == 1;
+			overworld.map.doors[173].enabled = profile.flags[FLAG_WHITELIGHT_ELEVATOR_FLOOR] == 2;
+			
+			Overworld_CreateNPC(10, 10056, 19768, 16016, OBJECT_DIRECTION_DOWN);
+			break;
+		case 193:
+			Audio_PlayMusic(MUS_whitelight);
+			
+			overworld.map.doors[172].enabled = true;
+			
+			if (profile.flags[FLAG_WHITELIGHT_PLOT] <= 1 && profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] >= 4) {
+				Overworld_CreateNPC(10, 107, 18864, 16048, OBJECT_DIRECTION_DOWN);
+				overworld.map.doors[172].enabled = false;
+			}
+			break;
+		case 194:
+			{
+				char randomData[] = { 1, 0, 2, 3, 2, -1, 1, 5, 3, 1, 2, 1, 2, -1, 5, 4, 1, -1, 4, 2, 1, 5, 1, 3, -1, 1, 5, 2, 3 };
+				
+				for (int i = 0; i < 64; i++) {
+					int c = randomData[i % sizeof(randomData)];
+					if (c < 0) continue;
+					int x = 18696 + i % 4 * 32 + i / 8 % 2 * 240;
+					int y = 15382 + i / 4 % 2 * 28 + i / 16 * 96;
+					Overworld_CreateObject(80 + i, 1, SPR_misc_whitelight_kettlesandstuff, x, y, OBJECT_DIRECTION_DOWN);
+					OverworldObject_ChangeSpriteFrame(80 + i, c);
+					if (c < 3 && randomData[((i + 3) % (sizeof(randomData) / 2 + 1)) & 1] == 1) {
+						OverworldObject_ChangeDirection(80 + i, OBJECT_DIRECTION_LEFT);
+					}
+				}
+				Overworld_CreateObject(144, 1, SPR_misc_whitelight_kettlesandstuff, 19096, 15764, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteFrame(144, 0);
+				if (profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] > 0) {
+					OverworldObject_ChangeSpriteFrame(89, 0);
+				}
+				
+				for (int i = 0; i < 64; i++) {
+					int x = 18696 + i % 4 * 32 + i / 8 % 2 * 240;
+					int y = 15386 + i / 4 % 2 * 26 + i / 16 * 96;
+					Overworld_CreateNPC(160 + i, 10057, x, y - 1000, OBJECT_DIRECTION_DOWN);
+					OverworldObject_ChangeSpriteFrameSpeed(160 + i, 0.06667);
+					if (i / 4 % 2 == 0)
+						overworld.objects[160 + i].vars[6].i = OBJECT_DIRECTION_UP;
+					else
+						overworld.objects[160 + i].vars[6].i = OBJECT_DIRECTION_DOWN;
+				}
+				Overworld_CreateNPC(224, 10057, 19120, 15680 - 1000, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteFrameSpeed(224, 0.06667);
+				overworld.objects[224].vars[6].i = OBJECT_DIRECTION_LEFT;
+				
+				Overworld_CreateNPC(225, 10057, 19090, 15768 - 1000, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteFrameSpeed(225, 0.06667);
+				overworld.objects[225].vars[6].i = OBJECT_DIRECTION_LEFT;
+				
+				Overworld_CreateNPC(226, 10057, 18608, 15392 - 1000, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteFrameSpeed(226, 0.06667);
+				overworld.objects[226].vars[6].i = OBJECT_DIRECTION_RIGHT;
+				
+				Overworld_CreateNPC(227, 10057, 18656, 15328 - 1000, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteFrameSpeed(227, 0.06667);
+				overworld.objects[227].vars[6].i = OBJECT_DIRECTION_DOWN;
+				
+				Overworld_CreateNPC(228, 10057, 18632, 15312 - 1000, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteFrameSpeed(228, 0.06667);
+				overworld.objects[228].vars[6].i = OBJECT_DIRECTION_DOWN;
+				
+				Overworld_CreateNPC(229, 10057, 18680, 15312 - 1000, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteFrameSpeed(229, 0.06667);
+				overworld.objects[229].vars[6].i = OBJECT_DIRECTION_DOWN;
+			}
+			if (profile.flags[FLAG_WHITELIGHT_PLOT] <= 1 && !profile.flags[FLAG_ALONE]) {
+				Overworld_CreateNPC(10, 103, 18864, 15656, OBJECT_DIRECTION_DOWN);
+			}
+			break;
+		case 195:
+			Audio_PlayMusic(MUS_cozy);
+			
+			overworld.map.doors[173].enabled = true;
+			
+			if (profile.flags[FLAG_WHITELIGHT_PLOT] == 3 && !profile.flags[FLAG_ALONE]) {
+				Overworld_CreateTrigger(0, 18064, 16032, 18128, 16128, 67);
+			}
+			break;
+		case 196:
+			Audio_PlayMusic(MUS_cozy);
+			
+			Overworld_CreateNPC(10, 104, 18096, 15568, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC(11, 105, 18064, 15568, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC(12, 106, 18000, 15600, OBJECT_DIRECTION_DOWN);
+			
+			if (profile.flags[FLAG_WHITELIGHT_PLOT] <= 2 && !profile.flags[FLAG_ALONE]) {
+				Overworld_CreateTrigger(0, 17984, 15792, 18208, 15840, 65);
+				Overworld_CreateObject(70, 1, SPR_owchar_noah, 17944, 15640, OBJECT_DIRECTION_LEFT);
+			}
+			break;
+		case 197:
+			Audio_PlayMusic(MUS_casualneo);
+			
+			overworld.map.doors[179].enabled = true;
+			overworld.map.doors[180].enabled = true;
+			overworld.map.doors[181].enabled = true;
+			overworld.map.doors[182].enabled = profile.flags[FLAG_SAPPHIREHOTEL_ELEVATOR_FLOOR] == 2;
+			
+			if (profile.flags[FLAG_SAPPHIREHOTEL_MAN_ANNOYED]) {
+				Overworld_CreateNPC(10, 109, 16984, 15984, OBJECT_DIRECTION_DOWN);
+			}
+			else {
+				Overworld_CreateNPC(10, 108, 16984, 15984, OBJECT_DIRECTION_DOWN);
+			}
+			Overworld_CreateNPC(11, 110, 17096, 15984, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC_Wandering(20, 1004, 16208, 16032, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC_Wandering(21, 1005, 16368, 16032, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC_Wandering(22, 1004, 16528, 16032, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC_Wandering(23, 1005, 16688, 16032, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC_Wandering(24, 1004, 16848, 16032, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC_Wandering(25, 1005, 17048, 16032, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC_Wandering(26, 1004, 17088, 16160, OBJECT_DIRECTION_DOWN);
+			Overworld_CreateNPC_Wandering(27, 1005, 16224, 16192, OBJECT_DIRECTION_DOWN);
+			break;
+		case 198:
+			Audio_PlayMusic(MUS_casualneo);
+			
+			overworld.map.doors[179].enabled = profile.flags[FLAG_SAPPHIREHOTEL_ELEVATOR_FLOOR] == 0;
+			overworld.map.doors[180].enabled = profile.flags[FLAG_SAPPHIREHOTEL_ELEVATOR_FLOOR] == 1;
+			overworld.map.doors[181].enabled = profile.flags[FLAG_SAPPHIREHOTEL_ELEVATOR_FLOOR] >= 2;
+			
+			Overworld_CreateNPC(10, 10061, 15960, 16304, OBJECT_DIRECTION_DOWN);
+			break;
+		case 199:
+			Audio_PlayMusic(MUS_hotel);
+			
+			overworld.map.doors[182].enabled = true;
+			
+			if (profile.flags[FLAG_ALONE]) {
+				Overworld_CreateNPC(10, 10068, 15760, 16120, OBJECT_DIRECTION_DOWN);
+			}
+			else if (profile.flags[FLAG_SAPPHIREHOTEL_PLOT] == 1) {
+				Overworld_CreateTrigger(0, 15696, 16256, 15792, 16320, 68);
+			}
+			break;
+		case 200:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 100)
+				Audio_StopMusic();
+			else if (profile.flags[FLAG_ALONE_PLOT] >= 50)
+				Audio_PlayMusic(MUS_singularity);
+			else
+				Audio_PlayMusic(MUS_brilliant1);
+			
+			overworld.backgroundId = 2;
+			overworld.overlayId = 13;
+			
+			if (profile.flags[FLAG_ALONE_PLOT] >= 100) {
+				Overworld_CreateNPC(10, 133, 30328, 15000, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateNPC(11, 134, 30328, 15048, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateObject(12, 1, SPR_misc_collapseblood, 30328, 14999, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteFrame(12, 1);
+				Overworld_CreateObject(13, 1, SPR_misc_collapseblood, 30328, 15047, OBJECT_DIRECTION_DOWN);
+				OverworldObject_ChangeSpriteFrame(13, 1);
+			}
+			else {
+				Overworld_CreateNPC(10, 133, 30280, 14928, OBJECT_DIRECTION_DOWN);
+				if (profile.flags[FLAG_ALONE_PLOT] >= 50) {
+					Overworld_CreateNPC(11, 134, 30352, 15024, OBJECT_DIRECTION_LEFT);
+					Overworld_CreateTrigger(0, 30096, 14960, 30368, 15088, 116);
+				}
+			}
+			break;
+		case 201:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 110)
+				Audio_PlayMusic(MUS_finale_corrupt);
+			else if (profile.flags[FLAG_ALONE_PLOT] >= 100)
+				Audio_PlayMusic(MUS_something);
+			else if (overworld.player.x >= 12768 && profile.flags[FLAG_PLOT] < 300) {
+				Audio_PlayMusic(MUS_finale_intro);
+				overworld.overlayId = 4;
+				
+				Overworld_CreateObject(70, 1, SPR_misc_dystal, 13456, 15232, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateTrigger(0, 13296, 15104, 13456, 15360, 87);
+			}
+			else {
+				Audio_PlayMusic(MUS_brilliant5);
+			}
+			
+			Overworld_CreateObject(100, 1, SPR_misc_brilliant_crystal1, 10696, 15040, OBJECT_DIRECTION_DOWN); OverworldObject_SetColor(100, 255, 0, 255);
+			Overworld_CreateObject(101, 1, SPR_misc_brilliant_crystal1, 10648, 15200, OBJECT_DIRECTION_DOWN); OverworldObject_SetColor(101, 0, 0, 255);
+			Overworld_CreateObject(102, 1, SPR_misc_brilliant_crystal1, 11128, 15472, OBJECT_DIRECTION_DOWN); OverworldObject_SetColor(102, 255, 0, 0);
+			Overworld_CreateObject(103, 1, SPR_misc_brilliant_crystal1, 11192, 15216, OBJECT_DIRECTION_DOWN); OverworldObject_SetColor(103, 0, 255, 255);
+			Overworld_CreateObject(104, 1, SPR_misc_brilliant_crystal1, 11928, 15168, OBJECT_DIRECTION_DOWN); OverworldObject_SetColor(104, 0, 255, 0);
+			Overworld_CreateObject(105, 1, SPR_misc_brilliant_crystal3, 12552, 15040, OBJECT_DIRECTION_DOWN); OverworldObject_SetColor(105, 255, 255, 255);
+			Overworld_CreateObject(106, 1, SPR_misc_brilliant_crystal3, 12632, 15040, OBJECT_DIRECTION_DOWN); OverworldObject_SetColor(106, 255, 255, 255);
+			
+			Overworld_CreateObject(150, 1, SPR_misc_brilliant_crystal2, 11272, 15392, OBJECT_DIRECTION_DOWN); OverworldObject_SetColor(150, 0, 255, 0);
+			Overworld_CreateObject(151, 1, SPR_misc_brilliant_crystal2, 11736, 15072, OBJECT_DIRECTION_DOWN); OverworldObject_SetColor(151, 255, 255, 0);
+			
+			
+			
+			for (int i = 100; i < 200; i++) {
+				if (overworld.objects[i].type == 0) continue;
+				
+				overworld.objects[i].collisionOffsetY = -8;
+				if (overworld.objects[i].spriteId == SPR_misc_brilliant_crystal3) {
+					overworld.objects[i].w = 16;
+					overworld.objects[i].h = 1;
+					continue;
+				}
+				if (overworld.objects[i].spriteId == SPR_misc_brilliant_crystal2) {
+					overworld.objects[i].w = 48;
+					overworld.objects[i].h = 32;
+					continue;
+				}
+				overworld.objects[i].w = 32;
+				overworld.objects[i].h = 1;
+			}
+			
+			if (profile.flags[FLAG_ALONE_PLOT] >= 110) {
+				Overworld_CreateObject(10, 1, SPR_owchar_vincent, 13352, 15224, OBJECT_DIRECTION_LEFT);
+				Overworld_CreateObject(11, 1, SPR_owchar_jerry, 13320, 15192, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateObject(12, 1, SPR_owchar_ohio, 13320, 15256, OBJECT_DIRECTION_UP);
+				Overworld_CreateObject(13, 1, SPR_owchar_kaiser, 13288, 15224, OBJECT_DIRECTION_RIGHT);
+				Overworld_CreateTrigger(0, 13472, 15152, 13536, 15328, 118);
+			}
+			break;
+		case 202:
+			if (overworld.player.x < 6368) {
+				if (profile.flags[FLAG_ALONE_PLOT] >= 110)
+					Audio_PlayMusic(MUS_finale_corrupt);
+				else if (profile.flags[FLAG_ALONE_PLOT] >= 100)
+					Audio_PlayMusic(MUS_something);
+				else
+					Audio_PlayMusic(MUS_postclimax);
+				
+				overworld.overlayId = 15;
+				
+				if (profile.flags[FLAG_PLOT] < 301) {
+					Overworld_CreateObject(70, 1, SPR_owchar_rubin, 4792, 15256, OBJECT_DIRECTION_RIGHT);
+					Overworld_CreateTrigger(0, 4752, 15232, 4784, 15312, 88);
+					Overworld_CreateTrigger(1, 5040, 14928, 5056, 15024, 90);
+					Overworld_CreateTrigger(2, 5152, 15312, 5264, 15328, 91);
+					Overworld_CreateTrigger(3, 4512, 15456, 4640, 15472, 92);
+					Overworld_CreateTrigger(4, 4240, 15536, 4336, 15552, 93);
+					Overworld_CreateTrigger(5, 4720, 15872, 4736, 15968, 94);
+					Overworld_CreateTrigger(6, 5184, 15664, 5216, 15760, 95);
+					Overworld_CreateTrigger(7, 5184, 15760, 5216, 15856, 96);
+					Overworld_CreateTrigger(8, 5184, 15856, 5216, 15952, 97);
+					Overworld_CreateTrigger(9, 5424, 15472, 5520, 15488, 98);
+					Overworld_CreateTrigger(10, 6240, 15632, 6336, 15728, 99);
+				}
+				else if (profile.flags[FLAG_PLOT] < 500) {
+					Overworld_CreateTrigger(0, 4560, 14880, 4656, 14896, 89);
+				}
+				
+				Overworld_CreateObject(100, 1, SPR_misc_brilliant_crystal3, 6008, 15712, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateObject(101, 1, SPR_misc_brilliant_crystal3, 6040, 15712, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateObject(102, 1, SPR_misc_brilliant_crystal3, 6072, 15712, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateObject(103, 1, SPR_misc_brilliant_crystal3, 6104, 15712, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateObject(104, 1, SPR_misc_brilliant_crystal3, 6136, 15712, OBJECT_DIRECTION_DOWN);
+				
+				for (int i = 100; i < 200; i++) {
+					if (overworld.objects[i].type == 0) continue;
+					
+					overworld.objects[i].collisionOffsetY = -8;
+					if (overworld.objects[i].spriteId == SPR_misc_brilliant_crystal3) {
+						overworld.objects[i].w = 16;
+						overworld.objects[i].h = 1;
+						continue;
+					}
+					if (overworld.objects[i].spriteId == SPR_misc_brilliant_crystal2) {
+						overworld.objects[i].w = 48;
+						overworld.objects[i].h = 32;
+						continue;
+					}
+					overworld.objects[i].w = 32;
+					overworld.objects[i].h = 1;
+				}
+			}
+			else if (overworld.player.y < 15360) {
+				if (profile.flags[FLAG_ALONE_PLOT] >= 110)
+					Audio_PlayMusic(MUS_finale_corrupt);
+				else if (profile.flags[FLAG_ALONE_PLOT] >= 100)
+					Audio_PlayMusic(MUS_something);
+				else
+					Audio_PlayMusic(MUS_brilliant5);
+				
+				if (profile.flags[FLAG_PLOT] < 501 && profile.flags[FLAG_ALONE_PLOT] < 110) {
+					Overworld_CreateNPC(10, 131, 6704, 15088, OBJECT_DIRECTION_UP);
+				}
+			}
+			else {
+				if (profile.flags[FLAG_ALONE_PLOT] >= 110)
+					Audio_PlayMusic(MUS_finale_corrupt);
+				else if (profile.flags[FLAG_ALONE_PLOT] >= 100)
+					Audio_PlayMusic(MUS_something);
+				else
+					Audio_PlayMusic(MUS_postclimax);
+				
+				if (profile.flags[FLAG_PLOT] < 500) {
+					if (profile.flags[FLAG_ALONE]) {
+						Overworld_CreateTrigger(0, 6608, 16064, 6832, 16208, 117);
+						Overworld_CreateObject(70, 1, SPR_owchar_lulu_god, 6704, 16072, OBJECT_DIRECTION_DOWN);
+					}
+					else {
+						Overworld_CreateTrigger(0, 6608, 16064, 6800, 16144, 100);
+					}
+					Overworld_CreateNPC(10, 60000, 6704, 16024, OBJECT_DIRECTION_DOWN);
+				}
+			}
+			break;
+		case 203:
+			Audio_PlayMusic(MUS_metro);
+			
+			Overworld_CreateTrigger(200, 22384, 10176, 22496, 10192, 107);
+			
+			Overworld_CreateNPC(10, 130, 23032, 10352, OBJECT_DIRECTION_DOWN);
+			break;
+		
 		case 230:
-			PlayMusic(MUS_illus);
+			Audio_PlayMusic(MUS_illus);
 			
 			overworld.overlayId = 4;
 			overworld.areaWrap = true;
@@ -1293,7 +2364,7 @@ void Overworld_ChangeArea(int id) {
 		case 231:
 			overworld.map.doors[249].enabled = false;
 			if (profile.flags[FLAG_PLOT] >= 134) {
-				PlayMusic(MUS_unnamed29);
+				Audio_PlayMusic(MUS_unnamed29);
 				
 				overworld.overlayId = 12;
 				profile.tempFlags[TEMPFLAG_ILLUSION_HYPERHELL] = 1;
@@ -1305,12 +2376,12 @@ void Overworld_ChangeArea(int id) {
 				Overworld_CreateNPC(10, 70002, 1416, 11672, OBJECT_DIRECTION_DOWN);
 			}
 			else if (profile.flags[FLAG_ILLUSION_GATE_DEFEATED]) {
-				PlayMusic(MUS_brilliant3slow);
+				Audio_PlayMusic(MUS_brilliant3slow);
 				
 				overworld.overlayId = 7;
 			}
 			else {
-				PlayMusic(MUS_singularity);
+				Audio_PlayMusic(MUS_singularity);
 				
 				overworld.overlayId = 6;
 			}
@@ -1324,7 +2395,7 @@ void Overworld_ChangeArea(int id) {
 			Overworld_CreateEnemy(80, 67, 304, 15072);
 			break;
 		case 233:
-			PlayMusic(MUS_brilliant1);
+			Audio_PlayMusic(MUS_brilliant1);
 			
 			overworld.overlayId = 6;
 			
@@ -1332,12 +2403,12 @@ void Overworld_ChangeArea(int id) {
 			Overworld_CreateTrigger(0, 2400, 10848, 2480, 10992, 40);
 			break;
 		case 234:
-			PlayMusic(MUS_illus);
+			Audio_PlayMusic(MUS_illus);
 			
 			overworld.overlayId = 5;
 			break;
 		case 235:
-			PlayMusic(MUS_illus);
+			Audio_PlayMusic(MUS_illus);
 			
 			overworld.overlayId = 5;
 			
@@ -1345,7 +2416,7 @@ void Overworld_ChangeArea(int id) {
 			Overworld_CreateEnemy(81, 66, 2888, 13352);
 			break;
 		case 236:
-			PlayMusic(MUS_illus);
+			Audio_PlayMusic(MUS_illus);
 			
 			if (overworld.player.y <= 13320) {
 				Overworld_CreateObject(10, 1, SPR_misc_gems, 0, 0, OBJECT_DIRECTION_DOWN);
@@ -1366,18 +2437,18 @@ void Overworld_ChangeArea(int id) {
 			}
 			break;
 		case 237:
-			PlayMusic(MUS_illus);
+			Audio_PlayMusic(MUS_illus);
 			
 			OverworldObject_SetColor(0, 255, 255, 255);
 			break;
 		case 238:
-			PlayMusic(MUS_illus);
+			Audio_PlayMusic(MUS_illus);
 			
 			overworld.map.doors[232].enabled = false;
 			OverworldObject_SetColor(0, 255, 255, 255);
 			break;
 		case 239:
-			PlayMusic(MUS_illus);
+			Audio_PlayMusic(MUS_illus);
 			
 			overworld.map.doors[235].enabled = (profile.flags[FLAG_ILLUSION_BOOSTPADPUZZLE_KEYS] & 4) > 0;
 			overworld.overlayId = 4;
@@ -1390,30 +2461,37 @@ void Overworld_ChangeArea(int id) {
 			break;
 		
 		case 240:
-			PlayMusic(MUS_hellgate);
+			Audio_PlayMusic(MUS_hellgate);
 			
-			Overworld_CreateNPC(10, 70001, 280, 9744, OBJECT_DIRECTION_DOWN);
+			if (profile.flags[FLAG_PLOT] >= 500) {
+				Overworld_CreateNPC(10, 70012, 280, 9712, OBJECT_DIRECTION_DOWN);
+				Overworld_CreateObject(70, 1, SPR_owchar_rubin, 280, 9784, OBJECT_DIRECTION_UP);
+				Overworld_CreateTrigger(0, 192, 9728, 368, 9840, 103);
+			}
+			else {
+				Overworld_CreateNPC(10, 70001, 280, 9744, OBJECT_DIRECTION_DOWN);
+			}
 			break;
 		case 241:
-			PlayMusic(MUS_afterlab);
+			Audio_PlayMusic(MUS_afterlab);
 			break;
 		case 242:
-			PlayMusic(MUS_s);
+			Audio_PlayMusic(MUS_s);
 			
 			Overworld_CreateNPC(10, 70003, 4360, 9312, OBJECT_DIRECTION_DOWN);
 			break;
 		case 243:
-			PlayMusic(MUS_brilliant3slow);
+			Audio_PlayMusic(MUS_brilliant3slow);
 			
 			overworld.overlayId = 10;
 			break;
 		case 244:
-			PlayMusic(MUS_brilliant3slow);
+			Audio_PlayMusic(MUS_brilliant3slow);
 			
 			overworld.overlayId = 10;
 			break;
 		case 245:
-			PlayMusic(MUS_brilliant4);
+			Audio_PlayMusic(MUS_brilliant4);
 			
 			overworld.map.doors[248].enabled = profile.flags[FLAG_ILLUSION_TIME_PUZZLESTATE] == 54321;
 			
@@ -1497,6 +2575,44 @@ void Overworld_ChangeArea(int id) {
 				Overworld_CreateObject(13, 1, SPR_tileset_day, 4208, 11680, OBJECT_DIRECTION_DOWN);
 				OverworldObject_ChangeSpriteFrame(13, 3871);
 			}
+			break;
+		case 251:
+			if (profile.flags[FLAG_RUBY_GODMODE])
+				Audio_PlayMusic(MUS_tense_r_slow);
+			else
+				Audio_PlayMusic(MUS_darkunknown);
+			
+			Overworld_CreateTrigger(0, 240, 10720, 320, 10752, 104);
+			break;
+		case 252:
+			if (profile.flags[FLAG_RUBY_GODMODE])
+				Audio_PlayMusic(MUS_brilliant2);
+			else
+				Audio_PlayMusic(MUS_darkmemory);
+			
+			overworld.cameraClamping = true;
+			
+			if (!(profile.flags[FLAG_ILLUSION_MEMORY_GEMS] & 0x1)) {
+				Overworld_CreateNPC(10, 70013, 1016, 10552, OBJECT_DIRECTION_DOWN);
+			}
+			if (!(profile.flags[FLAG_ILLUSION_MEMORY_GEMS] & 0x2)) {
+				Overworld_CreateNPC(11, 70014, 1224, 10552, OBJECT_DIRECTION_DOWN);
+			}
+			if (!(profile.flags[FLAG_ILLUSION_MEMORY_GEMS] & 0x4)) {
+				Overworld_CreateNPC(12, 70015, 1120, 10616, OBJECT_DIRECTION_DOWN);
+			}
+			Overworld_CreateNPC(13, 70017, 1120, 10520, OBJECT_DIRECTION_DOWN);
+			break;
+		
+		case 254:
+			if (profile.flags[FLAG_RUBY_GODMODE])
+				Audio_PlayMusic(MUS_tense_r_slow);
+			else
+				Audio_PlayMusic(MUS_darkunknown);
+			
+			Overworld_CreateTrigger(0, 2512, 11632, 2592, 11680, 105);
+			Overworld_CreateTrigger(1, 2512, 11744, 2592, 11760, 106);
+			Overworld_CreateObject(10, 1, SPR_misc_helltree_overworld, 2552, 11664, OBJECT_DIRECTION_DOWN);
 			break;
 	}
 }

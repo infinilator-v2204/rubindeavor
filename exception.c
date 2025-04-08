@@ -2,7 +2,9 @@
 #include "generic.h"
 #include "sprites.h"
 
-#if defined(_WIN32)
+#ifndef RXS_INCLUDE_EXCEPTION_HANDLER
+
+#elif defined(_WIN32)
 #include <errhandlingapi.h>
 #include <minwinbase.h>
 struct {
@@ -63,7 +65,7 @@ long __stdcall RubindeavorExceptionHandler(PEXCEPTION_POINTERS lpExceptPtr) {
 		"ESP: %08lX     EBP: %08lX\n"
 		"ESI: %08lX     EDI: %08lX\n"
 		"EIP: %08lX     EFlags: %08lX\n"
-		"CS: %04lX DS: %04lX ES: %04lX FS: %04lX GS: %04lX SS: %04lX",
+		"CS: %08lX DS: %08lX ES: %08lX\nFS: %08lX GS: %08lX SS: %08lX",
 		exceptionMessageData[exceptionMessageId].name, lpExceptPtr->ExceptionRecord->ExceptionCode,
 		lpExceptPtr->ExceptionRecord->ExceptionAddress,
 		lpExceptPtr->ContextRecord->Eax, lpExceptPtr->ContextRecord->Ecx,
@@ -109,18 +111,18 @@ long __stdcall RubindeavorExceptionHandler(PEXCEPTION_POINTERS lpExceptPtr) {
 	
 	printf("Exception occurred! Code: 0x%08lx\n", lpExceptPtr->ExceptionRecord->ExceptionCode);
 	//PlaySound(SND_no);
-	SetFontSprite(SPR_font_small);
-	SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+	Drawer_SetFontSprite(SPR_font_small);
+	Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 	
-	SetProjection(320, 240, 1);
+	Drawer_SetProjection(320, 240, 1);
 	
-	SetDrawAlpha(255);
-	SetDrawColor(255, 255, 255);
-	SetDrawAlpha(160);
-	SetDrawColor(0, 0, 0);
-	FillRect(32, 32, 576, 416);
-	SetDrawAlpha(255);
-	SetDrawColor(255, 255, 255);
+	Drawer_SetDrawAlpha(255);
+	Drawer_SetDrawColor(255, 255, 255);
+	Drawer_SetDrawAlpha(160);
+	Drawer_SetDrawColor(0, 0, 0);
+	Drawer_FillRect(32, 32, 576, 416);
+	Drawer_SetDrawAlpha(255);
+	Drawer_SetDrawColor(255, 255, 255);
 	
 	SDL_Event e;
 	int quit = 0;
@@ -130,8 +132,8 @@ long __stdcall RubindeavorExceptionHandler(PEXCEPTION_POINTERS lpExceptPtr) {
 				case SDL_WINDOWEVENT:
 					switch (e.window.event) {
 						case SDL_WINDOWEVENT_SIZE_CHANGED:
-							SDL_SetRenderDrawColor(globalRenderer, 0x00, 0x00, 0x00, 0xff);
-							SDL_RenderClear(globalRenderer);
+							SDL_SetRenderDrawColor(game.internal.renderer, 0x00, 0x00, 0x00, 0xff);
+							SDL_RenderClear(game.internal.renderer);
 							break;
 					}
 					break;
@@ -146,13 +148,12 @@ long __stdcall RubindeavorExceptionHandler(PEXCEPTION_POINTERS lpExceptPtr) {
 			}
 		}
 		SDL_Delay(250);
-		DrawText(exceptionMessage, 2048, 44, 44, 2, 2);
-		SDL_RenderPresent(globalRenderer);
+		Drawer_DrawText(exceptionMessage, 2048, 44, 44, 2, 2);
+		SDL_RenderPresent(game.internal.renderer);
 	}
 	return EXCEPTION_EXECUTE_HANDLER;
 }
-#endif
-#if defined(__linux__)
+#elif defined(__linux__)
 #include <signal.h>
 struct {
 	int code;
@@ -223,18 +224,18 @@ void RubindeavorExceptionHandler(int sig) {
 	);
 	
 	printf("Exception occurred! Code: %d\n", sig);
-	SetFontSprite(SPR_font_small);
-	SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+	Drawer_SetFontSprite(SPR_font_small);
+	Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 	
-	SetProjection(320, 240, 1);
+	Drawer_SetProjection(320, 240, 1);
 	
-	SetDrawAlpha(255);
-	SetDrawColor(255, 255, 255);
-	SetDrawAlpha(160);
-	SetDrawColor(0, 0, 0);
-	FillRect(32, 32, 576, 416);
-	SetDrawAlpha(255);
-	SetDrawColor(255, 255, 255);
+	Drawer_SetDrawAlpha(255);
+	Drawer_SetDrawColor(255, 255, 255);
+	Drawer_SetDrawAlpha(160);
+	Drawer_SetDrawColor(0, 0, 0);
+	Drawer_FillRect(32, 32, 576, 416);
+	Drawer_SetDrawAlpha(255);
+	Drawer_SetDrawColor(255, 255, 255);
 	
 	SDL_Event e;
 	int quit = 0;
@@ -244,8 +245,8 @@ void RubindeavorExceptionHandler(int sig) {
 				case SDL_WINDOWEVENT:
 					switch (e.window.event) {
 						case SDL_WINDOWEVENT_SIZE_CHANGED:
-							SDL_SetRenderDrawColor(globalRenderer, 0x00, 0x00, 0x00, 0xff);
-							SDL_RenderClear(globalRenderer);
+							SDL_SetRenderDrawColor(game.internal.renderer, 0x00, 0x00, 0x00, 0xff);
+							SDL_RenderClear(game.internal.renderer);
 							break;
 					}
 					break;
@@ -260,20 +261,21 @@ void RubindeavorExceptionHandler(int sig) {
 			}
 		}
 		SDL_Delay(250);
-		DrawText(exceptionMessage, 2048, 44, 44, 2, 2);
-		SDL_RenderPresent(globalRenderer);
+		Drawer_DrawText(exceptionMessage, 2048, 44, 44, 2, 2);
+		SDL_RenderPresent(game.internal.renderer);
 	}
 	
 	signal(sig, SIG_DFL);
-	raise(sig);
+	exit(0);
+	//raise(sig);
 }
 #endif
 
 void RubindeavorExceptionHandler_Enable() {
-	#if defined(_WIN32)
+	#ifndef RXS_INCLUDE_EXCEPTION_HANDLER
+	#elif defined(_WIN32)
 	SetUnhandledExceptionFilter(RubindeavorExceptionHandler);
-	#endif
-	#if defined(__linux__)
+	#elif defined(__linux__)
 	signal(SIGUSR1, RubindeavorExceptionHandler);
 	signal(SIGUSR2, RubindeavorExceptionHandler);
 	signal(SIGSEGV, RubindeavorExceptionHandler);
@@ -281,5 +283,12 @@ void RubindeavorExceptionHandler_Enable() {
 	signal(SIGILL, RubindeavorExceptionHandler);
 	signal(SIGFPE, RubindeavorExceptionHandler);
 	signal(SIGSYS, RubindeavorExceptionHandler);
+	#endif
+}
+
+void RubindeavorExceptionHandler_Disable() {
+	#ifndef RXS_INCLUDE_EXCEPTION_HANDLER
+	#elif defined(_WIN32)
+	SetUnhandledExceptionFilter(NULL);
 	#endif
 }

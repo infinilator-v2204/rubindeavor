@@ -11,6 +11,7 @@
 #include "event.h"
 #include "mapeditor.h"
 #include "chess.h"
+#include "dialog.h"
 #if defined(_WIN32)
 	#include <errhandlingapi.h>
 	#include <minwinbase.h>
@@ -18,6 +19,9 @@
 #if defined(__linux__)
 	#include <signal.h>
 #endif
+
+#define CONSOLE_ACTION_TOP_ID 186
+#define CONSOLE_ARMOR_TOP_ID 81
 
 DevConsole devConsole;
 
@@ -114,9 +118,9 @@ void DevConsole_ExecuteCommand() {
 		
 		int tempId = strtol(argv[1], NULL, 10);
 		if (tempId < 0)
-			StopMusic();
+			Audio_StopMusic();
 		else
-			PlayMusic(tempId);
+			Audio_PlayMusic(tempId);
 		return;
 	}
 	
@@ -128,9 +132,9 @@ void DevConsole_ExecuteCommand() {
 		
 		int tempId = strtol(argv[1], NULL, 10);
 		if (tempId < 0)
-			RemoveSoundFilter();
+			Audio_RemoveSoundFilter();
 		else
-			ApplySoundFilter(tempId);
+			Audio_ApplySoundFilter(tempId);
 		return;
 	}
 	
@@ -237,6 +241,16 @@ void DevConsole_ExecuteCommand() {
 			int tempId = strtol(argv[2], NULL, 10);
 			int tempValue = strtol(argv[3], NULL, 10);
 			Party_SetExp(tempId, tempValue);
+			return;
+		}
+		if (StringsEqual(argv[1], "expgain")) {
+			if (argc != 4) {
+				DevConsole_Print("Invalid usage\n");
+				return;
+			}
+			int tempId = strtol(argv[2], NULL, 10);
+			int tempValue = strtol(argv[3], NULL, 10);
+			Party_GainExp(tempId, tempValue);
 			return;
 		}
 		if (StringsEqual(argv[1], "orderadd")) {
@@ -385,7 +399,7 @@ void DevConsole_ExecuteCommand() {
 		if (StringsEqual(argv[1], "action")) {
 			if (StringsEqual(argv[2], "all")) {
 				int tempCount = strtol(argv[3], NULL, 10);
-				for (int i = 1; i <= 85; i++) {
+				for (int i = 1; i <= CONSOLE_ACTION_TOP_ID; i++) {
 					Profile_AddAction(i, tempCount);
 				}
 				return;
@@ -398,7 +412,7 @@ void DevConsole_ExecuteCommand() {
 		if (StringsEqual(argv[1], "armor")) {
 			if (StringsEqual(argv[2], "all")) {
 				int tempCount = strtol(argv[3], NULL, 10);
-				for (int i = 11; i <= 58; i++) {
+				for (int i = 11; i <= CONSOLE_ARMOR_TOP_ID; i++) {
 					Profile_AddArmor(i, tempCount);
 				}
 				return;
@@ -409,6 +423,16 @@ void DevConsole_ExecuteCommand() {
 			return;
 		}
 		DevConsole_Print("Unknown obtainable type\n");
+		return;
+	}
+	
+	if (StringsEqual(argv[0], "gemme")) {
+		for (int i = 1; i <= CONSOLE_ACTION_TOP_ID; i++) {
+			Profile_AddAction(i, 99);
+		}
+		for (int i = 11; i <= CONSOLE_ARMOR_TOP_ID; i++) {
+			Profile_AddArmor(i, 99);
+		}
 		return;
 	}
 	
@@ -559,7 +583,7 @@ void DevConsole_ExecuteCommand() {
 			}
 			if (StringsEqual(argv[1], "solve")) {
 				chessSystem.puzzleState = 2;
-				PlaySound(SND_chess_mate);
+				Audio_PlaySound(SND_chess_mate);
 				chessSystem.puzzleCooldown = 120;
 				return;
 			}
@@ -567,6 +591,51 @@ void DevConsole_ExecuteCommand() {
 			return;
 		}
 		ChangeScene(SCENE_CHESS);
+		return;
+	}
+	
+	if (StringsEqual(argv[0], "dialog")) {
+		if (argc != 2) {
+			DevConsole_Print("Invalid usage\n");
+			return;
+		}
+		
+		int tempId = strtol(argv[1], NULL, 10);
+		Dialog_Run(tempId);
+		return;
+	}
+	
+	if (StringsEqual(argv[0], "cash")) {
+		if (argc != 2) {
+			DevConsole_Print("Invalid usage\n");
+			return;
+		}
+		
+		int tempValue = strtol(argv[1], NULL, 10);
+		profile.cash += tempValue;
+		return;
+	}
+	
+	if (StringsEqual(argv[0], "ending")) {
+		if (argc != 2) {
+			DevConsole_Print("Invalid usage\n");
+			return;
+		}
+		
+		int tempId = strtol(argv[1], NULL, 10);
+		ShowEnding(tempId);
+		return;
+	}
+	if (StringsEqual(argv[0], "encounterdata")) {
+		int tempValue1 = 0;
+		int tempValue2 = 500;
+		if (argc == 3) {
+			tempValue1 = strtol(argv[1], NULL, 10);
+			tempValue2 = strtol(argv[2], NULL, 10);
+		}
+		for (int i = tempValue1; i < tempValue2; i++) {
+			printf("Encounter %d: %d, %d, %d, %d, %d, %d, %d, %d; music %d; bg %d\n", i, battleEncounterData[i].fighterIds[0], battleEncounterData[i].fighterIds[1], battleEncounterData[i].fighterIds[2], battleEncounterData[i].fighterIds[3], battleEncounterData[i].fighterIds[4], battleEncounterData[i].fighterIds[5], battleEncounterData[i].fighterIds[6], battleEncounterData[i].fighterIds[7], battleEncounterData[i].musicId, battleEncounterData[i].backgroundId);
+		}
 		return;
 	}
 	
@@ -584,22 +653,22 @@ void DevConsole_ExecuteCommand() {
 }
 
 void DevConsole_Draw() {
-	SetProjection(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 1);
+	Drawer_SetProjection(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 1);
 	
-	SetDrawColor(0, 0, 0);
-	SetDrawAlpha(127);
-	FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-	SetDrawAlpha(255);
+	Drawer_SetDrawColor(0, 0, 0);
+	Drawer_SetDrawAlpha(127);
+	Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	Drawer_SetDrawAlpha(255);
 	
-	SetDrawColor(31, 31, 31);
-	FillRect(4, SCREEN_HEIGHT - 40, SCREEN_WIDTH - 8, 32);
-	SetDrawColor(255, 255, 255);
+	Drawer_SetDrawColor(31, 31, 31);
+	Drawer_FillRect(4, SCREEN_HEIGHT - 40, SCREEN_WIDTH - 8, 32);
+	Drawer_SetDrawColor(255, 255, 255);
 	
-	FillRect(8 + devConsole.stringCursor*16, SCREEN_HEIGHT - 12, 16, 4);
+	Drawer_FillRect(8 + devConsole.stringCursor*16, SCREEN_HEIGHT - 12, 16, 4);
 	
-	SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_CENTER);
-	DrawText(devConsole.string, 65536, 8, SCREEN_HEIGHT - 24, 2, 2);
+	Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_CENTER);
+	Drawer_DrawText(devConsole.string, 65536, 8, SCREEN_HEIGHT - 24, 2, 2);
 	
-	SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_BOTTOM);
-	DrawText(devConsole.log, 65536, 8, SCREEN_HEIGHT - 48, 2, 2);
+	Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_BOTTOM);
+	Drawer_DrawText(devConsole.log, 65536, 8, SCREEN_HEIGHT - 48, 2, 2);
 }

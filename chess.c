@@ -158,7 +158,7 @@ const int puzzleMoveCount = 259;
 
 
 void Chess_Init() {
-	StopMusic();
+	Audio_StopMusic();
 	/*for (int i = 0; i < 64; i++) chessSystem.state.board[i] = 0;
 	for (int i = 0; i < 2; i++) {
 		char color = i == 0 ? CHESS_PIECE_BLACK : CHESS_PIECE_WHITE;
@@ -187,7 +187,7 @@ void Chess_Init() {
 	chessSystem.pieceAnimationTimer = -1;
 	
 	CreatePopup("You have been locked out from playing\nthe game due to being stupid. If you\nwant to resume control of the game, you\nneed to solve this chess puzzle.");
-	PlaySound(SND_no);
+	Audio_PlaySound(SND_no);
 }
 
 void Chess_Update() {
@@ -198,7 +198,7 @@ void Chess_Update() {
 		}
 		else if (chessSystem.puzzleCooldown <= 0) {
 			ChangeScene(SCENE_OVERWORLD);
-			PlayMusic(overworld.lastMusicId);
+			Audio_PlayMusic(overworld.lastMusicId);
 			eventSystem.paused = false;
 		}
 	}
@@ -207,7 +207,7 @@ void Chess_Update() {
 			chessSystem.puzzleCooldown--;
 			if (chessSystem.puzzleCooldown == 0) {
 				Chess_TryMovePiece(&chessSystem.state, puzzleMoves[chessSystem.puzzleProgress][0], puzzleMoves[chessSystem.puzzleProgress][1]);
-				PlaySound(SND_chess_move);
+				Audio_PlaySound(SND_chess_move);
 				chessSystem.pieceAnimationX1 = puzzleMoves[chessSystem.puzzleProgress][0];
 				chessSystem.pieceAnimationX2 = puzzleMoves[chessSystem.puzzleProgress][1];
 				chessSystem.pieceAnimationTimer = 0;
@@ -233,20 +233,20 @@ void Chess_Update() {
 					Chess_TryMovePiece(&chessSystem.state, x1, x2);
 					if (chessSystem.state.turn == CHESS_PIECE_BLACK) {
 						if (chessSystem.state.pieceCaptured)
-							PlaySound(SND_chess_check);
+							Audio_PlaySound(SND_chess_check);
 						else
-							PlaySound(SND_chess_move);
+							Audio_PlaySound(SND_chess_move);
 						
 						if (x1 != puzzleMoves[chessSystem.puzzleProgress][0] || x2 != puzzleMoves[chessSystem.puzzleProgress][1]) {
 							chessSystem.puzzleState = 1;
-							PlaySound(SND_chess_wrong);
+							Audio_PlaySound(SND_chess_wrong);
 						}
 						else {
 							chessSystem.puzzleCooldown = 15 + 15 * (chessSystem.puzzleProgress == 0);
 							chessSystem.puzzleProgress++;
 							if (chessSystem.puzzleProgress >= puzzleMoveCount) {
 								chessSystem.puzzleState = 2;
-								PlaySound(SND_chess_mate);
+								Audio_PlaySound(SND_chess_mate);
 								chessSystem.puzzleCooldown = 120;
 							}
 						}
@@ -278,31 +278,31 @@ void Chess_Update() {
 void Chess_Draw() {
 	for (int i = 0; i < 64; i++) {
 		if (((i + (i >> 3)) & 1) == 0)
-			SetDrawColor(240, 224, 186);
+			Drawer_SetDrawColor(240, 224, 186);
 		else
-			SetDrawColor(186, 136, 96);
-		FillRect(chessSystem.boardX + (i & 7) * 32, chessSystem.boardY + (i >> 3) * 32, 32, 32);
+			Drawer_SetDrawColor(186, 136, 96);
+		Drawer_FillRect(chessSystem.boardX + (i & 7) * 32, chessSystem.boardY + (i >> 3) * 32, 32, 32);
 	}
 	if (chessSystem.xDrag >= 0) {
-		SetDrawColor(0, 0, 0);
+		Drawer_SetDrawColor(0, 0, 0);
 		for (int i = 0; i < chessSystem.state.legalMoveCount; i++) {
 			if (chessSystem.state.legalMoves[i][0] == chessSystem.xDrag) {
 				int x2 = chessSystem.state.legalMoves[i][1];
-				SetDrawAlpha(127);
+				Drawer_SetDrawAlpha(127);
 				if (Chess_GetPieceType(&chessSystem.state, x2) > 0) {
-					FillRect(chessSystem.boardX + (x2 & 7) * 32, chessSystem.boardY + (x2 >> 3) * 32, 8, 8);
-					FillRect(chessSystem.boardX + (x2 & 7) * 32 + 24, chessSystem.boardY + (x2 >> 3) * 32, 8, 8);
-					FillRect(chessSystem.boardX + (x2 & 7) * 32, chessSystem.boardY + (x2 >> 3) * 32 + 24, 8, 8);
-					FillRect(chessSystem.boardX + (x2 & 7) * 32 + 24, chessSystem.boardY + (x2 >> 3) * 32 + 24, 8, 8);
+					Drawer_FillRect(chessSystem.boardX + (x2 & 7) * 32, chessSystem.boardY + (x2 >> 3) * 32, 8, 8);
+					Drawer_FillRect(chessSystem.boardX + (x2 & 7) * 32 + 24, chessSystem.boardY + (x2 >> 3) * 32, 8, 8);
+					Drawer_FillRect(chessSystem.boardX + (x2 & 7) * 32, chessSystem.boardY + (x2 >> 3) * 32 + 24, 8, 8);
+					Drawer_FillRect(chessSystem.boardX + (x2 & 7) * 32 + 24, chessSystem.boardY + (x2 >> 3) * 32 + 24, 8, 8);
 				}
 				else
-					FillRect(chessSystem.boardX + (x2 & 7) * 32 + 12, chessSystem.boardY + (x2 >> 3) * 32 + 12, 8, 8);
-				SetDrawAlpha(255);
+					Drawer_FillRect(chessSystem.boardX + (x2 & 7) * 32 + 12, chessSystem.boardY + (x2 >> 3) * 32 + 12, 8, 8);
+				Drawer_SetDrawAlpha(255);
 			}
 		}
 	}
 	
-	SetDrawColor(255, 255, 255);
+	Drawer_SetDrawColor(255, 255, 255);
 	for (int i = 0; i < 64; i++) {
 		int x = chessSystem.boardX + (i & 7) * 32;
 		int y = chessSystem.boardY + (i >> 3) * 32;
@@ -314,45 +314,45 @@ void Chess_Draw() {
 			if (chessSystem.pieceAnimationTimer >= 0 && chessSystem.pieceAnimationX2 == i) {
 				int xPrev = chessSystem.boardX + (chessSystem.pieceAnimationX1 & 7) * 32;
 				int yPrev = chessSystem.boardY + (chessSystem.pieceAnimationX1 >> 3) * 32;
-				DrawSprite(SPR_misc_chess_pieces, xPrev + (x - xPrev) * chessSystem.pieceAnimationTimer / 10, yPrev + (y - yPrev) * chessSystem.pieceAnimationTimer / 10, subImage, 2, 2);
+				Drawer_DrawSprite(SPR_misc_chess_pieces, xPrev + (x - xPrev) * chessSystem.pieceAnimationTimer / 10, yPrev + (y - yPrev) * chessSystem.pieceAnimationTimer / 10, subImage, 2, 2);
 			}
 			else {
-				DrawSprite(SPR_misc_chess_pieces, x, y, subImage, 2, 2);
+				Drawer_DrawSprite(SPR_misc_chess_pieces, x, y, subImage, 2, 2);
 			}
 		}
 	}
 	if ((chessSystem.puzzleProgress & 1) == 1) {
 		int x = chessSystem.boardX + (chessSystem.state.lastMove[1] & 7) * 32;
 		int y = chessSystem.boardY + (chessSystem.state.lastMove[1] >> 3) * 32;
-		SetDrawColor(0, 255, 0);
-		DrawText("V", 1, x + 20, y - 12, 2, 2);
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(0, 255, 0);
+		Drawer_DrawText("V", 1, x + 20, y - 12, 2, 2);
+		Drawer_SetDrawColor(255, 255, 255);
 	}
 	if (chessSystem.xDrag >= 0) {
 		int subImage = Chess_GetPieceType(&chessSystem.state, chessSystem.xDrag) - 1;
 		if ((chessSystem.state.board[chessSystem.xDrag] & CHESS_PIECE_BLACK) == 0)
 			subImage += 6;
-		DrawSprite(SPR_misc_chess_pieces, game.mouseX - 16, game.mouseY - 16, subImage, 2, 2);
+		Drawer_DrawSprite(SPR_misc_chess_pieces, game.mouseX - 16, game.mouseY - 16, subImage, 2, 2);
 	}
 	if (chessSystem.puzzleState == 1) {
-		DrawText("WROOONG!!!", 256, 0, 0, 2, 2);
+		Drawer_DrawText("WROOONG!!!", 256, 0, 0, 2, 2);
 		int x = chessSystem.boardX + (chessSystem.state.lastMove[1] & 7) * 32;
 		int y = chessSystem.boardY + (chessSystem.state.lastMove[1] >> 3) * 32;
-		SetDrawColor(255, 0, 0);
-		DrawText("X", 1, x + 20, y - 12, 2, 2);
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(255, 0, 0);
+		Drawer_DrawText("X", 1, x + 20, y - 12, 2, 2);
+		Drawer_SetDrawColor(255, 255, 255);
 	}
 	if (chessSystem.puzzleState == 2) {
-		DrawText("Puzzle completed!", 256, 0, 0, 2, 2);
+		Drawer_DrawText("Puzzle completed!", 256, 0, 0, 2, 2);
 	}
-	DrawText("Mate in 130\n\n"
+	Drawer_DrawText("Mate in 130\n\n"
 	"Can you find a\n"
 	"checkmate for white\n"
 	"within 130 moves?\n\n"
 	"White to play and\n"
 	"win.", 256, 304, 0, 2, 2);
 	
-	DrawText("Drag the pieces by holding down left\nmouse button. Legal moves will be\nhighlighted for you.\n\nPress X to reset the puzzle.", 256, 0, 296, 2, 2);
+	Drawer_DrawText("Drag the pieces by holding down left\nmouse button. Legal moves will be\nhighlighted for you.\n\nPress X to reset the puzzle.", 256, 0, 296, 2, 2);
 }
 
 

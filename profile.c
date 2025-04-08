@@ -210,6 +210,26 @@ int LoadGame(const char* filename) {
 		}
 	}
 	
+	if (profile.flags[FLAG_RUBY_GODMODE]) {
+		PartyMember* partyMember = &partyMembers[0];
+		
+		partyMember->headId = 86;
+		partyMember->defaultArmorId = 10;
+		partyMember->tiredThreshold = 0x1fff1fff;
+		
+		partyMember->starter.hpMax = 5700;
+		partyMember->starter.mpMax = 850;
+		partyMember->starter.attack = 65;
+		partyMember->starter.defense = 8;
+		partyMember->starter.speed = 95;
+		
+		partyMember->growth.hpMax = 551;
+		partyMember->growth.mpMax = 112;
+		partyMember->growth.attack = 66;
+		partyMember->growth.defense = 8;
+		partyMember->growth.speed = 68;
+	}
+	
 	for (int i = 0; i < 10; i++) {
 		Party_Refresh(i);
 	}
@@ -251,7 +271,7 @@ int SaveSaveData() {
 	fputc_int(0, file); // reserved
 	fputc_int(profile.gameBeaten, file);
 	
-	for (int i = 0; i < 16; i++) {
+	for (int i = 0; i < 32; i++) {
 		fputc(profile.saveFiles[i].exists, file);
 		if (!profile.saveFiles[i].exists) continue;
 		
@@ -285,7 +305,7 @@ int LoadSaveData() {
 	fgetc_int(file);
 	profile.gameBeaten = fgetc_int(file);
 	
-	for (int i = 0; i < 16; i++) {
+	for (int i = 0; i < 32; i++) {
 		profile.saveFiles[i].exists = fgetc(file);
 		if (!profile.saveFiles[i].exists) continue;
 		
@@ -516,6 +536,15 @@ void Profile_SwapPassive(int partyId, int extraPassiveId, int passiveId) {
 	partyMember->extraPassives[extraPassiveId] = passiveId;
 	profile.passivesEquipped[passiveId]++;
 	Party_Refresh(partyId);
+}
+
+void Profile_UnequipAll(int partyId) {
+	PartyMember* partyMember = &partyMembers[partyId];
+	
+	for (int i = partyMember->movesetCount - 1; i >= 0; i--) {
+		Profile_UnequipAction(partyId, i);
+	}
+	Profile_UnequipArmor(partyId);
 }
 
 

@@ -5,6 +5,7 @@
 #include "profile.h"
 #include "armor.h"
 #include "passives.h"
+#include "audio.h"
 
 PartyMember partyMembers[10];
 
@@ -12,6 +13,7 @@ void LoadPartyData() {
 	for (int i = 0; i < 10; i++) {
 		PartyMember* partyMember = &partyMembers[i];
 		
+		partyMember->rank = 0;
 		partyMember->hpDamage = 0;
 		partyMember->tiredness = 0;
 		partyMember->tiredLevel = 0;
@@ -49,7 +51,7 @@ void LoadPartyData() {
 	partyMember->starter.mpMax = 5;
 	partyMember->starter.attack = 4;
 	partyMember->starter.defense = 0;
-	partyMember->starter.speed = 5;
+	partyMember->starter.speed = 10;
 	
 	partyMember->growth.hpMax = 96;
 	partyMember->growth.mpMax = 48;
@@ -94,7 +96,7 @@ void LoadPartyData() {
 	partyMember->starter.mpMax = 5;
 	partyMember->starter.attack = 3;
 	partyMember->starter.defense = 0;
-	partyMember->starter.speed = 3;
+	partyMember->starter.speed = 8;
 	
 	partyMember->growth.hpMax = 64;
 	partyMember->growth.mpMax = 32;
@@ -139,7 +141,7 @@ void LoadPartyData() {
 	partyMember->starter.mpMax = 5;
 	partyMember->starter.attack = 3;
 	partyMember->starter.defense = 0;
-	partyMember->starter.speed = 8;
+	partyMember->starter.speed = 13;
 	
 	partyMember->growth.hpMax = 61;
 	partyMember->growth.mpMax = 52;
@@ -184,7 +186,7 @@ void LoadPartyData() {
 	partyMember->starter.mpMax = 5;
 	partyMember->starter.attack = 5;
 	partyMember->starter.defense = 0;
-	partyMember->starter.speed = 4;
+	partyMember->starter.speed = 9;
 	
 	partyMember->growth.hpMax = 106;
 	partyMember->growth.mpMax = 22;
@@ -229,7 +231,7 @@ void LoadPartyData() {
 	partyMember->starter.mpMax = 6;
 	partyMember->starter.attack = 7;
 	partyMember->starter.defense = 0;
-	partyMember->starter.speed = 7;
+	partyMember->starter.speed = 12;
 	
 	partyMember->growth.hpMax = 92;
 	partyMember->growth.mpMax = 48;
@@ -274,7 +276,7 @@ void LoadPartyData() {
 	partyMember->starter.mpMax = 5;
 	partyMember->starter.attack = 3;
 	partyMember->starter.defense = 0;
-	partyMember->starter.speed = 4;
+	partyMember->starter.speed = 9;
 	
 	partyMember->growth.hpMax = 75;
 	partyMember->growth.mpMax = 25;
@@ -319,7 +321,7 @@ void LoadPartyData() {
 	partyMember->starter.mpMax = 4;
 	partyMember->starter.attack = 2;
 	partyMember->starter.defense = 0;
-	partyMember->starter.speed = 2;
+	partyMember->starter.speed = 7;
 	
 	partyMember->growth.hpMax = 35;
 	partyMember->growth.mpMax = 20;
@@ -355,6 +357,11 @@ void Party_UpdateCaterpillar() {
 		switch (profile.party[i]) {
 			case 0:
 				if (overworld.overlayId == 2) break;
+				if (profile.flags[FLAG_RUBY_GODMODE]) {
+					object->spriteId = SPR_owchar_ruby_god;
+					object->climbSpriteId = SPR_owchar_climb_ruby_god;
+					break;
+				}
 				object->spriteId = (profile.flags[FLAG_RUBY_LABCOAT]) ? SPR_owchar_ruby : SPR_owchar_ruby_zero;
 				object->climbSpriteId = SPR_owchar_climb_ruby;
 				break;
@@ -367,6 +374,11 @@ void Party_UpdateCaterpillar() {
 				object->climbSpriteId = SPR_owchar_climb_emmet;
 				break;
 			case 3:
+				if (profile.flags[FLAG_SALLY_NEO]) {
+					object->spriteId = SPR_owchar_sally_neo;
+					object->climbSpriteId = SPR_owchar_climb_sally_neo;
+					break;
+				}
 				object->spriteId = SPR_owchar_sally;
 				object->climbSpriteId = SPR_owchar_climb_sally;
 				break;
@@ -377,13 +389,14 @@ void Party_UpdateCaterpillar() {
 				break;
 		}
 		
-		if (overworld.player.dashChargeTimer >= 50 && profile.party[i] == 0) {
+		int dashChargeTimerMax = 50 - (profile.flags[FLAG_RUBY_GODMODE] > 0) * 49;
+		if (overworld.player.dashChargeTimer >= dashChargeTimerMax && profile.party[i] == 0) {
 			object->spriteId += 2;
 		}
 		else if (overworld.player.dashChargeTimer >= 1 && profile.party[i] == 0) {
 			object->spriteId++;
 		}
-		else if (overworld.player.dashing || overworld.player.dashChargeTimer >= 50) {
+		else if (overworld.player.dashing || overworld.player.dashChargeTimer >= dashChargeTimerMax) {
 			object->spriteId++;
 		}
 		
@@ -425,9 +438,9 @@ void Party_Refresh(int id) {
 	partyMember->bodyId = armor->bodyId;
 	partyMember->base.hpMax = partyMember->starter.hpMax + (int)(partyMember->level * partyMember->growth.hpMax / 48);
 	partyMember->base.mpMax = partyMember->starter.mpMax + (int)(partyMember->level * partyMember->growth.mpMax / 48);
-	partyMember->base.attack = partyMember->starter.attack + (int)(partyMember->level * partyMember->growth.attack / 112);
+	partyMember->base.attack = partyMember->starter.attack + (int)(partyMember->level * partyMember->growth.attack / 96);
 	partyMember->base.defense = partyMember->starter.defense + (int)(partyMember->level * partyMember->growth.defense / 192);
-	partyMember->base.speed = partyMember->starter.speed + (int)(partyMember->level * partyMember->growth.speed / 56);
+	partyMember->base.speed = partyMember->starter.speed + (int)(partyMember->level * partyMember->growth.speed / 64);
 	
 	if (id == 0) {
 		if (profile.flags[FLAG_RUBY_ALONE_STATBOOST]) {
@@ -437,9 +450,9 @@ void Party_Refresh(int id) {
 		if (profile.flags[FLAG_RUBY_ALONE_STATBOOST_LEVEL] >= 1) {
 			partyMember->base.hpMax += (int)(profile.flags[FLAG_RUBY_ALONE_STATBOOST_LEVEL] * partyMember->growth.hpMax / 48) / 2;
 			partyMember->base.mpMax += (int)(profile.flags[FLAG_RUBY_ALONE_STATBOOST_LEVEL] * partyMember->growth.mpMax / 48) / 2;
-			partyMember->base.attack += (int)(profile.flags[FLAG_RUBY_ALONE_STATBOOST_LEVEL] * partyMember->growth.attack / 112) / 2;
+			partyMember->base.attack += (int)(profile.flags[FLAG_RUBY_ALONE_STATBOOST_LEVEL] * partyMember->growth.attack / 96) / 2;
 			partyMember->base.defense += (int)(profile.flags[FLAG_RUBY_ALONE_STATBOOST_LEVEL] * partyMember->growth.defense / 192) / 2;
-			partyMember->base.speed += (int)(profile.flags[FLAG_RUBY_ALONE_STATBOOST_LEVEL] * partyMember->growth.speed / 56) / 2;
+			partyMember->base.speed += (int)(profile.flags[FLAG_RUBY_ALONE_STATBOOST_LEVEL] * partyMember->growth.speed / 64) / 2;
 		}
 	}
 	
@@ -458,6 +471,32 @@ void Party_Refresh(int id) {
 		partyMember->passives[partyMember->passiveCount++] = partyMember->extraPassives[i];
 	}
 	Party_RefreshGemPoints();
+	
+	int statSum = partyMember->hpMax / 2 + partyMember->mpMax + partyMember->attack * 5 + partyMember->defense * 10 + partyMember->speed * 5;
+	if (statSum < 150)
+		partyMember->rank = 0;
+	else if (statSum < 250)
+		partyMember->rank = 1;
+	else if (statSum < 400)
+		partyMember->rank = 2;
+	else if (statSum < 700)
+		partyMember->rank = 3;
+	else if (statSum < 1000)
+		partyMember->rank = 4;
+	else if (statSum < 1500)
+		partyMember->rank = 5;
+	else if (statSum < 2000)
+		partyMember->rank = 6;
+	else if (statSum < 3000)
+		partyMember->rank = 7;
+	else if (statSum < 4000)
+		partyMember->rank = 8;
+	else if (statSum < 7000 || partyMember->hpMax < 5000 || partyMember->mpMax < 1000 || partyMember->attack < 80 || partyMember->speed < 100)
+		partyMember->rank = 9;
+	else if (statSum < 100000 || partyMember->hpMax < 100000 || partyMember->mpMax < 25000 || partyMember->attack < 500 || partyMember->speed < 500)
+		partyMember->rank = 10;
+	else
+		partyMember->rank = 11;
 }
 
 bool Party_Exists(int id) {
@@ -475,7 +514,7 @@ void Party_RefreshGemPoints() {
 	if (Profile_KeyItemExists(252)) profile.gpMax += 20;
 	if (Profile_KeyItemExists(253)) profile.gpMax += 25;
 	if (Profile_KeyItemExists(254)) profile.gpMax += 30;
-	if (Profile_KeyItemExists(250)) profile.gpMax += 40;
+	if (Profile_KeyItemExists(250)) profile.gpMax += 50;
 	profile.gp = profile.gpMax;
 	
 	for (int i = 0; i < 10; i++) {
@@ -521,7 +560,7 @@ void Party_SetExp(int id, int exp) {
 	partyMember->exp = exp;
 	
 	int c = 0;
-	while (partyMember->exp >= partyMember->expNext && c++ < 500) {
+	while (partyMember->exp >= partyMember->expNext && c++ < 99999) {
 		Party_LevelUp(id);
 	}
 }
@@ -531,10 +570,16 @@ void Party_GainExp(int id, int exp) {
 	
 	partyMember->exp += exp;
 	
+	bool sound = false;
 	int c = 0;
-	while (partyMember->exp >= partyMember->expNext && c++ < 500) {
+	while (partyMember->exp >= partyMember->expNext && c++ < 99999) {
 		Party_LevelUp(id);
+		if (c == 60000) {
+			Audio_PlaySoundLoop(SND_fm);
+			sound = true;
+		}
 	}
+	if (sound) Audio_StopSoundLoop();
 }
 
 void Party_SetLevel(int id, int level) {

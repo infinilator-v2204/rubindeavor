@@ -254,6 +254,118 @@ void LoadBattleBodyData() {
 	battleHead->spriteId = SPR_head_generic_17;
 	battleHead->backSpriteId = -1;
 	
+	battleHead = &battleHeadData[64];
+	battleHead->spriteId = SPR_head_kyle;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[65];
+	battleHead->spriteId = SPR_head_generic_18;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[66];
+	battleHead->spriteId = SPR_head_tia;
+	battleHead->backSpriteId = SPR_head_tia_b;
+	
+	battleHead = &battleHeadData[67];
+	battleHead->spriteId = SPR_head_kara;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[68];
+	battleHead->spriteId = SPR_head_camilla;
+	battleHead->backSpriteId = SPR_head_camilla_b;
+	
+	battleHead = &battleHeadData[69];
+	battleHead->spriteId = SPR_head_ayinoying;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[70];
+	battleHead->spriteId = SPR_head_aztec;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[71];
+	battleHead->spriteId = SPR_head_dirk;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[72];
+	battleHead->spriteId = SPR_head_generic_19;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[73];
+	battleHead->spriteId = SPR_head_generic_20;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[74];
+	battleHead->spriteId = SPR_head_rob;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[75];
+	battleHead->spriteId = SPR_head_mani;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[76];
+	battleHead->spriteId = SPR_head_timon;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[77];
+	battleHead->spriteId = SPR_head_gregory;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[78];
+	battleHead->spriteId = SPR_head_violet;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[79];
+	battleHead->spriteId = SPR_head_sally_neo;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[80];
+	battleHead->spriteId = SPR_head_reti;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[81];
+	battleHead->spriteId = SPR_head_lulu_master;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[82];
+	battleHead->spriteId = SPR_head_lulu_god;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[83];
+	battleHead->spriteId = SPR_head_panda;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[84];
+	battleHead->spriteId = SPR_head_maline;
+	battleHead->backSpriteId = SPR_head_maline_b;
+	
+	battleHead = &battleHeadData[85];
+	battleHead->spriteId = SPR_head_cory;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[86];
+	battleHead->spriteId = SPR_head_ruby_god;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[87];
+	battleHead->spriteId = SPR_head_vincent;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[88];
+	battleHead->spriteId = SPR_head_jerry;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[89];
+	battleHead->spriteId = SPR_head_ohio;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[90];
+	battleHead->spriteId = SPR_head_kaiser;
+	battleHead->backSpriteId = -1;
+	
+	battleHead = &battleHeadData[91];
+	battleHead->spriteId = SPR_head_lulu_ultimate;
+	battleHead->backSpriteId = -1;
+	
 	
 	
 	battleBody = &battleBodyData[0];
@@ -1039,6 +1151,307 @@ void LoadBattleBodyData() {
 	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
 	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 5, -12);
 	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL1, 0, 1, -15);
+	
+	battleBody = &battleBodyData[73];
+	battleBody->spriteId = SPR_body_kyle;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 5, -12);
+	
+	battleBody = &battleBodyData[74];
+	battleBody->spriteId = SPR_body_builder;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL1, 0, 1, -14);
+	
+	battleBody = &battleBodyData[75];
+	battleBody->spriteId = SPR_body_tia;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 5, -12);
+	
+	battleBody = &battleBodyData[76];
+	battleBody->spriteId = SPR_body_kara;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -15);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 1, -15);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 0, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 4, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 5, 4, -11);
+	
+	battleBody = &battleBodyData[77];
+	battleBody->spriteId = SPR_body_camilla;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 5, 4, -11);
+	
+	battleBody = &battleBodyData[78];
+	battleBody->spriteId = SPR_body_ayinoying;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 2, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 4, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 5, -12);
+	
+	battleBody = &battleBodyData[79];
+	battleBody->spriteId = SPR_body_aztec;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 1, -10);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 1, -14);
+	
+	battleBody = &battleBodyData[80];
+	battleBody->spriteId = SPR_misc_gemini;
+	
+	battleBody = &battleBodyData[81];
+	battleBody->spriteId = SPR_body_dirk;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 4, -15);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 6, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -19);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, -1, -20);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 3, -15);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 7, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 5, 6, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL1, 4, 3, -15);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL2, 4, 3, -15);
+	
+	battleBody = &battleBodyData[82];
+	battleBody->spriteId = SPR_body_whitelight;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 5, -12);
+	
+	battleBody = &battleBodyData[83];
+	battleBody->spriteId = SPR_body_rob;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 5, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL1, 0, 1, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL2, 0, -1, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL3, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL4, 4, 5, -12);
+	
+	battleBody = &battleBodyData[84];
+	battleBody->spriteId = SPR_body_mani;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 5, 4, -11);
+	
+	battleBody = &battleBodyData[85];
+	battleBody->spriteId = SPR_body_timon;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, -1, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 3 | BATTLEBODY_HEAD_MIRROR | BATTLEBODY_HEAD_FLIP, 6, -16);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL1, 0, 1, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL2, 0, -1, -13);
+	
+	battleBody = &battleBodyData[86];
+	battleBody->spriteId = SPR_body_gregory;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL1, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL2, 5, 4, -11);
+	
+	battleBody = &battleBodyData[87];
+	battleBody->spriteId = SPR_body_violet;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 1, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 5, 1, -12);
+	
+	battleBody = &battleBodyData[88];
+	battleBody->spriteId = SPR_body_sally_neo;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 5, 4, -11);
+	
+	battleBody = &battleBodyData[89];
+	battleBody->spriteId = SPR_body_reti;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 0, -20);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -15);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -20);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, -1, -19);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, -1, -20);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 6, -15);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 0, -20);
+	
+	battleBody = &battleBodyData[90];
+	battleBody->spriteId = SPR_misc_pbsuperhero;
+	
+	battleBody = &battleBodyData[91];
+	battleBody->spriteId = SPR_body_lulu_master;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -15);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 1, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL1, 7, 0, -14);
+	
+	battleBody = &battleBodyData[92];
+	battleBody->spriteId = SPR_misc_dystal;
+	
+	battleBody = &battleBodyData[93];
+	battleBody->spriteId = SPR_misc_dystal_final;
+	
+	battleBody = &battleBodyData[94];
+	battleBody->spriteId = SPR_body_lulu_god;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -15);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 4, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 5, -12);
+	
+	battleBody = &battleBodyData[95];
+	battleBody->spriteId = SPR_misc_helltree;
+	
+	battleBody = &battleBodyData[96];
+	battleBody->spriteId = SPR_body_panda;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 5, -12);
+	
+	battleBody = &battleBodyData[97];
+	battleBody->spriteId = SPR_body_maline;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 2, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -15);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL1, 6, 0, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL2, 6, 0, -13);
+	
+	battleBody = &battleBodyData[98];
+	battleBody->spriteId = SPR_body_cory;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL1, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL2, 4, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL3, 7, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL4, 4, 0, -14);
+	
+	battleBody = &battleBodyData[99];
+	battleBody->spriteId = SPR_body_rubin;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 5, -12);
+	
+	battleBody = &battleBodyData[100];
+	battleBody->spriteId = SPR_body_onyxagent;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -13);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 5, 4, -11);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 5, -12);
+	
+	battleBody = &battleBodyData[101];
+	battleBody->spriteId = SPR_body_lulu_ultimate;
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_IDLE, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_RUN, 1, 5, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_BLOCK, 0, 0, -15);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_HURT, 2, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_DOWN, 3, -12, 4);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK1, 4, 0, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK2, 4, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_ATTACK3, 4, 4, -12);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL1, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL2, 4, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL3, 0, 1, -14);
+	BattleBody_SetStateData(battleBody, FIGHTER_STATE_SPECIAL4, 7, 0, -14);
 }
 
 void BattleBody_SetStateData(BattleBody* battleBody, int state, int headFrame, int headOffsetX, int headOffsetY) {

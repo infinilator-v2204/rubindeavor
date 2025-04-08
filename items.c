@@ -224,7 +224,7 @@ void LoadItemData() {
 	SetString(item->name, "Heal B Capsule");
 	item->type = 1;
 	item->actionId = 203;
-	item->vars[0].i = 25;
+	item->vars[0].i = 30;
 	item->vars[1].i = 0;
 	item->vars[2].i = 0;
 	item->vars[3].i = 0;
@@ -233,7 +233,7 @@ void LoadItemData() {
 	SetString(item->name, "Heal G Capsule");
 	item->type = 1;
 	item->actionId = 204;
-	item->vars[0].i = 40;
+	item->vars[0].i = 50;
 	item->vars[1].i = 0;
 	item->vars[2].i = 0;
 	item->vars[3].i = 0;
@@ -299,6 +299,60 @@ void LoadItemData() {
 	item->vars[0].i = 0;
 	item->vars[1].i = 0;
 	item->vars[2].i = 0;
+	item->vars[3].i = 0;
+	
+	item = &itemData[32];
+	SetString(item->name, "Superburger");
+	item->type = 1;
+	item->actionId = 0;
+	item->vars[0].i = 95;
+	item->vars[1].i = 0;
+	item->vars[2].i = 1;
+	item->vars[3].i = 0;
+	
+	item = &itemData[33];
+	SetString(item->name, "Multi-Fresh");
+	item->type = 1;
+	item->actionId = 0;
+	item->vars[0].i = 70;
+	item->vars[1].i = 1;
+	item->vars[2].i = 1;
+	item->vars[3].i = 0;
+	
+	item = &itemData[34];
+	SetString(item->name, "Pizza Slice DX");
+	item->type = 1;
+	item->actionId = 0;
+	item->vars[0].i = 80;
+	item->vars[1].i = 0;
+	item->vars[2].i = 1;
+	item->vars[3].i = 0;
+	
+	item = &itemData[35];
+	SetString(item->name, "Gem Sandwich");
+	item->type = 1;
+	item->actionId = 0;
+	item->vars[0].i = 70;
+	item->vars[1].i = 0;
+	item->vars[2].i = 1;
+	item->vars[3].i = 0;
+	
+	item = &itemData[36];
+	SetString(item->name, "Bread DX");
+	item->type = 1;
+	item->actionId = 0;
+	item->vars[0].i = 40;
+	item->vars[1].i = 0;
+	item->vars[2].i = 1;
+	item->vars[3].i = 0;
+	
+	item = &itemData[37];
+	SetString(item->name, "Cheese DX");
+	item->type = 1;
+	item->actionId = 0;
+	item->vars[0].i = 35;
+	item->vars[1].i = 0;
+	item->vars[2].i = 1;
 	item->vars[3].i = 0;
 	
 	
@@ -429,6 +483,42 @@ void LoadItemData() {
 	item->vars[2].i = 0;
 	item->vars[3].i = 0;
 	
+	item = &itemData[174];
+	SetString(item->name, "Whitelight Pass");
+	item->type = 0;
+	item->actionId = 0;
+	item->vars[0].i = 0;
+	item->vars[1].i = 0;
+	item->vars[2].i = 0;
+	item->vars[3].i = 0;
+	
+	item = &itemData[175];
+	SetString(item->name, "Whitelight Pass 2");
+	item->type = 0;
+	item->actionId = 0;
+	item->vars[0].i = 0;
+	item->vars[1].i = 0;
+	item->vars[2].i = 0;
+	item->vars[3].i = 0;
+	
+	item = &itemData[176];
+	SetString(item->name, "BM Entry Permit");
+	item->type = 0;
+	item->actionId = 0;
+	item->vars[0].i = 0;
+	item->vars[1].i = 0;
+	item->vars[2].i = 0;
+	item->vars[3].i = 0;
+	
+	item = &itemData[177];
+	SetString(item->name, "Forestpath Guide");
+	item->type = 3;
+	item->actionId = 0;
+	item->vars[0].i = 120;
+	item->vars[1].i = 0;
+	item->vars[2].i = 0;
+	item->vars[3].i = 0;
+	
 	
 	
 	item = &itemData[250];
@@ -495,7 +585,7 @@ void Item_UseInOverworld(int inventoryId, int partyId) {
 			if (partyMember->hpDamage < 0) partyMember->hpDamage = 0;
 			
 			if (item->vars[1].i == 1) {
-				PlaySound(SND_mana);
+				Audio_PlaySound(SND_mana);
 				partyMember->tiredness -= partyMember->tiredThreshold;
 				if (partyMember->tiredness < 0) partyMember->tiredness = 0;
 				
@@ -511,7 +601,7 @@ void Item_UseInOverworld(int inventoryId, int partyId) {
 				}
 			}
 			else {
-				PlaySound(SND_heal);
+				Audio_PlaySound(SND_heal);
 			}
 			
 			Profile_ItemRemove(inventoryId);

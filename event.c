@@ -214,6 +214,19 @@ void Event_Update() {
 				OverworldObject_SetPositionZ(command->args[0].i, command->args[1].f);
 				command->id = 0;
 				break;
+			case 45:
+				Overworld_ChangeMenu(command->args[0].i);
+				command->id = 0;
+				break;
+			case 46:
+				Overworld_CreateWall(command->args[0].i, command->args[1].f, command->args[2].f, command->args[3].i, command->args[4].i);
+				command->id = 0;
+				break;
+			case 47:
+				overworld.objects[command->args[0].i].x += command->args[1].f;
+				overworld.objects[command->args[0].i].y += command->args[2].f;
+				command->id = 0;
+				break;
 			
 			case 1000:
 				overworld.map.triggers[eventSystem.triggerId].eventId = 0;
@@ -300,19 +313,19 @@ void Event_Update() {
 				command->id = 0;
 				break;
 			case 1021:
-				PlayMusic(command->args[0].i);
+				Audio_PlayMusic(command->args[0].i);
 				command->id = 0;
 				break;
 			case 1022:
-				StopMusic();
+				Audio_StopMusic();
 				command->id = 0;
 				break;
 			case 1023:
-				PlaySound(command->args[0].i);
+				Audio_PlaySound(command->args[0].i);
 				command->id = 0;
 				break;
 			case 1024:
-				FadeOutMusic(command->args[0].i);
+				Audio_FadeOutMusic(command->args[0].i);
 				command->id = 0;
 				break;
 			case 1025:
@@ -340,6 +353,7 @@ void Event_Update() {
 					partyMember->tiredness = 0;
 					partyMember->tiredLevel = 0;
 				}
+				Party_RefreshGemPoints();
 				command->id = 0;
 				break;
 			case 1031:
@@ -353,6 +367,20 @@ void Event_Update() {
 			case 1033:
 				*command->args[0].pb = command->args[1].b;
 				command->id = 0;
+				break;
+			case 1034:
+				Profile_UnequipAll(command->args[0].i);
+				command->id = 0;
+				break;
+			case 1035:
+				Audio_StopAllSounds();
+				command->id = 0;
+				break;
+			case 1036:
+				Event_Trigger(command->args[0].i);
+				return;
+			case 1037:
+				ShowEnding(command->args[0].i);
 				break;
 			
 			case 5000:
@@ -694,6 +722,172 @@ void Event_UpdateCommand(EventCommand* command) {
 							}
 						}
 						profile.tempFlags[TEMPFLAG_ILLUSION_TIME_COLOR] = (color[0] << 16) | (color[1] << 8) | color[2];
+					} break;
+					
+					case 5: {
+						// Snake (Whitelight game)
+						
+						if (eventSystem.vars[0].i == -1) {
+							for (int i = 0; i < 30; i++) {
+								if (overworld.objects[20 + i].spriteFrame == 6232) {
+									overworld.map.triggers[30 + i].eventId = 0;
+									continue;
+								}
+								overworld.map.triggers[30 + i].eventId = 62;
+							}
+							break;
+						}
+						if (eventSystem.vars[0].i == 0) {
+							eventSystem.vars[0].i = 1; // Timer
+							eventSystem.vars[1].i = OBJECT_DIRECTION_DOWN; // Current direction
+							eventSystem.vars[2].i = OBJECT_DIRECTION_DOWN; // Last moved direction
+							eventSystem.vars[3].i = 2; // Size
+							eventSystem.vars[4].i = 1; // Head X
+							eventSystem.vars[5].i = 1; // Head Y
+							
+							for (int i = 0; i < 30; i++) {
+								OverworldObject_ChangeSpriteFrame(20 + i, 6241);
+							}
+							
+							OverworldObject_ChangeSpriteFrame(21, 6232);
+							overworld.objects[21].vars[7].i = 1;
+							OverworldObject_ChangeSpriteFrame(26, 6244);
+							
+							OverworldObject_ChangeSpriteFrame(33, 6238);
+							
+							if (profile.flags[FLAG_WHITELIGHT_ELECTROFLOOR_DISABLED]) {
+								profile.flags[FLAG_WHITELIGHT_ELECTROFLOOR_DISABLED] = 0;
+								
+								char safeTiles[30] = {
+									1, 0, 0, 0, 0,
+									1, 0, 1, 1, 1,
+									1, 1, 1, 0, 1,
+									0, 0, 0, 0, 1,
+									1, 1, 1, 1, 1,
+									1, 0, 0, 0, 0,
+								};
+								
+								for (int i = 0; i < 30; i++) {
+									int x = 19412 + i % 5 * 32;
+									int y = 15748 + i / 5 * 32;
+									if (safeTiles[i] == 0)
+										Overworld_CreateTrigger(i, x, y, x + 40, y + 40, 62);
+									
+									y = 15476 + i / 5 * 32;
+									Overworld_CreateTrigger(30 + i, x, y, x + 40, y + 40, 62);
+								}
+								
+								for (int i = 0; i < 30; i++) {
+									int x = 19424 + i % 5 * 32;
+									int y = 15488 + i / 5 * 32;
+									Overworld_CreateObject(20 + i, 1, SPR_tileset_day, x, y, OBJECT_DIRECTION_DOWN);
+									OverworldObject_ChangeSpriteFrame(20 + i, 6241);
+								}
+							}
+							break;
+						}
+						
+						finished = false;
+						eventSystem.vars[0].i++;
+						
+						if (PlayerButtonPressed(PLAYER_BUTTON_LEFT) && eventSystem.vars[2].i != OBJECT_DIRECTION_RIGHT) {
+							eventSystem.vars[1].i = OBJECT_DIRECTION_LEFT;
+							Audio_PlaySoundInterrupt(SND_voice2);
+						}
+						if (PlayerButtonPressed(PLAYER_BUTTON_RIGHT) && eventSystem.vars[2].i != OBJECT_DIRECTION_LEFT) {
+							eventSystem.vars[1].i = OBJECT_DIRECTION_RIGHT;
+							Audio_PlaySoundInterrupt(SND_voice2);
+						}
+						if (PlayerButtonPressed(PLAYER_BUTTON_UP) && eventSystem.vars[2].i != OBJECT_DIRECTION_DOWN) {
+							eventSystem.vars[1].i = OBJECT_DIRECTION_UP;
+							Audio_PlaySoundInterrupt(SND_voice2);
+						}
+						if (PlayerButtonPressed(PLAYER_BUTTON_DOWN) && eventSystem.vars[2].i != OBJECT_DIRECTION_UP) {
+							eventSystem.vars[1].i = OBJECT_DIRECTION_DOWN;
+							Audio_PlaySoundInterrupt(SND_voice2);
+						}
+						
+						if (eventSystem.vars[0].i % 20 == 0) {
+							eventSystem.vars[2].i = eventSystem.vars[1].i;
+							
+							switch (eventSystem.vars[2].i) {
+								case OBJECT_DIRECTION_LEFT:
+									eventSystem.vars[4].i--;
+									break;
+								case OBJECT_DIRECTION_RIGHT:
+									eventSystem.vars[4].i++;
+									break;
+								case OBJECT_DIRECTION_UP:
+									eventSystem.vars[5].i--;
+									break;
+								case OBJECT_DIRECTION_DOWN:
+									eventSystem.vars[5].i++;
+									break;
+							}
+							
+							if (eventSystem.vars[4].i < 0 || eventSystem.vars[4].i >= 5 || eventSystem.vars[5].i < 0 || eventSystem.vars[5].i >= 6) {
+								finished = true;
+								eventSystem.vars[0].i = -1;
+								for (int i = 0; i < 30; i++) {
+									if (overworld.objects[20 + i].spriteFrame == 6244) {
+										overworld.objects[20 + i].spriteFrame = 6232;
+									}
+								}
+								break;
+							}
+							
+							if (overworld.objects[20 + eventSystem.vars[5].i * 5 + eventSystem.vars[4].i].spriteFrame == 6238) {
+								eventSystem.vars[3].i++;
+								Audio_PlaySoundInterrupt(SND_deflect);
+							}
+							else {
+								for (int i = 0; i < 30; i++) {
+									if (overworld.objects[20 + i].spriteFrame == 6232) {
+										overworld.objects[20 + i].vars[7].i--;
+										if (overworld.objects[20 + i].vars[7].i <= 0) {
+											overworld.objects[20 + i].spriteFrame = 6241;
+										}
+									}
+								}
+							}
+							bool appleExists = false;
+							for (int i = 0; i < 30; i++) {
+								if (overworld.objects[20 + i].spriteFrame == 6244) {
+									overworld.objects[20 + i].spriteFrame = 6232;
+									overworld.objects[20 + i].vars[7].i = eventSystem.vars[3].i - 1;
+								}
+								if (overworld.objects[20 + i].spriteFrame == 6238) {
+									appleExists = true;
+								}
+							}
+							
+							if (overworld.objects[20 + eventSystem.vars[5].i * 5 + eventSystem.vars[4].i].spriteFrame == 6232) {
+								finished = true;
+								eventSystem.vars[0].i = -1;
+								break;
+							}
+							overworld.objects[20 + eventSystem.vars[5].i * 5 + eventSystem.vars[4].i].spriteFrame = 6244;
+							if (!appleExists) {
+								int i;
+								switch (eventSystem.vars[3].i) {
+									case 2: i = 13; break;
+									case 3: i = 21; break;
+									case 4: i = 2; break;
+									case 5: i = 19; break;
+									case 6: i = 0; break;
+									case 7: i = 23; break;
+									case 8: i = 1; break;
+									case 9: i = 28; break;
+									default:
+										i = Random_IRange(0, 28);
+										if (i >= eventSystem.vars[5].i * 5 + eventSystem.vars[4].i) {
+											i++;
+										}
+										break;
+								}
+								overworld.objects[20 + i].spriteFrame = 6238;
+							}
+						}
 					} break;
 				}
 				if (finished) command->id = 0;
@@ -1062,6 +1256,30 @@ void Event_Queue_Object_SetPositionZ(int objectId, float z) {
 	eventSystem.queueSize++;
 }
 
+void Event_Queue_ChangeMenu(int id) {
+	eventSystem.queue[eventSystem.queueSize].id = 45;
+	eventSystem.queue[eventSystem.queueSize].args[0].i = id;
+	eventSystem.queueSize++;
+}
+
+void Event_Queue_CreateWall(int objectId, float x, float y, float w, float h) {
+	eventSystem.queue[eventSystem.queueSize].id = 46;
+	eventSystem.queue[eventSystem.queueSize].args[0].i = objectId;
+	eventSystem.queue[eventSystem.queueSize].args[1].f = x;
+	eventSystem.queue[eventSystem.queueSize].args[2].f = y;
+	eventSystem.queue[eventSystem.queueSize].args[3].i = w;
+	eventSystem.queue[eventSystem.queueSize].args[4].i = h;
+	eventSystem.queueSize++;
+}
+
+void Event_Queue_Object_TeleportToRelative(int id, float x, float y) {
+	eventSystem.queue[eventSystem.queueSize].id = 47;
+	eventSystem.queue[eventSystem.queueSize].args[0].i = id;
+	eventSystem.queue[eventSystem.queueSize].args[1].f = x;
+	eventSystem.queue[eventSystem.queueSize].args[2].f = y;
+	eventSystem.queueSize++;
+}
+
 
 
 void Event_Queue_RemoveCurrentTrigger() {
@@ -1275,6 +1493,29 @@ void Event_Queue_SetBoolPtr(bool* p, bool value) {
 	eventSystem.queue[eventSystem.queueSize].id = 1033;
 	eventSystem.queue[eventSystem.queueSize].args[0].pb = p;
 	eventSystem.queue[eventSystem.queueSize].args[1].b = value;
+	eventSystem.queueSize++;
+}
+
+void Event_Queue_Profile_UnequipAll(int partyId) {
+	eventSystem.queue[eventSystem.queueSize].id = 1034;
+	eventSystem.queue[eventSystem.queueSize].args[0].i = partyId;
+	eventSystem.queueSize++;
+}
+
+void Event_Queue_StopAllSounds() {
+	eventSystem.queue[eventSystem.queueSize].id = 1035;
+	eventSystem.queueSize++;
+}
+
+void Event_Queue_ChangeEvent(int id) {
+	eventSystem.queue[eventSystem.queueSize].id = 1036;
+	eventSystem.queue[eventSystem.queueSize].args[0].i = id;
+	eventSystem.queueSize++;
+}
+
+void Event_Queue_ShowEnding(int id) {
+	eventSystem.queue[eventSystem.queueSize].id = 1037;
+	eventSystem.queue[eventSystem.queueSize].args[0].i = id;
 	eventSystem.queueSize++;
 }
 

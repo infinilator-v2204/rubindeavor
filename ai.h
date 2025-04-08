@@ -7,3 +7,4 @@ void Fighter_AI_TurnEnd(Fighter* fighter);
 void Fighter_AI_ChooseAction(Fighter* fighter);
 int Fighter_AI_Attack(Fighter* fighter, Fighter* target);
 int Fighter_AI_Block(Fighter* fighter, Fighter* attacker);
+float Fighter_AI_Random(Fighter* fighter);

@@ -7,6 +7,7 @@ typedef struct {
 	int level;
 	int exp;
 	int expNext;
+	int rank;
 	
 	int headId;
 	int bodyId;

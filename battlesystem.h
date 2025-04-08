@@ -30,6 +30,7 @@ typedef struct {
 	int spriteFrame;
 	int actionAnimId;
 	int ai;
+	int gender;
 	
 	float x;
 	float y;
@@ -60,6 +61,7 @@ typedef struct {
 	int priority;
 	int status[32];
 	int statusNext[32];
+	bool statusOverride[32];
 	int passiveCount;
 	int passives[32];
 	int manaCostReduction;
@@ -74,7 +76,7 @@ typedef struct {
 	
 	int movesetCount;
 	int moveset[16];
-	bool movesetDisabled[16];
+	int movesetDisabled[16];
 	
 	int bodyguardId;
 	int counterTargetId;
@@ -92,6 +94,10 @@ typedef struct {
 		int i;
 		float f;
 	} tempVars[8];
+	union {
+		int i;
+		float f;
+	} aiVars[8];
 	int battleEventVars[4];
 	int actionPower[4];
 	int actionPowerRepeat;
@@ -108,7 +114,15 @@ typedef struct {
 	int readyTimer;
 	int totalAttackTimer;
 	int actionAttacks;
+	int actionInflictedDamage;
 	int actionTempAnimId;
+	
+	int aiTakeAttackCount;
+	int aiTakeAttackPredictTime;
+	int aiBlockCount;
+	int aiDodgeCount;
+	int aiBlockCritCount;
+	int aiDefenseScore;
 } Fighter;
 
 enum {
@@ -134,8 +148,10 @@ enum {
 };
 
 void Fighter_TakeDamage(Fighter* fighter, Fighter* attacker, int damage, unsigned int flags);
+void Fighter_CheckDefeat(Fighter* fighter, unsigned int flags);
 void Fighter_DealDamage(Fighter* fighter, Fighter* target, int damage, unsigned int flags);
 void Fighter_InflictStatus(Fighter* fighter, Fighter* target, int statusId, int count, bool instant);
+void Fighter_InflictStatusNextTurn(Fighter* fighter, Fighter* target, int statusId, int count);
 void Fighter_InflictStatusDodgable(Fighter* fighter, Fighter* target, int statusId, int count, bool instant);
 
 void Fighter_OnAttackSwing(Fighter* fighter);
@@ -143,19 +159,23 @@ void Fighter_PrepareToBlock(Fighter* fighter);
 void Fighter_UpdateBlock(Fighter* fighter);
 void Fighter_MoveTo(Fighter* fighter, float x, float y, float speed, int facing);
 void Fighter_MoveToStart(Fighter* fighter);
+void Fighter_SwitchToDefaultState(Fighter* fighter);
 
 void Fighter_HealHP(Fighter* fighter, int amount);
 void Fighter_HealMP(Fighter* fighter, int amount);
 void Fighter_GainStatus(Fighter* fighter, int statusId, int count, bool instant);
+void Fighter_GainStatusNextTurn(Fighter* fighter, int statusId, int count);
 void Fighter_ClearAllStatus(Fighter* fighter);
 void Fighter_EnableAction(Fighter* fighter, int actionId);
 void Fighter_DisableAction(Fighter* fighter, int actionId);
+void Fighter_DisableActionPermamently(Fighter* fighter, int actionId);
 
 enum {
 	DAMAGE_FLAG_BLOCKABLE = 1 << 0,
 	DAMAGE_FLAG_DODGABLE = 1 << 1,
 	DAMAGE_FLAG_LETHAL = 1 << 2,
 	DAMAGE_FLAG_CRITICAL = 1 << 3,
+	DAMAGE_FLAG_CAPPED = 1 << 4,
 };
 
 typedef struct {
@@ -164,6 +184,7 @@ typedef struct {
 	int type;
 	bool visible;
 	bool instantByDefault;
+	bool stackable;
 } StatusEffect;
 
 enum {
@@ -198,6 +219,13 @@ enum {
 	FIGHTER_STATUS_SERIOUS,
 	FIGHTER_STATUS_HYPERENERGIZER,
 	FIGHTER_STATUS_WEAPONSEARCH,
+	FIGHTER_STATUS_MANADISCOUNT,
+	FIGHTER_STATUS_ATTACKMULT,
+	FIGHTER_STATUS_EVADE,
+	FIGHTER_STATUS_DEFLECT,
+	FIGHTER_STATUS_ABSORPTION,
+	FIGHTER_STATUS_MANAPERMADISCOUNT,
+	FIGHTER_STATUS_ANTIREGEN,
 };
 
 typedef struct {
@@ -222,6 +250,7 @@ typedef struct {
 	bool loadLastSave;
 	bool canFlee;
 	bool fleeing;
+	bool everythingButSkillsDisabled;
 	int state;
 	int turnCount;
 	int timer;

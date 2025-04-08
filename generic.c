@@ -81,10 +81,10 @@ void SetString(char* string, const char* value) {
 	}
 }
 
-float GetWorldX(float x) { return (x - SCREEN_WIDTH / 2) / gameDrawState.projection_zoom + gameDrawState.projection_x; }
-float GetWorldY(float y) { return (y - SCREEN_HEIGHT / 2) / gameDrawState.projection_zoom + gameDrawState.projection_y; }
-float GetScreenX(float x) { return (x - gameDrawState.projection_x) * gameDrawState.projection_zoom + SCREEN_WIDTH / 2; }
-float GetScreenY(float y) { return (y - gameDrawState.projection_y) * gameDrawState.projection_zoom + SCREEN_HEIGHT / 2; }
+float GetWorldX(float x) { return (x - SCREEN_WIDTH / 2) / drawerSystem.projection_zoom + drawerSystem.projection_x; }
+float GetWorldY(float y) { return (y - SCREEN_HEIGHT / 2) / drawerSystem.projection_zoom + drawerSystem.projection_y; }
+float GetScreenX(float x) { return (x - drawerSystem.projection_x) * drawerSystem.projection_zoom + SCREEN_WIDTH / 2; }
+float GetScreenY(float y) { return (y - drawerSystem.projection_y) * drawerSystem.projection_zoom + SCREEN_HEIGHT / 2; }
 
 float PointDistance(float x1, float y1, float x2, float y2) {
 	return sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1));
@@ -118,40 +118,25 @@ int Min(int x1, int x2) {
 
 
 
-int PlayerButtonPressed(int button) {
-	switch (button) {
-		case PLAYER_BUTTON_Z:
-			return game.keyPressed[SDL_SCANCODE_Z] || game.keyPressed[SDL_SCANCODE_SPACE] || game.keyPressed[SDL_SCANCODE_W];
-		case PLAYER_BUTTON_X:
-			return game.keyPressed[SDL_SCANCODE_X] || game.keyPressed[SDL_SCANCODE_LSHIFT];
-		case PLAYER_BUTTON_C:
-			return game.keyPressed[SDL_SCANCODE_C] || game.keyPressed[SDL_SCANCODE_RETURN];
-		case PLAYER_BUTTON_A:
-			return game.keyPressed[SDL_SCANCODE_A] || game.keyPressed[SDL_SCANCODE_Q];
-		case PLAYER_BUTTON_S:
-			return game.keyPressed[SDL_SCANCODE_S];
-		case PLAYER_BUTTON_D:
-			return game.keyPressed[SDL_SCANCODE_D];
+void UpdateFullscreenMode() {
+	if (game.settings.fullscreen) {
+		if (game.settings.softwareRendering)
+			SDL_SetWindowFullscreen(game.internal.window, SDL_WINDOW_FULLSCREEN);
+		else
+			SDL_SetWindowFullscreen(game.internal.window, SDL_WINDOW_FULLSCREEN_DESKTOP);
 	}
-	return 0;
+	else
+		SDL_SetWindowFullscreen(game.internal.window, 0);
+}
+
+
+
+int PlayerButtonPressed(int button) {
+	return game.playerKeyPressed[button];
 }
 
 int PlayerButtonHeld(int button) {
-	switch (button) {
-		case PLAYER_BUTTON_Z:
-			return game.keyStates[SDL_SCANCODE_Z] || game.keyStates[SDL_SCANCODE_SPACE] || game.keyStates[SDL_SCANCODE_W];
-		case PLAYER_BUTTON_X:
-			return game.keyStates[SDL_SCANCODE_X] || game.keyStates[SDL_SCANCODE_LSHIFT];
-		case PLAYER_BUTTON_C:
-			return game.keyStates[SDL_SCANCODE_C] || game.keyStates[SDL_SCANCODE_RETURN];
-		case PLAYER_BUTTON_A:
-			return game.keyStates[SDL_SCANCODE_A] || game.keyStates[SDL_SCANCODE_Q];
-		case PLAYER_BUTTON_S:
-			return game.keyStates[SDL_SCANCODE_S];
-		case PLAYER_BUTTON_D:
-			return game.keyStates[SDL_SCANCODE_D];
-	}
-	return 0;
+	return game.playerKeyStates[button];
 }
 
 
@@ -184,7 +169,9 @@ int MouseReleased(int button) {
 
 void EngageBattle(int id, int enemyObjectId) {
 	overworld.lastMusicId = audioSystem.currentMusicId;
-	StopMusic();
+	if (!profile.tempFlags[TEMPFLAG_DISABLEBATTLEMUSIC]) {
+		Audio_StopMusic();
+	}
 	battle.encounter = id;
 	battle.canFlee = false;
 	overworld.transition.id = 2;
@@ -204,6 +191,11 @@ void ShowCinemaCutscene(int id) {
 	game.cinema.transitionTimer = 0;
 	game.cinema.transitionSpriteId = 0;
 	ChangeScene(SCENE_CINEMA);
+}
+
+void ShowEnding(int id) {
+	game.ending.id = id;
+	ChangeScene(SCENE_ENDING);
 }
 
 
@@ -233,21 +225,21 @@ void DrawDialogBox(int x, int y, int w, int h) {
 		else if (j == y + h - 8)
 			sub = 7;
 		
-		DrawSprite(SPR_gui_dialogbox, i, j, sub, 2, 2);
+		Drawer_DrawSprite(SPR_gui_dialogbox, i, j, sub, 2, 2);
 		if (profile.tempFlags[TEMPFLAG_ILLUSION_HYPERHELL]) {
-			SetDrawAlpha(255);
-			SetDrawBlend(SDL_BLENDMODE_MUL);
-			SetDrawColor(255, 127 * (game.timer % 32 >= 24), 0);
-			DrawSprite(SPR_misc_bossbattlebg_0, i, j, 0, 0.125, 0.125);
-			SetDrawAlpha(63);
-			SetDrawBlend(SDL_BLENDMODE_ADD);
-			SetDrawColor(255, 255 * (game.timer % 32 < 16), 0);
-			DrawSprite(SPR_misc_bossbattlebg_0, i - 1, j, 0, 0.125, 0.125);
-			SetDrawColor(255, 255 * (game.timer % 32 >= 16), 0);
-			DrawSprite(SPR_misc_bossbattlebg_0, i + 1, j, 0, 0.125, 0.125);
-			SetDrawAlpha(255);
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
-			SetDrawColor(255, 255, 255);
+			Drawer_SetDrawAlpha(255);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			Drawer_SetDrawColor(255, 127 * (game.timer % 32 >= 24), 0);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_0, i, j, 0, 0.125, 0.125);
+			Drawer_SetDrawAlpha(63);
+			Drawer_SetDrawBlend(BLENDMODE_ADD);
+			Drawer_SetDrawColor(255, 255 * (game.timer % 32 < 16), 0);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_0, i - 1, j, 0, 0.125, 0.125);
+			Drawer_SetDrawColor(255, 255 * (game.timer % 32 >= 16), 0);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_0, i + 1, j, 0, 0.125, 0.125);
+			Drawer_SetDrawAlpha(255);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
 		}
 	}
 }
@@ -257,32 +249,32 @@ void DrawSaveFile(int id, int x, int y, int variation, bool selected) {
 	int h = 100;
 	
 	if (selected)
-		SetDrawColor(255, 255, 0);
+		Drawer_SetDrawColor(255, 255, 0);
 	else
-		SetDrawColor(127, 127, 127);
+		Drawer_SetDrawColor(127, 127, 127);
 	
 	DrawDialogBox(x, y, w, h);
 	
 	if (selected)
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(255, 255, 255);
 	else
-		SetDrawColor(127, 127, 127);
+		Drawer_SetDrawColor(127, 127, 127);
 	
 	if (variation == 2) {
-		DrawText("Delete this file?", 32, x + 8, y + 4, 2, 2);
+		Drawer_DrawText("Delete this file?", 32, x + 8, y + 4, 2, 2);
 		return;
 	}
 	
 	if (variation == 3) {
-		DrawText("Game saved", 32, x + 8, y + 4, 2, 2);
+		Drawer_DrawText("Game saved", 32, x + 8, y + 4, 2, 2);
 	}
 	else {
 		snprintf(game.textBuffer, 32, "File %d", id + 1);
-		DrawText(game.textBuffer, 32, x + 8, y + 4, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, x + 8, y + 4, 2, 2);
 	}
 	
 	if (!profile.saveFiles[id].exists) {
-		DrawText("Empty", 32, x + 8, y + 32, 2, 2);
+		Drawer_DrawText("Empty", 32, x + 8, y + 32, 2, 2);
 		return;
 	}
 	
@@ -300,12 +292,12 @@ void DrawSaveFile(int id, int x, int y, int variation, bool selected) {
 				case 6: spriteId = SPR_head_perry; break;
 			}
 			
-			DrawSprite(spriteId, x + 32 + i * 40, y + 72, 0, -2, 2);
+			Drawer_DrawSprite(spriteId, x + 32 + i * 40, y + 72, 0, -2, 2);
 		}
 	}
 	
 	snprintf(game.textBuffer, 32, "Level %d", profile.saveFiles[id].level);
-	DrawText(game.textBuffer, 32, x + w - 152, y + 4, 2, 2);
+	Drawer_DrawText(game.textBuffer, 32, x + w - 152, y + 4, 2, 2);
 }
 
 void DrawActionDetailBox(int actionId, int x, int y, int manaCostReduction, bool armorLocked, bool rangeLocked) {
@@ -317,25 +309,25 @@ void DrawActionDetailBox(int actionId, int x, int y, int manaCostReduction, bool
 	if (actionId == 0) return;
 	if (armorLocked) {
 		snprintf(game.textBuffer, 128, "Requires %s's armor", armorData[action->armorOnlyId].name);
-		DrawText(game.textBuffer, 128, x + 8, y + 4, 2, 2);
+		Drawer_DrawText(game.textBuffer, 128, x + 8, y + 4, 2, 2);
 		return;
 	}
 	if (rangeLocked) {
 		snprintf(game.textBuffer, 128, "Requires armor with a ranged\nweapon");
-		DrawText(game.textBuffer, 128, x + 8, y + 4, 2, 2);
+		Drawer_DrawText(game.textBuffer, 128, x + 8, y + 4, 2, 2);
 		return;
 	}
-	DrawText(GetDialogString(action->descriptionDialogId), 128, x + 8, y + 4, 2, 2);
+	Drawer_DrawText(GetDialogString(action->descriptionDialogId), 128, x + 8, y + 4, 2, 2);
 	if (manaCostReduction < 0)
 		snprintf(game.textBuffer, 128, "\x90\x02 \x8f\x01%d", Max(0, action->cost - manaCostReduction));
 	else if (manaCostReduction > 0)
 		snprintf(game.textBuffer, 128, "\x90\x02 \x8f\x02%d", Max(0, action->cost - manaCostReduction));
 	else
 		snprintf(game.textBuffer, 128, "\x90\x02 %d", action->cost);
-	DrawText(game.textBuffer, 128, x + 472, y + 4, 2, 2);
+	Drawer_DrawText(game.textBuffer, 128, x + 472, y + 4, 2, 2);
 	if (action->category == ACTIONCATEGORY_ATTACK) {
 		snprintf(game.textBuffer, 128, "\x90\x03 x%g", action->attackMultiplier);
-		DrawText(game.textBuffer, 128, x + 472, y + 32, 2, 2);
+		Drawer_DrawText(game.textBuffer, 128, x + 472, y + 32, 2, 2);
 		
 		if (action->power[1] < 0) {
 			if (action->powerRepeat >= 2)
@@ -361,7 +353,7 @@ void DrawActionDetailBox(int actionId, int x, int y, int manaCostReduction, bool
 			else
 				snprintf(game.textBuffer, 128, "\x90\x06 %d+%d+%d+%d", action->power[0], action->power[1], action->power[2], action->power[3]);
 		}
-		DrawText(game.textBuffer, 128, x + 472, y + 60, 2, 2);
+		Drawer_DrawText(game.textBuffer, 128, x + 472, y + 60, 2, 2);
 	}
 }
 
@@ -373,8 +365,10 @@ void Setup() {
 	for (int i = 0; i < 1000; i++) {
 		profile.actions[i] = 0;
 		profile.actionsEquipped[i] = 0;
+		profile.actionsProgress[i] = 0;
 		profile.armors[i] = 0;
 		profile.armorsEquipped[i] = 0;
+		profile.armorsProgress[i] = 0;
 		profile.passives[i] = 0;
 		profile.passivesEquipped[i] = 0;
 		
@@ -487,7 +481,7 @@ void Setup() {
 	}
 	
 	// Village
-	Overworld_CreateArea(0, 111, 0, 770, 355);
+	Overworld_CreateArea(0, 111, 0, 770, 359);
 	Overworld_CreateArea(1, 25, 163, 48, 174);
 	// Village - Cave
 	Overworld_CreateArea(2, 74, 573, 97, 583);
@@ -619,6 +613,65 @@ void Setup() {
 	//Overworld_CreateArea(132, , , , );
 	//Overworld_CreateArea(133, , , , );
 	
+	// Sapphirepolis
+	Overworld_CreateArea(150, 1363, 47, 1932, 249);
+	Overworld_CreateArea(151, 1667, 586, 1706, 618);
+	// Sapphirepolis - Ampercorp
+	Overworld_CreateArea(152, 1726, 594, 1751, 617);
+	Overworld_CreateArea(153, 1735, 574, 1742, 589);
+	Overworld_CreateArea(154, 1764, 579, 1858, 607);
+	Overworld_CreateArea(155, 1766, 635, 1838, 666);
+	Overworld_CreateArea(156, 1845, 629, 1883, 665);
+	Overworld_CreateArea(157, 1885, 629, 1923, 665);
+	Overworld_CreateArea(158, 1770, 679, 1886, 715);
+	Overworld_CreateArea(159, 1761, 728, 1869, 771);
+	Overworld_CreateArea(160, 1791, 790, 1846, 836);
+	Overworld_CreateArea(161, 1896, 718, 1954, 771);
+	Overworld_CreateArea(162, 1964, 754, 2008, 795);
+	Overworld_CreateArea(163, 2005, 722, 2043, 751);
+	Overworld_CreateArea(164, 1898, 792, 1919, 841);
+	Overworld_CreateArea(165, 1935, 806, 1976, 830);
+	// Brilliant Mountains
+	Overworld_CreateArea(166, 33, 376, 406, 546);
+	Overworld_CreateArea(167, 357, 554, 396, 568);
+	Overworld_CreateArea(168, 1772, 265, 2020, 487);
+	Overworld_CreateArea(169, 1837, 470, 1839, 489);
+	Overworld_CreateArea(170, 1865, 547, 1869, 559);
+	Overworld_CreateArea(171, 1783, 506, 1849, 570);
+	Overworld_CreateArea(172, 1894, 526, 2047, 614);
+	Overworld_CreateArea(173, 1983, 617, 1985, 744);
+	Overworld_CreateArea(174, 1964, 824, 2039, 947);
+	// Sapphirepolis - Ampercorp
+	Overworld_CreateArea(175, 1874, 585, 1887, 607);
+	Overworld_CreateArea(176, 1783, 853, 1860, 945);
+	Overworld_CreateArea(177, 1808, 961, 1835, 1021);
+	//Overworld_CreateArea(178, , , , );
+	// Sapphirepolis - Restaurant
+	Overworld_CreateArea(186, 1268, 931, 1299, 955);
+	Overworld_CreateArea(187, 1268, 961, 1299, 988);
+	// Sapphirepolis - Whitelight
+	Overworld_CreateArea(188, 1227, 960, 1242, 971);
+	Overworld_CreateArea(189, 1213, 957, 1225, 1000);
+	Overworld_CreateArea(190, 1244, 957, 1256, 1000);
+	Overworld_CreateArea(191, 1227, 975, 1242, 991);
+	Overworld_CreateArea(192, 1233, 998, 1237, 1006);
+	Overworld_CreateArea(193, 1172, 996, 1185, 1006);
+	Overworld_CreateArea(194, 1162, 950, 1195, 988);
+	Overworld_CreateArea(195, 1124, 996, 1137, 1006);
+	Overworld_CreateArea(196, 1117, 964, 1144, 988);
+	// Sapphirepolis - Hotel
+	Overworld_CreateArea(197, 1003, 918, 1092, 1019);
+	Overworld_CreateArea(198, 994, 1015, 1000, 1026);
+	Overworld_CreateArea(199, 970, 999, 988, 1018);
+	// Brilliant Mountains
+	Overworld_CreateArea(200, 1868, 910, 1952, 1010);
+	Overworld_CreateArea(201, 649, 931, 886, 976);
+	Overworld_CreateArea(202, 266, 922, 431, 1026);
+	// Metro
+	Overworld_CreateArea(203, 1373, 606, 1451, 655);
+	//Overworld_CreateArea(204, , , , );
+	//Overworld_CreateArea(205, , , , );
+	
 	// Illusion - Lapis Hotel
 	Overworld_CreateArea(230, 149, 896, 159, 915);
 	Overworld_CreateArea(231, 56, 703, 122, 770);
@@ -635,7 +688,7 @@ void Setup() {
 	// Illusion - Sapphireton Island
 	Overworld_CreateArea(241, 279, 596, 338, 659);
 	Overworld_CreateArea(242, 262, 568, 334, 587);
-	// Illusion - Time Waterfalls
+	// Illusion - Time Waterflows
 	Overworld_CreateArea(243, 298, 703, 308, 720);
 	Overworld_CreateArea(244, 315, 677, 354, 721);
 	Overworld_CreateArea(245, 357, 626, 507, 728);
@@ -644,6 +697,11 @@ void Setup() {
 	Overworld_CreateArea(248, 360, 735, 379, 742);
 	Overworld_CreateArea(249, 369, 746, 379, 753);
 	Overworld_CreateArea(250, 240, 726, 265, 737);
+	// Illusion - Memory Hell
+	Overworld_CreateArea(251, 11, 662, 23, 743);
+	Overworld_CreateArea(252, 60, 649, 79, 663);
+	Overworld_CreateArea(253, 87, 643, 110, 694);
+	Overworld_CreateArea(254, 157, 716, 161, 791);
 	
 	for (int i = 0; i < OBJECT_COUNT_MAX; i++) {
 		overworld.map.doors[i].enabled = false;
@@ -651,6 +709,7 @@ void Setup() {
 	
 	
 	
+	// Village
 	Overworld_CreateDoor(0, 544, 2656, 1, 3272, 5328, 0, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_DOWN);
 	Overworld_CreateDoor(1, 6480, 3376, 0, 1232, 9344, 2, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
 	
@@ -825,6 +884,115 @@ void Setup() {
 	// Town - Hospital
 	Overworld_CreateDoor(121, 17752, 8352, 6, 10904, 9248, 44, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
 	
+	// Sapphirepolis
+	Overworld_CreateDoor(122, 26800, 976, 150, 26984, 9904, 151, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(123, 27512, 3504, 150, 27816, 9888, 152, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	
+	// Sapphirepolis - Ampercorp
+	Overworld_CreateDoor(124, 27816, 9616, 152, 27816, 9440, 153, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(125, 28824, 9472, 154, 27816, 9440, 153, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(126, 28824, 10272, 155, 27816, 9440, 153, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(127, 28824, 11344, 158, 27816, 9440, 153, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(128, 29096, 12208, 159, 27816, 9440, 153, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(129, 29096, 12752, 160, 27816, 9440, 153, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(130, 30728, 12032, 161, 27816, 9440, 153, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(131, 30536, 12784, 164, 27816, 9440, 153, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	
+	// Sapphirepolis - Ampercorp - Floor #3 rooms
+	Overworld_CreateDoor(132, 28320, 10288, 155, 29584, 10304, 156, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(133, 28448, 10288, 155, 29744, 10304, 156, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(134, 28576, 10288, 155, 29904, 10304, 156, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(135, 28704, 10288, 155, 30064, 10304, 156, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(136, 28944, 10288, 155, 30224, 10304, 157, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(137, 29072, 10288, 155, 30384, 10304, 157, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(138, 29200, 10288, 155, 30544, 10304, 157, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(139, 29328, 10288, 155, 30704, 10304, 157, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(140, 28448, 10576, 155, 29744, 10656, 156, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(141, 28576, 10576, 155, 29904, 10656, 156, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(142, 28704, 10576, 155, 30064, 10656, 156, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(143, 28944, 10576, 155, 30224, 10656, 157, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(144, 29072, 10576, 155, 30384, 10656, 157, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(145, 29200, 10576, 155, 30544, 10656, 157, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	
+	// Sapphirepolis - Ampercorp
+	Overworld_CreateDoor(146, 30944, 12216, 161, 32080, 12232, 162, OBJECT_DIRECTION_LEFT, OBJECT_DIRECTION_RIGHT);
+	Overworld_CreateDoor(147, 32056, 12672, 162, 32552, 12032, 163, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(148, 32664, 11680, 163, 31032, 12272, 161, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(149, 30536, 13472, 164, 30944, 13160, 165, OBJECT_DIRECTION_RIGHT, OBJECT_DIRECTION_UP);
+	
+	// Sapphirepolis - Brilliant Connection
+	Overworld_CreateDoor_Advanced(150, 26984, 9584, 151, 512, 7272, 166, OBJECT_DIRECTION_RIGHT, OBJECT_DIRECTION_DOWN, 176, 16, 16, 176);
+	Overworld_CreateDoor(151, 2632, 7632, 166, 2776, 7424, 166, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(152, 4600, 7280, 166, 4600, 7136, 166, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(153, 6320, 7384, 166, 5696, 9048, 167, OBJECT_DIRECTION_RIGHT, OBJECT_DIRECTION_LEFT);
+	Overworld_CreateDoor(154, 6352, 9048, 167, 29904, 7480, 168, OBJECT_DIRECTION_RIGHT, OBJECT_DIRECTION_LEFT);
+	Overworld_CreateDoor(155, 30336, 6656, 168, 29408, 7840, 169, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(156, 29408, 7584, 169, 30336, 6352, 168, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	
+	// Brilliant Mountains
+	Overworld_CreateDoor(157, 28688, 5344, 168, 29872, 8960, 170, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(158, 29872, 8960, 170, 29248, 9008, 171, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_UP);
+	Overworld_CreateDoor(159, 29184, 8400, 171, 28752, 5232, 168, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor_Advanced(160, 31904, 4496, 168, 30384, 8960, 172, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN, 48, 16, 16, 16);
+	Overworld_CreateDoor(161, 31744, 9840, 172, 30336, 9152, 172, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_UP);
+	Overworld_CreateDoor(162, 30720, 9216, 172, 31744, 9968, 173, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(163, 31744, 11776, 173, 32224, 13296, 174, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_UP);
+	
+	// Sapphirepolis - Restaurant
+	Overworld_CreateDoor(164, 26168, 1024, 150, 20648, 15296, 186, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(165, 20312, 14880, 186, 20312, 15632, 187, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	
+	// Sapphirepolis - Whitelight
+	Overworld_CreateDoor(166, 29864, 2208, 150, 19752, 15552, 188, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(167, 19616, 15496, 188, 19616, 15976, 189, OBJECT_DIRECTION_LEFT, OBJECT_DIRECTION_RIGHT);
+	Overworld_CreateDoor(168, 19888, 15496, 188, 19888, 15976, 190, OBJECT_DIRECTION_RIGHT, OBJECT_DIRECTION_LEFT);
+	Overworld_CreateDoor(169, 19616, 15432, 189, 19616, 15704, 191, OBJECT_DIRECTION_RIGHT, OBJECT_DIRECTION_LEFT);
+	Overworld_CreateDoor(170, 19888, 15432, 190, 19888, 15704, 191, OBJECT_DIRECTION_LEFT, OBJECT_DIRECTION_RIGHT);
+	Overworld_CreateDoor(171, 19752, 15440, 188, 19760, 16112, 192, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(172, 18856, 16016, 193, 19760, 16112, 192, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(173, 18088, 16016, 195, 19760, 16112, 192, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(174, 18776, 16000, 193, 18776, 15824, 194, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(175, 18936, 16000, 193, 18936, 15824, 194, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(176, 18008, 16000, 195, 18008, 15824, 196, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(177, 18168, 16000, 195, 18168, 15824, 196, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	
+	// Sapphirepolis - Hotel
+	Overworld_CreateDoor(178, 25880, 3504, 150, 16760, 16272, 197, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(179, 16760, 15872, 197, 15952, 16432, 198, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(180, 16760, 15216, 197, 15952, 16432, 198, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(181, 16760, 14768, 197, 15952, 16432, 198, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(182, 16584, 14864, 197, 15736, 16304, 199, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	
+	// Sapphirepolis - Ampercorp
+	Overworld_CreateDoor(183, 29600, 9616, 154, 30064, 9728, 175, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(184, 29608, 11088, 158, 29944, 11200, 158, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(185, 29240, 11776, 159, 28328, 12320, 159, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(186, 29144, 14432, 176, 27816, 9440, 153, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(187, 29000, 16208, 177, 29288, 15520, 177, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(188, 29288, 16208, 177, 29000, 15520, 177, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(189, 29144, 16208, 177, 27816, 9440, 153, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	
+	// Brilliant Mountains
+	Overworld_CreateDoor(190, 30368, 4992, 168, 30368, 4848, 168, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(191, 32168, 14160, 174, 32168, 14432, 174, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_UP);
+	Overworld_CreateDoor(192, 31704, 14736, 174, 31704, 14960, 174, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_UP);
+	Overworld_CreateDoor_Advanced(193, 32448, 15016, 174, 30064, 15016, 200, OBJECT_DIRECTION_RIGHT, OBJECT_DIRECTION_LEFT, 16, 32, 16, 32);
+	Overworld_CreateDoor(194, 30480, 15072, 200, 30240, 15792, 200, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_UP);
+	Overworld_CreateDoor(195, 31016, 15872, 200, 10856, 14976, 201, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(196, 12584, 14992, 201, 12920, 15104, 201, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(197, 14168, 15296, 201, 4600, 14864, 202, OBJECT_DIRECTION_DOWN, OBJECT_DIRECTION_UP);
+	Overworld_CreateDoor(198, 6280, 15616, 202, 6680, 16416, 202, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	Overworld_CreateDoor(199, 6696, 15936, 202, 6696, 15264, 202, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	
+	// Village
+	Overworld_CreateDoor_Advanced(200, 8984, 5552, 0, 8600, 5376, 0, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN, 80, 16, 80, 16);
+	
+	// Metro
+	Overworld_CreateDoor_Advanced(201, 22432, 10144, 203, 21888, 3712, 150, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN, 112, 16, 80, 16);
+	
+	// Village
+	Overworld_CreateDoor(202, 4888, 1408, 0, 4888, 1248, 0, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
+	
 	
 	
 	// Illusion - Lapis Hotel
@@ -841,7 +1009,7 @@ void Setup() {
 	// Illusion - Sapphireton Island
 	Overworld_CreateDoor(240, 4960, 9888, 241, 4944, 9408, 242, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
 	
-	// Illusion - Time Waterfalls
+	// Illusion - Time Waterflows
 	Overworld_CreateDoor(241, 4848, 11376, 243, 5024, 11424, 244, OBJECT_DIRECTION_RIGHT, OBJECT_DIRECTION_DOWN);
 	Overworld_CreateDoor(242, 5616, 10880, 244, 6784, 11664, 245, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
 	Overworld_CreateDoor(243, 6424, 10384, 245, 5624, 11904, 246, OBJECT_DIRECTION_UP, OBJECT_DIRECTION_DOWN);
@@ -862,19 +1030,27 @@ void Setup() {
 
 
 void Init() {
+	game.forceGameQuit = false;
+	game.windowWidth = 640;
+	game.windowHeight = 480;
+	game.rendererSize = 1;
+	game.rendererX = 0;
+	game.rendererY = 0;
+	
 	game.settings.textSkip = false;
 	game.settings.autoRun = true;
 	game.settings.fullscreen = false;
 	game.settings.showStatSymbolLabels = false;
 	
-	game.debug = 0;
+	game.debug = 1;
 	game.saveFileNumber = 0;
 	game.frameskip = 0;
 	game.frameskipCounter = 0;
-	SetProjection(640, 360, 1);
-	SetDrawColor(255, 255, 255);
-	SetDrawAlpha(255);
-	SetFontSprite(SPR_font_main);
+	Drawer_SetProjection(640, 360, 1);
+	Drawer_SetDrawColor(255, 255, 255);
+	Drawer_SetDrawAlpha(255);
+	Drawer_SetDrawBlend(BLENDMODE_BLEND);
+	Drawer_SetFontSprite(SPR_font_main);
 	
 	DevConsole_Init();
 	
@@ -903,11 +1079,13 @@ void Init() {
 	
 	for (int i = 0; i < 256; i++) {
 		game.keyStates[i] = 0;
-		game.keyStatesPrev[i] = 0;
-		game.keyPressed[i] = 0;
-		game.keyReleased[i] = 0;
 	}
-	game.sdlKeyStates = SDL_GetKeyboardState(NULL);
+	for (int i = 0; i < 32; i++) {
+		game.playerKeyStates[i] = 0;
+		game.playerKeyStatesPrev[i] = 0;
+		game.playerKeyPressed[i] = 0;
+		game.playerKeyReleased[i] = 0;
+	}
 	
 	Setup();
 	
@@ -919,23 +1097,25 @@ void Init() {
 	LoadSaveData();
 	
 	ChangeScene(SCENE_MENU);
+	
+	game.internal.keyStates = SDL_GetKeyboardState(NULL);
 }
 
-void Update() {
+void UpdateInput() {
 	game.mouseXPrev = game.mouseX;
 	game.mouseYPrev = game.mouseY;
 	SDL_GetMouseState(&game.mouseX, &game.mouseY);
-	game.mouseX = (game.mouseX - mainGameRendererX) / mainGameRendererSize;
-	game.mouseY = (game.mouseY - mainGameRendererY) / mainGameRendererSize;
+	game.mouseX = (game.mouseX - game.rendererX) / game.rendererSize;
+	game.mouseY = (game.mouseY - game.rendererY) / game.rendererSize;
 	
 	if (devConsole.enabled) {
 		for (int i = 0; i < 256; i++) {
-			game.keyStates[i] = 0;
+			game.keyStates[i] = false;
 		}
 	}
 	else {
 		for (int i = 0; i < 256; i++) {
-			game.keyStates[i] = game.sdlKeyStates[i];
+			game.keyStates[i] = game.internal.keyStates[i];
 		}
 	}
 	
@@ -954,6 +1134,31 @@ void Update() {
 		
 		game.keyStatesPrev[i] = game.keyStates[i];
 	}
+	
+	
+	
+	game.playerKeyStates[PLAYER_BUTTON_Z] = game.keyStates[SDL_SCANCODE_Z] || game.keyStates[SDL_SCANCODE_SPACE] || game.keyStates[SDL_SCANCODE_W];
+	game.playerKeyStates[PLAYER_BUTTON_X] = game.keyStates[SDL_SCANCODE_X] || game.keyStates[SDL_SCANCODE_LSHIFT];
+	game.playerKeyStates[PLAYER_BUTTON_C] = game.keyStates[SDL_SCANCODE_C] || game.keyStates[SDL_SCANCODE_RETURN];
+	game.playerKeyStates[PLAYER_BUTTON_A] = game.keyStates[SDL_SCANCODE_A] || game.keyStates[SDL_SCANCODE_Q];
+	game.playerKeyStates[PLAYER_BUTTON_S] = game.keyStates[SDL_SCANCODE_S];
+	game.playerKeyStates[PLAYER_BUTTON_D] = game.keyStates[SDL_SCANCODE_D];
+	
+	game.playerKeyStates[PLAYER_BUTTON_LEFT] = game.keyStates[SDL_SCANCODE_LEFT];
+	game.playerKeyStates[PLAYER_BUTTON_RIGHT] = game.keyStates[SDL_SCANCODE_RIGHT];
+	game.playerKeyStates[PLAYER_BUTTON_UP] = game.keyStates[SDL_SCANCODE_UP];
+	game.playerKeyStates[PLAYER_BUTTON_DOWN] = game.keyStates[SDL_SCANCODE_DOWN];
+	
+	for (int i = 0; i < 32; i++) {
+		game.playerKeyPressed[i] = game.playerKeyStates[i] && !game.playerKeyStatesPrev[i];
+		game.playerKeyReleased[i] = !game.playerKeyStates[i] && game.playerKeyStatesPrev[i];
+		
+		game.playerKeyStatesPrev[i] = game.playerKeyStates[i];
+	}
+}
+
+void Update() {
+	UpdateInput();
 	
 	if (game.keyStates[SDL_SCANCODE_BACKSLASH]) return;
 	
@@ -982,6 +1187,9 @@ void Update() {
 		case SCENE_GAMEOVER:
 			GameOver_Update();
 			break;
+		case SCENE_ENDING:
+			Ending_Update();
+			break;
 		case SCENE_MAPEDITOR:
 			MapEditor_Update();
 			break;
@@ -993,23 +1201,23 @@ void Update() {
 	Event_Update();
 	Dialog_Update();
 	
-	for (int i = 0; i < soundInterruptCount; i++) {
-		PlaySound(soundInterrupts[i]);
+	for (int i = 0; i < audioSystem.soundInterruptCount; i++) {
+		Audio_PlaySound(audioSystem.soundInterrupts[i]);
 	}
-	soundInterruptCount = 0;
+	audioSystem.soundInterruptCount = 0;
 	
 	if (audioSystem.currentMusicId >= 0 && audioSystem.currentMusicCanLoop)
-	if (musicTracks[audioSystem.currentMusicId].loopMusicId >= 0 && !Mix_PlayingMusic()) {
-		PlayMusic(musicTracks[audioSystem.currentMusicId].loopMusicId);
+	if (audioSystem.musicTracks[audioSystem.currentMusicId].loopMusicId >= 0 && !Mix_PlayingMusic()) {
+		Audio_PlayMusic(audioSystem.musicTracks[audioSystem.currentMusicId].loopMusicId);
 	}
 }
 
 void Draw() {
-	SetProjection(320, 240, 1);
-	SetDrawColor(255, 255, 255);
-	SetDrawAlpha(255);
-	SetFontSprite(SPR_font_main);
-	SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+	Drawer_SetProjection(320, 240, 1);
+	Drawer_SetDrawColor(255, 255, 255);
+	Drawer_SetDrawAlpha(255);
+	Drawer_SetFontSprite(SPR_font_main);
+	Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 	
 	switch (game.scene) {
 		case SCENE_MENU:
@@ -1027,6 +1235,9 @@ void Draw() {
 		case SCENE_GAMEOVER:
 			GameOver_Draw();
 			break;
+		case SCENE_ENDING:
+			Ending_Draw();
+			break;
 		case SCENE_MAPEDITOR:
 			MapEditor_Draw();
 			break;
@@ -1036,15 +1247,16 @@ void Draw() {
 	}
 	
 	if (game.popup.enabled) {
-		SetProjection(320, 240, 1);
-		SetDrawAlpha(127);
-		SetDrawColor(0, 0, 0);
-		FillRect(0, 0, 1280, 720);
-		SetDrawAlpha(255);
-		SetDrawColor(255, 255, 255);
+		Drawer_SetProjection(320, 240, 1);
+		Drawer_SetDrawAlpha(127);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_FillRect(0, 0, 1280, 720);
+		Drawer_SetDrawAlpha(255);
+		Drawer_SetDrawColor(255, 255, 255);
+		Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 		
 		DrawDialogBox(0, 176, 640, 128);
-		DrawText(game.popup.message, 256, 8, 180, 2, 2);
+		Drawer_DrawText(game.popup.message, 256, 8, 180, 2, 2);
 	}
 	
 	if (devConsole.enabled) {
@@ -1072,6 +1284,9 @@ void ChangeScene(int scene) {
 		case SCENE_GAMEOVER:
 			GameOver_Init();
 			break;
+		case SCENE_ENDING:
+			Ending_Init();
+			break;
 		case SCENE_MAPEDITOR:
 			MapEditor_Init();
 			break;
@@ -1086,7 +1301,7 @@ void ChangeScene(int scene) {
 void MainMenu_Init() {
 	overworld.transition.id = 0;
 	overworld.fadeAlpha = 1;
-	PlayMusic(MUS_menu);
+	Audio_PlayMusic(MUS_menu);
 	
 	MainMenu_ChangeMenu(0);
 }
@@ -1105,7 +1320,7 @@ void MainMenu_Update() {
 		
 		if (overworld.menu.id == 0) {
 			if (overworld.menu.optionPressed == 0) {
-				PlaySound(SND_mana);
+				Audio_PlaySound(SND_mana);
 				overworld.transition.id = 1;
 				overworld.transition.timer = 0;
 			}
@@ -1137,14 +1352,14 @@ void MainMenu_Update() {
 			if (overworld.menu.optionPressed == 0) {
 				int ret = Profile_LoadGameSlot(overworld.menu.cursors[1]);
 				if (ret == 1) {
-					PlaySound(SND_mana);
-					StopMusic();
+					Audio_PlaySound(SND_mana);
+					Audio_StopMusic();
 					overworld.transition.id = 2;
 					overworld.transition.timer = 0;
 					game.saveFileNumber = overworld.menu.cursors[1];
 				}
 				else {
-					PlaySound(SND_no);
+					Audio_PlaySound(SND_no);
 					if (ret == -2) {
 						CreatePopup("File is not a Rubindeavor save.");
 					}
@@ -1166,10 +1381,10 @@ void MainMenu_Update() {
 			if (overworld.menu.optionPressed == 1) {
 				int ret = Profile_DeleteGameSlot(overworld.menu.cursors[1]);
 				if (ret == 1) {
-					PlaySound(SND_explode);
+					Audio_PlaySound(SND_explode);
 				}
 				else {
-					PlaySound(SND_no);
+					Audio_PlaySound(SND_no);
 					CreatePopup("Could not delete the file.");
 				}
 				MainMenu_ChangeMenu(1);
@@ -1180,7 +1395,7 @@ void MainMenu_Update() {
 		}
 		else if (overworld.menu.id == 4) {
 			if (overworld.menu.optionPressed == 0) {
-				StopMusic();
+				Audio_StopMusic();
 				MainMenu_ChangeMenu(5);
 				Menu_ResetCursor(&overworld.menu);
 			}
@@ -1192,11 +1407,7 @@ void MainMenu_Update() {
 			}
 			else if (overworld.menu.optionPressed == 2) {
 				game.settings.fullscreen = overworld.menu.optionPressedValue;
-				
-				if (game.settings.fullscreen)
-					SDL_SetWindowFullscreen(mainGameWindow, SDL_WINDOW_FULLSCREEN_DESKTOP);
-				else
-					SDL_SetWindowFullscreen(mainGameWindow, 0);
+				UpdateFullscreenMode();
 			}
 			else if (overworld.menu.optionPressed == MENUOPTION_BACK) {
 				MainMenu_ChangeMenu(0);
@@ -1204,14 +1415,14 @@ void MainMenu_Update() {
 		}
 		else if (overworld.menu.id == 5) {
 			if (overworld.menu.optionPressed == 0) {
-				int musicId = soundtracks[overworld.menu.optionPressedValue].musicId;
+				int musicId = audioSystem.soundtracks[overworld.menu.optionPressedValue].musicId;
 				if (audioSystem.currentMusicId == musicId)
-					StopMusic();
+					Audio_StopMusic();
 				else
-					PlayMusic(musicId);
+					Audio_PlayMusic(musicId);
 			}
 			else if (overworld.menu.optionPressed == MENUOPTION_BACK) {
-				PlayMusic(MUS_menu);
+				Audio_PlayMusic(MUS_menu);
 				MainMenu_ChangeMenu(4);
 			}
 		}
@@ -1250,44 +1461,43 @@ void MainMenu_Update() {
 }
 
 void MainMenu_Draw() {
-	SetProjection(320, 240, 1);
+	Drawer_SetProjection(320, 240, 1);
 	
-	SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+	Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 	
 	float x = (game.timer / 2) % 128;
 	float y = (game.timer / 3) % 128;
 	
-	SetDrawColor(0, 0, 0);
-	FillRect(0, 0, 1280, 720);
+	Drawer_SetDrawColor(0, 0, 0);
 	
-	SetDrawColor(31, 0, 0);
+	Drawer_SetDrawColor(31, 0, 0);
 	for (int j = -4; j < 14; j++)
 	for (int i = -4; i < 14; i++) {
-		DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i, y + 64*j / 2, 0, 1, 1);
+		Drawer_DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i, y + 64*j / 2, 0, 1, 1);
 	}
 	
-	SetDrawBlend(SDL_BLENDMODE_ADD);
+	Drawer_SetDrawBlend(BLENDMODE_ADD);
 	for (int j = -4; j < 14; j++)
 	for (int i = -4; i < 14; i++) {
-		DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i, y + 64*j, 0, 1, 1);
+		Drawer_DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i, y + 64*j, 0, 1, 1);
 	}
-	SetDrawBlend(SDL_BLENDMODE_BLEND);
-	SetDrawColor(255, 255, 255);
+	Drawer_SetDrawBlend(BLENDMODE_BLEND);
+	Drawer_SetDrawColor(255, 255, 255);
 	
 	switch (overworld.menu.id) {
 		case 0:
-			DrawSprite(SPR_gui_rubindeavor, SCREEN_WIDTH / 2, 64, 0, 8, 8);
+			Drawer_DrawSprite(SPR_gui_rubindeavor, SCREEN_WIDTH / 2, 64, 0, 8, 8);
 			
-			SetFontSprite(SPR_font_small);
-			DrawText("---Controls---\n\nArrows - move, navigate\nZ / Space - interact, confirm\nX / Shift - run, cancel\nC / Enter - open menu", 128, 320, 320, 2, 2);
-			SetFontSprite(SPR_font_main);
+			Drawer_SetFontSprite(SPR_font_small);
+			Drawer_DrawText("---Controls---\n\nArrows - move, navigate\nZ / Space - interact, confirm\nX / Shift - run, cancel\nC / Enter - open menu", 128, 320, 320, 2, 2);
+			Drawer_SetFontSprite(SPR_font_main);
 			
 			Menu_DrawOptions(&overworld.menu, 0, 320, 632);
 			break;
 		case 1:
 			{
 				DrawDialogBox(24, 0, 592, SCREEN_HEIGHT);
-				DrawText("Load Game", 128, 32, 4, 2, 2);
+				Drawer_DrawText("Load Game", 128, 32, 4, 2, 2);
 				Menu* menu = &overworld.menu;
 				int c = 0;
 				for (int i = menu->pageColumns * menu->pageRows * menu->page; i < menu->pageColumns * menu->pageRows * (menu->page + 1) && i < menu->optionCount; i++) {
@@ -1297,17 +1507,17 @@ void MainMenu_Draw() {
 					c++;
 				}
 				
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 255, 255);
 				if (menu->page + 1 < menu->pageCount)
-					DrawSprite(SPR_gui_valuearrow, 608 - 4, 456, 0, 2, 2);
+					Drawer_DrawSprite(SPR_gui_valuearrow, 608 - 4, 456, 0, 2, 2);
 				if (menu->page - 1 >= 0)
-					DrawSprite(SPR_gui_valuearrow, 608 - 32, 456, 0, -2, 2);
+					Drawer_DrawSprite(SPR_gui_valuearrow, 608 - 32, 456, 0, -2, 2);
 			}
 			break;
 		case 2:
 			{
 				DrawDialogBox(24, 0, 592, SCREEN_HEIGHT);
-				DrawText("Load Game", 128, 32, 4, 2, 2);
+				Drawer_DrawText("Load Game", 128, 32, 4, 2, 2);
 				Menu* menu = &overworld.menuBuffer[0];
 				int c = 0;
 				for (int i = menu->pageColumns * menu->pageRows * menu->page; i < menu->pageColumns * menu->pageRows * (menu->page + 1) && i < menu->optionCount; i++) {
@@ -1320,17 +1530,17 @@ void MainMenu_Draw() {
 					c++;
 				}
 				
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 255, 255);
 				if (menu->page + 1 < menu->pageCount)
-					DrawSprite(SPR_gui_valuearrow, 608 - 4, 456, 0, 2, 2);
+					Drawer_DrawSprite(SPR_gui_valuearrow, 608 - 4, 456, 0, 2, 2);
 				if (menu->page - 1 >= 0)
-					DrawSprite(SPR_gui_valuearrow, 608 - 32, 456, 0, -2, 2);
+					Drawer_DrawSprite(SPR_gui_valuearrow, 608 - 32, 456, 0, -2, 2);
 			}
 			break;
 		case 3:
 			{
 				DrawDialogBox(24, 0, 592, SCREEN_HEIGHT);
-				DrawText("Load", 128, 32, 4, 2, 2);
+				Drawer_DrawText("Load", 128, 32, 4, 2, 2);
 				Menu* menu = &overworld.menuBuffer[0];
 				int c = 0;
 				for (int i = menu->pageColumns * menu->pageRows * menu->page; i < menu->pageColumns * menu->pageRows * (menu->page + 1) && i < menu->optionCount; i++) {
@@ -1343,11 +1553,11 @@ void MainMenu_Draw() {
 					c++;
 				}
 				
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 255, 255);
 				if (menu->page + 1 < menu->pageCount)
-					DrawSprite(SPR_gui_valuearrow, 608 - 4, 456, 0, 2, 2);
+					Drawer_DrawSprite(SPR_gui_valuearrow, 608 - 4, 456, 0, 2, 2);
 				if (menu->page - 1 >= 0)
-					DrawSprite(SPR_gui_valuearrow, 608 - 32, 456, 0, -2, 2);
+					Drawer_DrawSprite(SPR_gui_valuearrow, 608 - 32, 456, 0, -2, 2);
 			}
 			break;
 		case 4:
@@ -1360,29 +1570,29 @@ void MainMenu_Draw() {
 			const int y = 336;
 			
 			switch (overworld.menu.cursors[1]) {
-				case 0: DrawText("Listen to the game's soundtracks.", 128, x, y, 2, 2); break;
-				case 1: DrawText("Hold C/Enter to skip dialog text.", 128, x, y, 2, 2); break;
-				//case 2: DrawText("If enabled, you automatically run\nwithout holding X/Shift (holding it\nmakes you walk instead).", 128, x, y, 2, 2); break;
-				case 2: DrawText("Choose fullscreen mode or windowed\nmode. You can also press F4.", 128, x, y, 2, 2); break;
-				default: DrawText("Invalid Option", 128, x, y, 2, 2); break;
+				case 0: Drawer_DrawText("Listen to the game's soundtracks.", 128, x, y, 2, 2); break;
+				case 1: Drawer_DrawText("Hold C/Enter to skip dialog text.", 128, x, y, 2, 2); break;
+				//case 2: Drawer_DrawText("If enabled, you automatically run\nwithout holding X/Shift (holding it\nmakes you walk instead).", 128, x, y, 2, 2); break;
+				case 2: Drawer_DrawText("Choose fullscreen mode or windowed\nmode. You can also press F4.", 128, x, y, 2, 2); break;
+				default: Drawer_DrawText("Invalid Option", 128, x, y, 2, 2); break;
 			}
 			break;
 		case 5:
 			DrawDialogBox(0, 204, SCREEN_WIDTH, 72);
 			DrawDialogBox(0, 276, SCREEN_WIDTH, 44);
-			DrawText("Sound Test", 128, 8, 208, 2, 2);
-			DrawText(soundtracks[overworld.menu.options[0].value].title, 128, 8, 280, 2, 2);
+			Drawer_DrawText("Sound Test", 128, 8, 208, 2, 2);
+			Drawer_DrawText(audioSystem.soundtracks[overworld.menu.options[0].value].title, 128, 8, 280, 2, 2);
 			
 			Menu_DrawOptions(&overworld.menu, 0, 232, 632);
 			break;
 	}
 	
 	if (overworld.fadeAlpha > 0) {
-		SetDrawColor(0, 0, 0);
-		SetDrawAlpha(overworld.fadeAlpha * 255);
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		SetDrawColor(255, 255, 255);
-		SetDrawAlpha(255);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_SetDrawAlpha(overworld.fadeAlpha * 255);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		Drawer_SetDrawColor(255, 255, 255);
+		Drawer_SetDrawAlpha(255);
 	}
 }
 
@@ -1396,7 +1606,7 @@ void MainMenu_ChangeMenu(int id) {
 			break;
 		case 1:
 			Menu_New(&overworld.menu, 1, 1, 4, 1);
-			for (int i = 0; i < 16; i++) {
+			for (int i = 0; i < 32; i++) {
 				Menu_AddOption(&overworld.menu, profile.saveFiles[i].exists, i, "");
 			}
 			break;
@@ -1418,7 +1628,7 @@ void MainMenu_ChangeMenu(int id) {
 			break;
 		case 5:
 			Menu_New(&overworld.menu, 5, 1, 8, 2);
-			Menu_AddOption_Number(&overworld.menu, true, 0, "", 0, (profile.gameBeaten) ? soundtrackCount - 1 : 1);
+			Menu_AddOption_Number(&overworld.menu, true, 0, "", 0, (profile.gameBeaten) ? audioSystem.soundtrackCount - 1 : 1);
 			break;
 	}
 }
@@ -1436,7 +1646,7 @@ void Cinema_Update() {
 		switch (game.cinema.id) {
 			case 0:
 				if (game.cinema.timer == 1) {
-					PlayMusic(MUS_menu);
+					Audio_PlayMusic(MUS_menu);
 					Cinema_SlideImage(SPR_misc_gemia_map2);
 					Dialog_RunVoiced(10, 1);
 				}
@@ -1480,11 +1690,11 @@ void Cinema_Update() {
 				}
 				if (game.cinema.timer == 13) {
 					Cinema_SlideImage(SPR_misc_cinema_rubyawakening);
-					StopMusic();
+					Audio_StopMusic();
 					Dialog_RunVoiced(22, 1);
 				}
 				if (game.cinema.timer == 14) {
-					PlaySound(SND_introwakeup);
+					Audio_PlaySound(SND_introwakeup);
 				}
 				
 				if (game.cinema.timer == 378) {
@@ -1507,33 +1717,33 @@ void Cinema_Update() {
 }
 
 void Cinema_Draw() {
-	SetProjection(320, 240, 1);
+	Drawer_SetProjection(320, 240, 1);
 	
-	if (game.cinema.spriteId >= 0) DrawSprite(game.cinema.spriteId, 320, 180, 0, 2, 2);
+	if (game.cinema.spriteId >= 0) Drawer_DrawSprite(game.cinema.spriteId, 320, 180, 0, 2, 2);
 	
 	if (game.cinema.transitionTimer > 0) {
-		SetDrawColor(0, 0, 0);
+		Drawer_SetDrawColor(0, 0, 0);
 		if (game.cinema.transitionTimer <= 30)
-			SetDrawAlpha(game.cinema.transitionTimer * 255 / 30);
+			Drawer_SetDrawAlpha(game.cinema.transitionTimer * 255 / 30);
 		else
-			SetDrawAlpha(255 - (game.cinema.transitionTimer - 30) * 255 / 30);
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		SetDrawColor(255, 255, 255);
-		SetDrawAlpha(255);
+			Drawer_SetDrawAlpha(255 - (game.cinema.transitionTimer - 30) * 255 / 30);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		Drawer_SetDrawColor(255, 255, 255);
+		Drawer_SetDrawAlpha(255);
 	}
 	
 	if (dialogSystem.state != DIALOG_STATE_IDLE) {
-		SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+		Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 		
-		DrawText(dialogSystem.text, dialogSystem.textLength, 8, SCREEN_HEIGHT - 124, 2, 2);
+		Drawer_DrawText(dialogSystem.text, dialogSystem.textLength, 8, SCREEN_HEIGHT - 124, 2, 2);
 	}
 	
 	if (game.cinema.id == 0 && game.cinema.timer > 13) {
-		SetDrawColor(255, 255, 255);
-		SetDrawAlpha(Min(255, (game.cinema.timer - 13) * 255 / 300));
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		SetDrawColor(255, 255, 255);
-		SetDrawAlpha(255);
+		Drawer_SetDrawColor(255, 255, 255);
+		Drawer_SetDrawAlpha(Min(255, (game.cinema.timer - 13) * 255 / 300));
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		Drawer_SetDrawColor(255, 255, 255);
+		Drawer_SetDrawAlpha(255);
 	}
 }
 
@@ -1563,7 +1773,7 @@ void GameOver_Update() {
 		
 		if (profile.flags[FLAG_OMEGALULU_GAMEOVER])
 			Dialog_Run(4034);
-		else if (profile.flags[FLAG_SAVECOUNT] == 0)
+		else if (profile.flags[FLAG_SAVECOUNT] == -1)
 			Dialog_Run(4033);
 		else
 			Dialog_Run(Random_IRange(4010, 4021));
@@ -1573,7 +1783,7 @@ void GameOver_Update() {
 		if (profile.flags[FLAG_OMEGALULU_GAMEOVER] && Dialog_IsFinished()) {
 			profile.gameBeaten = true;
 			SaveSaveData();
-			globalForceGameQuit = 1;
+			game.forceGameQuit = true;
 			return;
 		}
 	}
@@ -1591,7 +1801,7 @@ void GameOver_Update() {
 			if (profile.flags[FLAG_SAVECOUNT] != 0) {
 				int ret = Profile_LoadGameSlot(game.saveFileNumber);
 				if (ret == 1) {
-					StopMusic();
+					Audio_StopMusic();
 					overworld.transition.id = 2;
 					overworld.transition.timer = 0;
 					overworld.fadeAlpha = 0;
@@ -1600,7 +1810,7 @@ void GameOver_Update() {
 				else {
 					profile.flags[FLAG_SAVECOUNT] = 0;
 					Dialog_Run(Random_IRange(4030, 4033));
-					PlaySound(SND_no);
+					Audio_PlaySound(SND_no);
 					if (ret == -2) {
 						CreatePopup("File is not a Rubindeavor save.");
 					}
@@ -1643,7 +1853,7 @@ void GameOver_Update() {
 					return;
 				}
 				else {
-					PlaySound(SND_no);
+					Audio_PlaySound(SND_no);
 					if (ret == -2) {
 						CreatePopup("File is not a Rubindeavor save.");
 					}
@@ -1661,15 +1871,15 @@ void GameOver_Update() {
 }
 
 void GameOver_Draw() {
-	SetProjection(320, 240, 1);
+	Drawer_SetProjection(320, 240, 1);
 	
-	SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_TOP);
-	DrawText("GAME OVER", 32, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 3, 4, 4);
+	Drawer_SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_TOP);
+	Drawer_DrawText("GAME OVER", 32, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 3, 4, 4);
 	
 	if (dialogSystem.state != DIALOG_STATE_IDLE) {
-		SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+		Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 		
-		DrawText(dialogSystem.text, dialogSystem.textLength, 8, SCREEN_HEIGHT - 152, 2, 2);
+		Drawer_DrawText(dialogSystem.text, dialogSystem.textLength, 8, SCREEN_HEIGHT - 152, 2, 2);
 	}
 	
 	if (game.timer == 101) {
@@ -1677,10 +1887,203 @@ void GameOver_Draw() {
 	}
 	
 	if (overworld.fadeAlpha > 0) {
-		SetDrawColor(0, 0, 0);
-		SetDrawAlpha(overworld.fadeAlpha * 255);
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		SetDrawColor(255, 255, 255);
-		SetDrawAlpha(255);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_SetDrawAlpha(overworld.fadeAlpha * 255);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		Drawer_SetDrawColor(255, 255, 255);
+		Drawer_SetDrawAlpha(255);
+	}
+}
+
+
+
+void Ending_Init() {
+	game.ending.timer = 0;
+	game.ending.stage = -1;
+	for (int i = 0; i < 6; i++) game.ending.gems[i] = -1;
+	game.ending.actionCount = 0;
+	game.ending.armorCount = 0;
+	game.ending.passiveCount = 0;
+	game.ending.totalActionCount = 0;
+	game.ending.totalArmorCount = 0;
+	game.ending.totalPassiveCount = 0;
+	
+	if (game.ending.id == 1)
+		Audio_StopMusic();
+	else
+		Audio_PlayMusic(MUS_tally);
+	
+	overworld.fadeAlpha = 0;
+	
+	for (int i = 2; i < OBJECT_COUNT_MAX; i++) {
+		if (profile.actions[i] <= 0) continue;
+		
+		game.ending.actionCount++;
+		game.ending.totalActionCount += profile.actions[i];
+	}
+	
+	for (int i = 1; i < OBJECT_COUNT_MAX; i++) {
+		if (profile.armors[i] <= 0) continue;
+		
+		game.ending.armorCount++;
+		game.ending.totalArmorCount += profile.armors[i];
+	}
+	
+	for (int i = 1; i < OBJECT_COUNT_MAX; i++) {
+		if (profile.passives[i] <= 0) continue;
+		
+		game.ending.passiveCount++;
+		game.ending.totalPassiveCount += profile.passives[i];
+	}
+}
+
+void Ending_Update() {
+	game.ending.timer++;
+	bool skipping = PlayerButtonHeld(PLAYER_BUTTON_X) || PlayerButtonHeld(PLAYER_BUTTON_C);
+	
+	if (game.ending.stage < 0) {
+		if (game.ending.timer >= 30) {
+			game.ending.stage = 0;
+			game.ending.timer = 0;
+		}
+	}
+	else if (game.ending.stage == 0) {
+		if (game.ending.timer >= 30 || (game.ending.timer >= 15 && skipping)) {
+			bool gemShown = false;
+			for (int i = 0; i < 5; i++) {
+				if (!Profile_KeyItemExists(250 + i)) continue;
+				
+				for (int j = 0; j < 6; j++) {
+					if (game.ending.gems[j] == i) break;
+					
+					if (game.ending.gems[j] == -1) {
+						game.ending.gems[j] = i;
+						Audio_PlaySound(SND_tallyancientgem);
+						game.ending.timer = 0;
+						gemShown = true;
+						break;
+					}
+				}
+				if (gemShown) break;
+			}
+			if (!gemShown) {
+				game.ending.stage = 1;
+				game.ending.timer = 0;
+			}
+		}
+	}
+	else if (game.ending.stage < 9) {
+		if (game.ending.timer >= 16 || (game.ending.timer >= 8 && skipping)) {
+			game.ending.stage++;
+			game.ending.timer = 0;
+			Audio_PlaySound(SND_chess_move);
+		}
+	}
+	else if (game.ending.stage == 9) {
+		if (game.ending.timer >= 60) {
+			game.ending.stage = 32;
+			game.ending.timer = 0;
+			
+			Menu_New(&overworld.menu, 0, 1, 1, 0);
+			Menu_AddOption(&overworld.menu, true, 0, "Continue");
+			Menu_ResetCursor(&overworld.menu);
+		}
+	}
+	else if (game.ending.stage == 32) {
+		Menu_Update(&overworld.menu);
+		
+		if (overworld.menu.optionPressed == 0) {
+			game.ending.stage = 33;
+			game.ending.timer = 0;
+			Audio_FadeOutMusic(1000);
+		}
+	}
+	else if (game.ending.stage == 33) {
+		if (game.ending.timer < 60) {
+			overworld.fadeAlpha = (float)game.ending.timer / 60;
+		}
+		else if (game.ending.timer < 90) {
+			overworld.fadeAlpha = 1;
+		}
+		else {
+			Setup();
+			ChangeScene(SCENE_MENU);
+		}
+	}
+}
+
+void Ending_Draw() {
+	Drawer_SetProjection(320, 240, 1);
+	
+	Drawer_DrawSprite(SPR_misc_backdrop_brilliant, 0, 0, 0, 2, 2);
+	
+	Drawer_SetDrawBlend(BLENDMODE_MUL);
+	Drawer_SetDrawColor(0, 127, 255);
+	Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	Drawer_SetDrawBlend(BLENDMODE_BLEND);
+	Drawer_SetDrawColor(255, 255, 255);
+	
+	Drawer_SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_TOP);
+	
+	switch (game.ending.id) {
+		case 0:
+			SetString(game.textBuffer, "NORMAL ENDING (End #1)");
+			break;
+		case 1:
+			SetString(game.textBuffer, "LONE SUPERNATURAL (End #2)");
+			break;
+		default:
+			SetString(game.textBuffer, "UNKNOWN ENDING (End #unknown)");
+			break;
+	}
+	Drawer_DrawText(game.textBuffer, 40, SCREEN_WIDTH / 2, 4, 2, 2);
+	
+	Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+	for (int i = 0; i < 6; i++) {
+		if (game.ending.gems[i] == -1) break;
+		
+		Drawer_DrawSprite(SPR_misc_gems, 320 - 64 + i * 32, 80, game.ending.gems[i], 2, 2);
+	}
+	
+	for (int i = 0; i < game.ending.stage - 1 && i < 8; i++) {
+		switch (i) {
+			case 0:
+				snprintf(game.textBuffer, 40, "Level %d", partyMembers[0].level);
+				break;
+			case 1:
+				snprintf(game.textBuffer, 40, "EXP: %d", partyMembers[0].exp);
+				break;
+			case 2:
+				snprintf(game.textBuffer, 40, "Total Skills: %d", game.ending.totalActionCount);
+				break;
+			case 3:
+				snprintf(game.textBuffer, 40, "Total Armors: %d", game.ending.totalArmorCount);
+				break;
+			case 4:
+				snprintf(game.textBuffer, 40, "Total Badges: %d", game.ending.totalPassiveCount);
+				break;
+			case 5:
+				snprintf(game.textBuffer, 40, "Unique Skills: %d", game.ending.actionCount);
+				break;
+			case 6:
+				snprintf(game.textBuffer, 40, "Unique Armors: %d", game.ending.armorCount);
+				break;
+			case 7:
+				snprintf(game.textBuffer, 40, "Unique Badges: %d", game.ending.passiveCount);
+				break;
+		}
+		Drawer_DrawText(game.textBuffer, 40, 8, 96 + i * 28, 2, 2);
+	}
+	
+	if (game.ending.stage == 32) {
+		Menu_DrawOptions(&overworld.menu, 0, 432, 632);
+	}
+	
+	if (overworld.fadeAlpha > 0) {
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_SetDrawAlpha(overworld.fadeAlpha * 255);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		Drawer_SetDrawColor(255, 255, 255);
+		Drawer_SetDrawAlpha(255);
 	}
 }

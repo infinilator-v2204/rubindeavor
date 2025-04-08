@@ -276,14 +276,14 @@ void Overworld_Update() {
 			//bool running = (!game.settings.autoRun && PlayerButtonHeld(PLAYER_BUTTON_X)) || (game.settings.autoRun && !PlayerButtonHeld(PLAYER_BUTTON_X));
 			bool running = !PlayerButtonHeld(PLAYER_BUTTON_X);
 			
-			if (game.keyStates[SDL_SCANCODE_LEFT]) {
+			if (PlayerButtonHeld(PLAYER_BUTTON_LEFT)) {
 				walking = 1;
 				if (overworld.player.state == PLAYER_STATE_IDLE) {
 					overworld.player.state = PLAYER_STATE_WALK;
 					overworld.player.timer = 0;
 				}
 				
-				if ((!game.keyStates[SDL_SCANCODE_UP] && !game.keyStates[SDL_SCANCODE_DOWN]) || previousPlayerState == PLAYER_STATE_IDLE) overworld.player.direction = OBJECT_DIRECTION_LEFT;
+				if ((!PlayerButtonHeld(PLAYER_BUTTON_UP) && !PlayerButtonHeld(PLAYER_BUTTON_DOWN)) || previousPlayerState == PLAYER_STATE_IDLE) overworld.player.direction = OBJECT_DIRECTION_LEFT;
 				Player_TryMove(-1, 0);
 				Player_TryMove(-1, 0);
 				if (PlayerButtonHeld(PLAYER_BUTTON_A) && game.debug) {
@@ -298,14 +298,14 @@ void Overworld_Update() {
 					Player_TryMove(-1, 0);
 				}
 			}
-			if (game.keyStates[SDL_SCANCODE_RIGHT]) {
+			if (PlayerButtonHeld(PLAYER_BUTTON_RIGHT)) {
 				walking = 1;
 				if (overworld.player.state == PLAYER_STATE_IDLE) {
 					overworld.player.state = PLAYER_STATE_WALK;
 					overworld.player.timer = 0;
 				}
 				
-				if ((!game.keyStates[SDL_SCANCODE_UP] && !game.keyStates[SDL_SCANCODE_DOWN]) || previousPlayerState == PLAYER_STATE_IDLE) overworld.player.direction = OBJECT_DIRECTION_RIGHT;
+				if ((!PlayerButtonHeld(PLAYER_BUTTON_UP) && !PlayerButtonHeld(PLAYER_BUTTON_DOWN)) || previousPlayerState == PLAYER_STATE_IDLE) overworld.player.direction = OBJECT_DIRECTION_RIGHT;
 				Player_TryMove(1, 0);
 				Player_TryMove(1, 0);
 				if (PlayerButtonHeld(PLAYER_BUTTON_A) && game.debug) {
@@ -320,14 +320,14 @@ void Overworld_Update() {
 					Player_TryMove(1, 0);
 				}
 			}
-			if (game.keyStates[SDL_SCANCODE_UP]) {
+			if (PlayerButtonHeld(PLAYER_BUTTON_UP)) {
 				walking = 1;
 				if (overworld.player.state == PLAYER_STATE_IDLE) {
 					overworld.player.state = PLAYER_STATE_WALK;
 					overworld.player.timer = 0;
 				}
 				
-				if ((!game.keyStates[SDL_SCANCODE_LEFT] && !game.keyStates[SDL_SCANCODE_RIGHT]) || previousPlayerState == PLAYER_STATE_IDLE) overworld.player.direction = OBJECT_DIRECTION_UP;
+				if ((!PlayerButtonHeld(PLAYER_BUTTON_LEFT) && !PlayerButtonHeld(PLAYER_BUTTON_RIGHT)) || previousPlayerState == PLAYER_STATE_IDLE) overworld.player.direction = OBJECT_DIRECTION_UP;
 				Player_TryMove(0, -1);
 				Player_TryMove(0, -1);
 				if (PlayerButtonHeld(PLAYER_BUTTON_A) && game.debug) {
@@ -342,14 +342,14 @@ void Overworld_Update() {
 					Player_TryMove(0, -1);
 				}
 			}
-			if (game.keyStates[SDL_SCANCODE_DOWN]) {
+			if (PlayerButtonHeld(PLAYER_BUTTON_DOWN)) {
 				walking = 1;
 				if (overworld.player.state == PLAYER_STATE_IDLE) {
 					overworld.player.state = PLAYER_STATE_WALK;
 					overworld.player.timer = 0;
 				}
 				
-				if ((!game.keyStates[SDL_SCANCODE_LEFT] && !game.keyStates[SDL_SCANCODE_RIGHT]) || previousPlayerState == PLAYER_STATE_IDLE) overworld.player.direction = OBJECT_DIRECTION_DOWN;
+				if ((!PlayerButtonHeld(PLAYER_BUTTON_LEFT) && !PlayerButtonHeld(PLAYER_BUTTON_RIGHT)) || previousPlayerState == PLAYER_STATE_IDLE) overworld.player.direction = OBJECT_DIRECTION_DOWN;
 				Player_TryMove(0, 1);
 				Player_TryMove(0, 1);
 				if (PlayerButtonHeld(PLAYER_BUTTON_A) && game.debug) {
@@ -425,14 +425,15 @@ void Overworld_Update() {
 					}
 				}
 				else if (overworld.player.dashEnabled && profile.flags[FLAG_RUBY_LABCOAT]) {
+					int dashChargeTimerMax = 50 - (profile.flags[FLAG_RUBY_GODMODE] > 0) * 49;
 					if (PlayerButtonHeld(PLAYER_BUTTON_X)) {
 						overworld.player.dashChargeTimer++;
-						if (overworld.player.dashChargeTimer == 1 || overworld.player.dashChargeTimer == 50) {
+						if (overworld.player.dashChargeTimer == 1 || overworld.player.dashChargeTimer == dashChargeTimerMax) {
 							Party_UpdateCaterpillar();
 						}
 					}
 					else {
-						if (overworld.player.dashChargeTimer >= 50) {
+						if (overworld.player.dashChargeTimer >= dashChargeTimerMax) {
 							overworld.player.dashing = true;
 							overworld.player.state = PLAYER_STATE_WALK;
 							overworld.player.timer = 0;
@@ -477,9 +478,9 @@ void Overworld_Update() {
 		}
 	}
 	else if (overworld.state == OVERWORLD_STATE_PAUSED) {
-		if (PlayerButtonPressed(PLAYER_BUTTON_C)) {
+		if (PlayerButtonPressed(PLAYER_BUTTON_C) && overworld.menu.id < 10000) {
 			overworld.state = OVERWORLD_STATE_IDLE;
-			PlaySound(SND_menu3);
+			Audio_PlaySound(SND_menu3);
 		}
 	}
 	
@@ -592,7 +593,7 @@ void Overworld_Update() {
 			object->spriteFrame += (int)object->spriteFrameFraction;
 			object->spriteFrameFraction -= (int)object->spriteFrameFraction;
 			
-			int spriteFrameMax = sprites[object->spriteId].subImages;
+			int spriteFrameMax = drawerSystem.sprites[object->spriteId].subImages;
 			
 			while (object->spriteFrame < 0 && spriteFrameMax >= 1) {
 				object->spriteFrame += spriteFrameMax;
@@ -656,7 +657,9 @@ void Overworld_Update() {
 					if (object->moveTarget.direction >= 0) OverworldObject_ChangeDirection(i, object->moveTarget.direction);
 					object->x = object->moveTarget.x;
 					object->y = object->moveTarget.y;
-					object->z = 0;
+					if (object->moveTarget.jumpHeight != 0) {
+						object->z = 0;
+					}
 					object->moveTarget.enabled = false;
 				}
 				else {
@@ -667,8 +670,10 @@ void Overworld_Update() {
 						object->y += sin(direction) * object->moveTarget.speed;
 					}
 					
-					float zVel = 4 * (-0.5 + (float)object->timer / object->moveTarget.jumpTime) / object->moveTarget.jumpTime;
-					object->z += zVel * object->moveTarget.jumpHeight;
+					if (object->moveTarget.jumpHeight != 0) {
+						float zVel = 8 * (-0.5 + (float)object->timer / object->moveTarget.jumpTime) / object->moveTarget.jumpTime;
+						object->z += zVel * object->moveTarget.jumpHeight;
+					}
 				}
 			}
 			else {
@@ -863,7 +868,7 @@ void Overworld_Update() {
 					
 					if (knockAway) {
 						object->vars[4].i++;
-						PlaySound(SND_hit3);
+						Audio_PlaySound(SND_hit3);
 						object->vars[0].i = ENEMY_STATE_KNOCKED;
 						object->timer = 0;
 						OverworldObject_JumpTo(i, object->x, object->y, -1, 40, 24);
@@ -887,7 +892,7 @@ void Overworld_Update() {
 				
 				if (object->timer <= 1) {
 					if (object->timer < 28 && overworld.player.x + 4 >= object->x - 16 && overworld.player.x - 4 <= object->x + 32 && overworld.player.y >= object->y - 16 && overworld.player.y - 8 <= object->y + 32) {
-						PlaySound(SND_swing);
+						Audio_PlaySoundInterrupt(SND_swing);
 						object->timer = 1;
 					}
 					else {
@@ -905,6 +910,209 @@ void Overworld_Update() {
 					case 1: case 32: object->spriteId = SPR_misc_spikes; object->spriteFrame = 0; break;
 					case 8: object->spriteFrame = 1; break;
 					case 40: object->spriteId = -1; break;
+				}
+				break;
+			case 101:
+				if (object->timer >= 900 && overworld.state == OVERWORLD_STATE_IDLE) {
+					overworld.player.dashing = false;
+					overworld.player.dashChargeTimer = 0;
+					Party_UpdateCaterpillar();
+					eventSystem.callerObjectId = i;
+					Event_Trigger(64);
+					OverworldObject_Destroy(i);
+				}
+				break;
+			case 102:
+				if (overworld.state != OVERWORLD_STATE_IDLE || overworld.transition.id > 0 || !object->vars[0].i) break;
+				
+				if (PlayerButtonPressed(PLAYER_BUTTON_Z) && eventSystem.queueSize == 0) {
+					float interactX = overworld.player.x + (overworld.player.direction == OBJECT_DIRECTION_RIGHT) * 8 - (overworld.player.direction == OBJECT_DIRECTION_LEFT) * 8;
+					float interactY = overworld.player.y + (overworld.player.direction == OBJECT_DIRECTION_DOWN) * 8 - (overworld.player.direction == OBJECT_DIRECTION_UP) * 8;
+					float interactW = 16 - object->vars[1].i * 12;
+					float interactH = 16 - object->vars[1].i * 4;
+					if (interactX + interactW > object->x - object->w / 2 && interactX - interactW < object->x + object->w / 2 && interactY + interactH > object->y - object->h && interactY - interactH - 8 < object->y) {
+						object->moveTarget.enabled = false;
+						object->state = OBJECT_STATE_IDLE;
+						object->timer = 0;
+						overworld.player.dashing = false;
+						overworld.player.dashChargeTimer = 0;
+						Party_UpdateCaterpillar();
+						
+						object->vars[1].i = !object->vars[1].i;
+						Audio_PlaySoundInterrupt(SND_swing);
+						Audio_PlaySoundInterrupt(SND_slap);
+						if (object->vars[1].i == 1)
+							OverworldObject_WalkTo(i, 29384, 10608, 8, -1);
+						else
+							OverworldObject_WalkTo(i, 28296, 10608, 8, -1);
+						
+					}
+				}
+				break;
+			case 103:
+				if (object->vars[0].i == 1) {
+					if (!overworld.objects[70].moveTarget.enabled) {
+						overworld.objects[10].vars[0].i = 0;
+						overworld.objects[10].vars[1].i = 0;
+						OverworldObject_ToggleGhost(10, false);
+						
+						for (int j = 0; j < MOVETARGET_QUEUE_MAX; j++) overworld.objects[70].moveTargetQueue[j].enabled = false;
+						overworld.player.dashing = false;
+						overworld.player.dashChargeTimer = 0;
+						Party_UpdateCaterpillar();
+						eventSystem.callerObjectId = i;
+						Event_Trigger(74);
+						OverworldObject_Destroy(i);
+					}
+					break;
+				}
+				
+				object->x = overworld.camera.x;
+				object->y = overworld.camera.y + 120;
+				
+				if (object->timer == 31) {
+					overworld.objects[10].vars[0].i = 1;
+					OverworldObject_ToggleGhost(10, true);
+					
+					OverworldObject_WalkTo(70, 29384, 10336, 1.5, -1);
+					OverworldObject_QueueWalkTo(70, 29384, 10544, 1.5, -1);
+				}
+				if (object->timer == 720) {
+					OverworldObject_WalkTo(70, 29384, 10336, 3, -1);
+					OverworldObject_QueueWalkTo(70, 28296, 10336, 3, -1);
+					OverworldObject_QueueWalkTo(70, 28296, 10544, 3, -1);
+				}
+				if (object->timer == 1300) {
+					OverworldObject_WalkTo(70, 28296, 10336, 3, -1);
+				}
+				if (object->timer == 1450) {
+					OverworldObject_WalkTo(70, 28296, 10544, 4, -1);
+				}
+				if (object->timer == 1620) {
+					OverworldObject_WalkTo(70, 28296, 10336, 1.5, -1);
+					OverworldObject_QueueWalkTo(70, 29384, 10336, 5, -1);
+					OverworldObject_QueueWalkTo(70, 29384, 10544, 5, -1);
+					OverworldObject_QueueWalkTo(70, 29384, 10458, 4, -1);
+					OverworldObject_QueueWalkTo(70, 29416, 10376, 4, -1);
+					OverworldObject_QueueWalkTo(70, 29368, 10328, 4, -1);
+					OverworldObject_QueueWalkTo(70, 29344, 10360, 4, -1);
+					OverworldObject_QueueWalkTo(70, 29352, 10488, 4, -1);
+					OverworldObject_QueueWalkTo(70, 29384, 10544, 5, -1);
+					
+				}
+				if (object->timer == 2220) {
+					OverworldObject_QueueWalkTo(70, 29416, 10392, 5, -1);
+					OverworldObject_QueueWalkTo(70, 28296, 10336, 5, -1);
+					OverworldObject_QueueWalkTo(70, 28296, 10544, 5, -1);
+					
+					OverworldObject_QueueWalkTo(70, 28296, 10376, 5, -1);
+					OverworldObject_QueueWalkTo(70, 28848, 10336, 5, -1);
+				}
+				if (object->timer == 2520) {
+					OverworldObject_QueueWalkTo(70, 28782, 10336, 10, -1);
+					OverworldObject_QueueWalkTo(70, 28842, 10336, 10, -1);
+					OverworldObject_QueueWalkTo(70, 28812, 10336, 10, -1);
+					OverworldObject_QueueWalkTo(70, 28862, 10336, 10, -1);
+					OverworldObject_QueueWalkTo(70, 28622, 10336, 10, -1);
+					OverworldObject_QueueWalkTo(70, 28822, 10336, 10, -1);
+					OverworldObject_QueueWalkTo(70, 29322, 10336, 8, -1);
+					OverworldObject_QueueWalkTo(70, 29384, 10544, 6, -1);
+					
+					OverworldObject_QueueWalkTo(70, 29384, 10392, 6, -1);
+					OverworldObject_QueueWalkTo(70, 28376, 10336, 6, -1);
+					OverworldObject_QueueWalkTo(70, 28344, 10368, 6, -1);
+					OverworldObject_QueueWalkTo(70, 28296, 10544, 3, -1);
+				}
+				if (object->timer == 3200) {
+					OverworldObject_QueueWalkTo(70, 28296, 10336, 3, -1);
+				}
+				
+				if (overworld.objects[70].y >= 10544) {
+					if (overworld.objects[70].x < 28832 && overworld.objects[10].x > 28368) {
+						OverworldObject_JumpTo(70, 28296, 10632, OBJECT_DIRECTION_DOWN, 16, 12);
+						object->vars[0].i = 1;
+					}
+					else if (overworld.objects[70].x > 28832 && overworld.objects[10].x < 29312) {
+						OverworldObject_JumpTo(70, 29384, 10632, OBJECT_DIRECTION_DOWN, 16, 12);
+						object->vars[0].i = 1;
+					}
+				}
+				
+				if (object->timer >= 3252 && overworld.state == OVERWORLD_STATE_IDLE) {
+					overworld.objects[10].vars[0].i = 0;
+					overworld.objects[10].vars[1].i = 0;
+					OverworldObject_ToggleGhost(10, false);
+					
+					overworld.player.dashing = false;
+					overworld.player.dashChargeTimer = 0;
+					Party_UpdateCaterpillar();
+					eventSystem.callerObjectId = i;
+					Event_Trigger(73);
+					OverworldObject_Destroy(i);
+				}
+				break;
+			case 104:
+				if (object->timer % 14 == 6) {
+					for (int j = 20; j < 60; j++) {
+						if (overworld.objects[j].type == 0) continue;
+						
+						overworld.objects[j].spriteFrame++;
+					}
+				}
+				else if (object->timer % 14 == 13) {
+					for (int j = 20; j < 60; j++) {
+						if (overworld.objects[j].type == 0) continue;
+						
+						overworld.objects[j].spriteFrame--;
+					}
+				}
+				
+				if (object->vars[0].i == 1) {
+					for (int j = 20; j < 60; j++) {
+						OverworldObject_Destroy(j);
+					}
+					object->vars[0].i = 0;
+				}
+				
+				if (profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DEFEATED] == 0) {
+					if (object->timer >= 10585 && object->timer % 14 < 6 && overworld.state != OVERWORLD_STATE_IDLE) {
+						object->timer = 10584;
+					}
+					if (object->timer >= 10800 && overworld.state == OVERWORLD_STATE_IDLE) {
+						overworld.player.dashing = false;
+						overworld.player.dashChargeTimer = 0;
+						Party_UpdateCaterpillar();
+						eventSystem.callerObjectId = i;
+						Event_Trigger(77);
+					}
+				}
+				break;
+			case 105:
+				if (PlayerButtonHeld(PLAYER_BUTTON_LEFT)) {
+					object->vars[0].f -= 4;
+					if (object->vars[0].f < -134) object->vars[0].f = -134;
+				}
+				if (PlayerButtonHeld(PLAYER_BUTTON_RIGHT)) {
+					object->vars[0].f += 4;
+					if (object->vars[0].f > 134) object->vars[0].f = 134;
+				}
+				if (PlayerButtonHeld(PLAYER_BUTTON_UP)) {
+					object->vars[1].f -= 4;
+					if (object->vars[1].f < -94) object->vars[1].f = -94;
+				}
+				if (PlayerButtonHeld(PLAYER_BUTTON_DOWN)) {
+					object->vars[1].f += 4;
+					if (object->vars[1].f > 94) object->vars[1].f = 94;
+				}
+				
+				if (PlayerButtonPressed(PLAYER_BUTTON_Z) || PlayerButtonPressed(PLAYER_BUTTON_X)) {
+					OverworldObject_Destroy(i);
+				}
+				break;
+			case 106:
+				if (object->timer < 10) break;
+				if (PlayerButtonPressed(PLAYER_BUTTON_Z) || PlayerButtonPressed(PLAYER_BUTTON_X)) {
+					OverworldObject_Destroy(i);
 				}
 				break;
 		}
@@ -1043,29 +1251,76 @@ void Overworld_Update() {
 					overworld.sparks[i].id = 0;
 				}
 				break;
+			case 3:
+				if (overworld.sparks[i].timer >= 24) {
+					overworld.sparks[i].id = 0;
+				}
+				break;
+			case 4:
+				if (overworld.sparks[i].timer >= 16) {
+					overworld.sparks[i].id = 0;
+				}
+				break;
 		}
 	}
 	
 	if (overworld.state == OVERWORLD_STATE_PAUSED) {
 		Overworld_UpdateMenu();
 	}
+	
+	if (overworld.cameraClamping) {
+		overworld.camera.x = Max(overworld.map.areas[overworld.areaId].x1 * 16 + 160, Min(overworld.map.areas[overworld.areaId].x2 * 16 - 144, overworld.camera.x));
+		overworld.camera.y = Max(overworld.map.areas[overworld.areaId].y1 * 16 + 120, Min(overworld.map.areas[overworld.areaId].y2 * 16 - 104, overworld.camera.y));
+	}
 }
 
 void Overworld_Draw() {
-	SetProjection(320, 240, 1);
+	Drawer_SetProjection(320, 240, 1);
 	
-	SetDrawColor(0, 0, 0);
-	FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-	SetDrawColor(255, 255, 255);
+	Drawer_SetDrawColor(0, 0, 0);
+	Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+	Drawer_SetDrawColor(255, 255, 255);
+	
+	
+	switch (overworld.backgroundId) {
+		case 1:
+			Drawer_DrawSprite(SPR_misc_backdrop_brilliant, overworld.map.areas[overworld.areaId].x1 * 16 + 160 - overworld.camera.x, 0, 0, 2, 2);
+			break;
+		case 2:
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_ADD);
+			{
+				Drawer_SetDrawAlpha(159);
+				Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+				float x, y, scale;
+				x = ((game.timer * 3 / 4) % 128);
+				y = ((game.timer * 3 / 4) % 128);
+				scale = 2;
+				for (int j = -2; j < 7; j++)
+				for (int i = -2; i < 7; i++) {
+					Drawer_DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
+				}
+				x = ((game.timer * 4 / 3) % 128);
+				y = ((game.timer * 4 / 3) % 128);
+				scale = 2;
+				for (int j = -2; j < 7; j++)
+				for (int i = -2; i < 7; i++) {
+					Drawer_DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
+				}
+				Drawer_SetDrawAlpha(255);
+			}
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			break;
+	}
 	
 	
 	
-	SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
+	Drawer_SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
 	
 	if (overworld.shakeTimer == 0)
-		SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
+		Drawer_SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
 	else
-		SetProjection(overworld.camera.x + Random_Range(-overworld.shakeTimer, overworld.shakeTimer), overworld.camera.y + Random_Range(-overworld.shakeTimer, overworld.shakeTimer), overworld.camera.zoom);
+		Drawer_SetProjection(overworld.camera.x + Random_Range(-overworld.shakeTimer, overworld.shakeTimer), overworld.camera.y + Random_Range(-overworld.shakeTimer, overworld.shakeTimer), overworld.camera.zoom);
 	
 	Overworld_DrawMap();
 	
@@ -1117,12 +1372,28 @@ void Overworld_Draw() {
 		else
 			object = &overworld.objects[objectOrder[i]];
 		
-		SetDrawColor(object->color[0], object->color[1], object->color[2]);
+		Drawer_SetDrawColor(object->color[0], object->color[1], object->color[2]);
 		
-		if (object->type == 4) {
+		if (object->type == 106) {
+			Drawer_DrawSprite(object->id, overworld.camera.x + object->vars[0].f, overworld.camera.y + object->vars[1].f, object->vars[2].i, 1, 1);
+		}
+		else if (object->type == 105) {
+			Drawer_DrawSprite(SPR_misc_backdrop_lisaohouse, overworld.camera.x - 160 - object->vars[0].f, overworld.camera.y - 120 - object->vars[1].f, profile.flags[FLAG_PLOT] >= 14 && !profile.flags[FLAG_GREGORY_OPTIONALFIGHT], 1, 1);
+			Drawer_DrawSprite(SPR_misc_darkoverlay, overworld.camera.x, overworld.camera.y, 0, 1, 1);
+		}
+		else if (object->type == 103) {
+			Drawer_DrawSprite(SPR_misc_retichase_minimap, overworld.camera.x - 160, overworld.camera.y - 120, 0, 1, 1);
+			Drawer_SetDrawColor(0, 0, 0);
+			Drawer_FillRect(overworld.camera.x - 156 + (int)(overworld.objects[10].x - 28256) / 16 - 5, overworld.camera.y - 117 + (int)(overworld.objects[10].y - 10304) / 16, 10, 2);
+			Drawer_SetDrawColor(255, 255, 0);
+			Drawer_DrawSprite(SPR_misc_retichase_dot, overworld.camera.x - 156 + (int)(overworld.objects[0].x - 28256) / 16, overworld.camera.y - 117 + (int)(overworld.objects[0].y - 10304) / 16, 0, 1, 1);
+			Drawer_SetDrawColor(255, 0, 0);
+			Drawer_DrawSprite(SPR_misc_retichase_dot, overworld.camera.x - 156 + (int)(overworld.objects[70].x - 28256) / 16, overworld.camera.y - 117 + (int)(overworld.objects[70].y - 10304) / 16, 0, 1, 1);
+		}
+		else if (object->type == 4) {
 			for (int k = 0; k < object->vars[1].i; k++)
 			for (int j = 0; j < object->vars[0].i; j++) {
-				DrawSprite(overworld.map.tilesetSpriteId, object->x - 8 - (object->vars[1].i - 1) * 8 + k * 16, object->y - 16 * (1 + j), object->id - 64 * j + k, 1, 1);
+				Drawer_DrawSprite(overworld.map.tilesetSpriteId, object->x - 8 - (object->vars[1].i - 1) * 8 + k * 16, object->y - 16 * (1 + j), object->id - 64 * j + k, 1, 1);
 			}
 		}
 		else if (object->bodyId >= 0) {
@@ -1130,11 +1401,11 @@ void Overworld_Draw() {
 		}
 		else if (object->spriteId >= 0) {
 			if (object->state == OBJECT_STATE_CLIMB && object->climbSpriteId >= 0)
-				DrawSprite(object->climbSpriteId, object->x, object->y + object->z, object->spriteFrame, 1, 1);
+				Drawer_DrawSprite(object->climbSpriteId, object->x, object->y + object->z, object->spriteFrame, 1, 1);
 			else if (object->direction == OBJECT_DIRECTION_LEFT)
-				DrawSprite(object->spriteId, object->x, object->y + object->z, object->spriteFrame, -1, 1);
+				Drawer_DrawSprite(object->spriteId, object->x, object->y + object->z, object->spriteFrame, -1, 1);
 			else
-				DrawSprite(object->spriteId, object->x, object->y + object->z, object->spriteFrame, 1, 1);
+				Drawer_DrawSprite(object->spriteId, object->x, object->y + object->z, object->spriteFrame, 1, 1);
 			
 			if (overworld.areaWrap) {
 				int x1 = overworld.map.areas[overworld.areaId].x1;
@@ -1148,14 +1419,14 @@ void Overworld_Draw() {
 				for (int ii = -1; ii <= 1; ii++) {
 					if (ii == 0 && jj == 0) continue;
 					if (object->direction == OBJECT_DIRECTION_LEFT)
-						DrawSprite(object->spriteId, object->x + ii * w * 16, object->y + object->z + jj * h * 16, object->spriteFrame, -1, 1);
+						Drawer_DrawSprite(object->spriteId, object->x + ii * w * 16, object->y + object->z + jj * h * 16, object->spriteFrame, -1, 1);
 					else
-						DrawSprite(object->spriteId, object->x + ii * w * 16, object->y + object->z + jj * h * 16, object->spriteFrame, 1, 1);
+						Drawer_DrawSprite(object->spriteId, object->x + ii * w * 16, object->y + object->z + jj * h * 16, object->spriteFrame, 1, 1);
 				}
 			}
 		}
 	}
-	SetDrawColor(255, 255, 255);
+	Drawer_SetDrawColor(255, 255, 255);
 	
 	float overlayAngle = 0;
 	switch (overworld.player.direction) {
@@ -1166,209 +1437,246 @@ void Overworld_Draw() {
 	}
 	switch (overworld.overlayId) {
 		case 1:
-			DrawSprite_Angle(SPR_misc_darkoverlay, overworld.objects[0].x, overworld.objects[0].y - 12, 0, 1, 1, overlayAngle);
+			Drawer_DrawSprite_Angle(SPR_misc_darkoverlay, overworld.objects[0].x, overworld.objects[0].y - 12, 0, 1, 1, overlayAngle);
 			break;
 		case 2:
-			DrawSprite_Angle(SPR_misc_darkoverlay_flashlight, overworld.objects[0].x, overworld.objects[0].y - 12, 0, 1, 1, overlayAngle);
+			Drawer_DrawSprite_Angle(SPR_misc_darkoverlay_flashlight, overworld.objects[0].x, overworld.objects[0].y - 12, 0, 1, 1, overlayAngle);
 			break;
 		case 3:
-			SetProjection(320, 240, 1);
-			SetDrawBlend(SDL_BLENDMODE_MUL);
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
 			if (game.timer % 240 >= 180 && game.timer % 6 < 3)
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 255, 255);
 			else if (game.timer % 60 < 30)
-				SetDrawColor(207, 0, 0);
+				Drawer_SetDrawColor(207, 0, 0);
 			else
-				SetDrawColor(0, 103, 207);
-			FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
-			SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(0, 103, 207);
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
 			break;
 		case 4:
-			SetProjection(320, 240, 1);
-			SetDrawBlend(SDL_BLENDMODE_MUL);
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
 			if (game.timer % 90 < 30)
-				SetDrawColor(255, 63, 0);
+				Drawer_SetDrawColor(255, 63, 0);
 			else if (game.timer % 90 < 60)
-				SetDrawColor(31, 191, 0);
+				Drawer_SetDrawColor(31, 191, 0);
 			else
-				SetDrawColor(0, 191, 255);
-			FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
-			SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(0, 191, 255);
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
 			break;
 		case 5:
-			SetProjection(320, 240, 1);
-			SetDrawBlend(SDL_BLENDMODE_MUL);
-			SetDrawColor(255, 255, 255);
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			Drawer_SetDrawColor(255, 255, 255);
 			{
-				SetDrawAlpha(127);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawAlpha(127);
+				Drawer_SetDrawColor(255, 255, 255);
 				float x, y, scale;
 				/*x = (game.timer % 128);
 				y = (game.timer % 128);
 				scale = 2;
 				for (int j = -2; j < 7; j++)
 				for (int i = -2; i < 7; i++) {
-					DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
+					Drawer_DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
 				}*/
-				SetDrawColor(255, 0, 63);
+				Drawer_SetDrawColor(255, 0, 63);
 				x = ((game.timer * 3 / 4) % 128);
 				y = ((game.timer * 3 / 4) % 128);
 				scale = 2;
 				for (int j = -2; j < 7; j++)
 				for (int i = -2; i < 7; i++) {
-					DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
+					Drawer_DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
 				}
-				SetDrawColor(255, 0, 0);
+				Drawer_SetDrawColor(255, 0, 0);
 				x = ((game.timer * 4 / 3) % 128);
 				y = ((game.timer * 4 / 3) % 128);
 				scale = 2;
 				for (int j = -2; j < 7; j++)
 				for (int i = -2; i < 7; i++) {
-					DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
+					Drawer_DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
 				}
-				SetDrawAlpha(255);
+				Drawer_SetDrawAlpha(255);
 			}
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
-			SetDrawColor(255, 255, 255);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
 			break;
 		case 6:
-			SetProjection(320, 240, 1);
-			SetDrawBlend(SDL_BLENDMODE_MUL);
-			SetDrawColor(255, 0, 0);
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			Drawer_SetDrawColor(255, 0, 0);
 			{
-				SetDrawAlpha(223);
-				FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-				SetDrawAlpha(159);
+				Drawer_SetDrawAlpha(223);
+				Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+				Drawer_SetDrawAlpha(159);
 				float x, y, scale;
 				x = ((game.timer * 3 / 4) % 128);
 				y = ((game.timer * 3 / 4) % 128);
 				scale = 2;
 				for (int j = -2; j < 7; j++)
 				for (int i = -2; i < 7; i++) {
-					DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
+					Drawer_DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
 				}
 				x = ((game.timer * 4 / 3) % 128);
 				y = ((game.timer * 4 / 3) % 128);
 				scale = 2;
 				for (int j = -2; j < 7; j++)
 				for (int i = -2; i < 7; i++) {
-					DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
+					Drawer_DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
 				}
-				SetDrawAlpha(255);
+				Drawer_SetDrawAlpha(255);
 			}
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
-			SetDrawColor(255, 255, 255);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
 			break;
 		case 7:
-			SetProjection(320, 240, 1);
-			SetDrawBlend(SDL_BLENDMODE_MUL);
-			SetDrawColor(255, 255, 255);
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			Drawer_SetDrawColor(255, 255, 255);
 			{
-				SetDrawAlpha(191);
+				Drawer_SetDrawAlpha(191);
 				float x, y, scale;
-				SetDrawColor(0, 0, 159);
+				Drawer_SetDrawColor(0, 0, 159);
 				x = 0;
 				y = 0;
 				scale = 2;
 				for (int j = -2; j < 7; j++)
 				for (int i = -2; i < 7; i++) {
-					DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
+					Drawer_DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
 				}
-				SetDrawColor(63, 0, 31);
+				Drawer_SetDrawColor(63, 0, 31);
 				x = 52;
 				y = 52;
 				scale = 2;
 				for (int j = -2; j < 7; j++)
 				for (int i = -2; i < 7; i++) {
-					DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
+					Drawer_DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
 				}
-				SetDrawAlpha(255);
+				Drawer_SetDrawAlpha(255);
 			}
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
-			SetDrawColor(255, 255, 255);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
 			break;
 		case 8:
-			SetProjection(320, 240, 1);
-			SetDrawBlend(SDL_BLENDMODE_MUL);
-			SetDrawColor(255, 127, 255);
-			FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
-			SetDrawColor(255, 255, 255);
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			Drawer_SetDrawColor(255, 127, 255);
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
 			break;
 		case 9:
-			SetProjection(320, 240, 1);
-			SetDrawBlend(SDL_BLENDMODE_MUL);
-			SetDrawColor(127, 0, 95);
-			FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
-			SetDrawColor(255, 255, 255);
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			Drawer_SetDrawColor(127, 0, 95);
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
 			break;
 		case 10:
-			SetProjection(320, 240, 1);
-			SetDrawBlend(SDL_BLENDMODE_MUL);
-			SetDrawColor(160, 160, 160);
-			FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
-			SetDrawColor(255, 255, 255);
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			Drawer_SetDrawColor(160, 160, 160);
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
 			break;
 		case 11:
-			SetProjection(320, 240, 1);
-			SetDrawBlend(SDL_BLENDMODE_MUL);
-			SetDrawColor((uint8_t)((profile.tempFlags[TEMPFLAG_ILLUSION_TIME_COLOR] & 0xff0000) >> 16), (uint8_t)((profile.tempFlags[TEMPFLAG_ILLUSION_TIME_COLOR] & 0xff00) >> 8), (uint8_t)(profile.tempFlags[TEMPFLAG_ILLUSION_TIME_COLOR] & 0xff));
-			FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
-			SetDrawColor(255, 255, 255);
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			Drawer_SetDrawColor((uint8_t)((profile.tempFlags[TEMPFLAG_ILLUSION_TIME_COLOR] & 0xff0000) >> 16), (uint8_t)((profile.tempFlags[TEMPFLAG_ILLUSION_TIME_COLOR] & 0xff00) >> 8), (uint8_t)(profile.tempFlags[TEMPFLAG_ILLUSION_TIME_COLOR] & 0xff));
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
 			break;
 		case 12:
-			SetProjection(320, 240, 1);
-			SetDrawBlend(SDL_BLENDMODE_MUL);
-			SetDrawColor(255, 0, 0);
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			Drawer_SetDrawColor(255, 0, 0);
 			{
-				SetDrawAlpha(223);
-				FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-				SetDrawAlpha(159);
+				Drawer_SetDrawAlpha(223);
+				Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+				Drawer_SetDrawAlpha(159);
 				float x, y, scale;
 				x = ((game.timer * 6) % 128);
 				y = ((game.timer * 6) % 128);
 				scale = 2;
 				for (int j = -2; j < 7; j++)
 				for (int i = -2; i < 7; i++) {
-					DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
+					Drawer_DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
 				}
 				x = ((game.timer * 12) % 128);
 				y = ((game.timer * 12) % 128);
 				scale = 2;
 				for (int j = -2; j < 7; j++)
 				for (int i = -2; i < 7; i++) {
-					DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
+					Drawer_DrawSprite(SPR_misc_bossbattlebg_1, x + 64*i*scale, y + 64*j*scale, 0, scale, scale);
 				}
 				
-				SetDrawAlpha(127);
-				SetDrawBlend(SDL_BLENDMODE_ADD);
+				Drawer_SetDrawAlpha(127);
+				Drawer_SetDrawBlend(BLENDMODE_ADD);
 				for (int j = 0; j < 10; j++) {
 					float t = (float)(game.timer + j) * 0.9;
 					for (int i = 0; i < 5; i++) {
-						DrawSprite(SPR_misc_bossbattlebg_1, 160*i + sin(t) * 16 - 32, 64*j, 0, 1, 1);
-						DrawSprite(SPR_misc_bossbattlebg_1, 160*i + sin(t * 0.9 + i * 0.25) * 15 + 64, (64 + sin(t / 13) * 2)*j, 0, 1, 1);
+						Drawer_DrawSprite(SPR_misc_bossbattlebg_1, 160*i + sin(t) * 16 - 32, 64*j, 0, 1, 1);
+						Drawer_DrawSprite(SPR_misc_bossbattlebg_1, 160*i + sin(t * 0.9 + i * 0.25) * 15 + 64, (64 + sin(t / 13) * 2)*j, 0, 1, 1);
 					}
 				}
-				SetDrawAlpha(95);
-				SetDrawBlend(SDL_BLENDMODE_BLEND);
+				Drawer_SetDrawAlpha(95);
+				Drawer_SetDrawBlend(BLENDMODE_BLEND);
 				for (int j = 0; j < 10; j++) {
 					float t = (float)(game.timer + j) * 0.7;
 					for (int i = 0; i < 5; i++) {
-						DrawSprite(SPR_misc_bossbattlebg_1, 160*i + sin(t) * 14 - 32, 64*j, 0, 1, 1);
-						DrawSprite(SPR_misc_bossbattlebg_1, 160*i + sin(t * 0.9 + i * 0.25) * 13 + 64, (64 + sin(t / 13) * 2)*j, 0, 1, 1);
+						Drawer_DrawSprite(SPR_misc_bossbattlebg_1, 160*i + sin(t) * 14 - 32, 64*j, 0, 1, 1);
+						Drawer_DrawSprite(SPR_misc_bossbattlebg_1, 160*i + sin(t * 0.9 + i * 0.25) * 13 + 64, (64 + sin(t / 13) * 2)*j, 0, 1, 1);
 					}
 				}
-				SetDrawAlpha(255);
+				Drawer_SetDrawAlpha(255);
 			}
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
-			SetDrawColor(255, 255, 255);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
+			break;
+		case 13:
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			Drawer_SetDrawColor(255, 63, 255);
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
+			break;
+		case 14:
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			if (game.timer % 60 < 20)
+				Drawer_SetDrawColor(255, 0, 0);
+			else if (game.timer % 60 < 40)
+				Drawer_SetDrawColor(0, 255, 0);
+			else
+				Drawer_SetDrawColor(0, 103, 255);
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
+			
+			if (game.timer % 27 == 20)
+				Overworld_ShakeScreen(18);
+			break;
+		case 15:
+			Drawer_SetProjection(320, 240, 1);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			Drawer_SetDrawColor(profile.tempFlags[TEMPFLAG_POSTFINALDIALOG_BRIGHTNESS], 255, 255);
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
 			break;
 	}
+	
+	if (overworld.shakeTimer == 0)
+		Drawer_SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
+	else
+		Drawer_SetProjection(overworld.camera.x + Random_Range(-overworld.shakeTimer, overworld.shakeTimer), overworld.camera.y + Random_Range(-overworld.shakeTimer, overworld.shakeTimer), overworld.camera.zoom);
 	
 	for (int i = 0; i < OBJECT_COUNT_MAX; i++) {
 		if (overworld.sparks[i].id <= 0) continue;
@@ -1378,38 +1686,46 @@ void Overworld_Draw() {
 		
 		switch (overworld.sparks[i].id) {
 			case 1:
-				SetDrawColor(255, 191, 0);
-				DrawSprite(SPR_spark_star, x, y, overworld.sparks[i].timer / 5, 2, 2);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 191, 0);
+				Drawer_DrawSprite(SPR_spark_star, x, y, overworld.sparks[i].timer / 5, 2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
 				break;
 			case 2:
-				SetDrawColor(255, 0, 0);
-				DrawSprite(SPR_spark_boost, x, y, overworld.sparks[i].timer / 4, 1, 1);
-				DrawSprite(SPR_spark_ring, x, y - 12, overworld.sparks[i].timer / 4, 1, 1);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 0, 0);
+				Drawer_DrawSprite(SPR_spark_boost, x, y, overworld.sparks[i].timer / 4, 1, 1);
+				Drawer_DrawSprite(SPR_spark_ring, x, y - 12, overworld.sparks[i].timer / 4, 1, 1);
+				Drawer_SetDrawColor(255, 255, 255);
+				break;
+			case 3:
+				Drawer_SetDrawColor(255, 127, 0);
+				Drawer_DrawSprite(SPR_spark_spark, x, y, overworld.sparks[i].timer / 8, 2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
+				break;
+			case 4:
+				Drawer_DrawSprite(SPR_spark_blazeimpact, x, y, overworld.sparks[i].timer / 4, 1, 1);
 				break;
 		}
 	}
 	
-	SetProjection(320, 240, 1);
+	Drawer_SetProjection(320, 240, 1);
 	
 	if (overworld.fadeAlpha > 0) {
-		SetDrawColor(overworld.fadeColor[0], overworld.fadeColor[1], overworld.fadeColor[2]);
-		SetDrawAlpha(overworld.fadeAlpha * 255);
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		SetDrawColor(255, 255, 255);
-		SetDrawAlpha(255);
+		Drawer_SetDrawColor(overworld.fadeColor[0], overworld.fadeColor[1], overworld.fadeColor[2]);
+		Drawer_SetDrawAlpha(overworld.fadeAlpha * 255);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		Drawer_SetDrawColor(255, 255, 255);
+		Drawer_SetDrawAlpha(255);
 	}
 	
 	switch (overworld.transition.id) {
 		case 2:
 			if (overworld.transition.timer <= 40) {
-				SetDrawColor(0, 0, 0);
-				FillRect(0, 0, SCREEN_WIDTH, overworld.transition.timer * SCREEN_HEIGHT / 40);
-				FillRect(0, SCREEN_HEIGHT - overworld.transition.timer * SCREEN_HEIGHT / 40, SCREEN_WIDTH, overworld.transition.timer * SCREEN_HEIGHT / 40);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(0, 0, SCREEN_WIDTH, overworld.transition.timer * SCREEN_HEIGHT / 40);
+				Drawer_FillRect(0, SCREEN_HEIGHT - overworld.transition.timer * SCREEN_HEIGHT / 40, SCREEN_WIDTH, overworld.transition.timer * SCREEN_HEIGHT / 40);
+				Drawer_SetDrawColor(255, 255, 255);
 				
-				SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
+				Drawer_SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
 				for (int i = 0; i < objectCount; i++) {
 					OverworldObject* object;
 					
@@ -1417,36 +1733,36 @@ void Overworld_Draw() {
 					
 					object = &overworld.objects[objectOrder[i]];
 					
-					SetDrawColor(object->color[0], object->color[1], object->color[2]);
+					Drawer_SetDrawColor(object->color[0], object->color[1], object->color[2]);
 					
 					if (object->bodyId >= 0) {
 						DrawFighterChar(object->headId, object->bodyId, object->fighterState, object->x, object->y, 1, 1, 1 - (object->direction == OBJECT_DIRECTION_LEFT) * 2);
 					}
 					else if (object->spriteId >= 0) {
 						if (object->direction == OBJECT_DIRECTION_LEFT)
-							DrawSprite(object->spriteId, object->x, object->y, object->spriteFrame, -1, 1);
+							Drawer_DrawSprite(object->spriteId, object->x, object->y, object->spriteFrame, -1, 1);
 						else
-							DrawSprite(object->spriteId, object->x, object->y, object->spriteFrame, 1, 1);
+							Drawer_DrawSprite(object->spriteId, object->x, object->y, object->spriteFrame, 1, 1);
 					}
 				}
-				SetProjection(320, 240, 1);
+				Drawer_SetProjection(320, 240, 1);
 			}
 			break;
 		case 3:
 			if (overworld.transition.timer > 60)
-				SetDrawAlpha(255 - (overworld.transition.timer - 61) * 255 / 60);
+				Drawer_SetDrawAlpha(255 - (overworld.transition.timer - 61) * 255 / 60);
 			else
-				SetDrawAlpha(overworld.transition.timer * 255 / 60);
-			FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-			SetDrawAlpha(255);
+				Drawer_SetDrawAlpha(overworld.transition.timer * 255 / 60);
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawAlpha(255);
 			break;
 	}
 	
 	if (dialogSystem.state != DIALOG_STATE_IDLE) {
-		SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+		Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 		
 		DrawDialogBox(0, SCREEN_HEIGHT - 128, SCREEN_WIDTH, 128);
-		DrawText(dialogSystem.text, dialogSystem.textLength, 8, SCREEN_HEIGHT - 124, 2, 2);
+		Drawer_DrawText(dialogSystem.text, dialogSystem.textLength, 8, SCREEN_HEIGHT - 124, 2, 2);
 		
 		if (dialogSystem.menu.optionCount > 0) {
 			int longestWidth = 1;
@@ -1462,9 +1778,9 @@ void Overworld_Draw() {
 			Menu_DrawOptions(&dialogSystem.menu, 0, SCREEN_HEIGHT - 144 - dialogSystem.menu.optionCount * 28, 28 + longestWidth * 16);
 		}
 		if (dialogSystem.name[0] != 0) {
-			SetFontAlignment(FONT_ALIGN_RIGHT | FONT_ALIGN_TOP);
+			Drawer_SetFontAlignment(FONT_ALIGN_RIGHT | FONT_ALIGN_TOP);
 			DrawDialogBox(SCREEN_WIDTH - 16 - StringLength(dialogSystem.name) * 16, SCREEN_HEIGHT - 172, 16 + StringLength(dialogSystem.name) * 16, 44);
-			DrawText(dialogSystem.name, 32, SCREEN_WIDTH - 8, SCREEN_HEIGHT - 168, 2, 2);
+			Drawer_DrawText(dialogSystem.name, 32, SCREEN_WIDTH - 8, SCREEN_HEIGHT - 168, 2, 2);
 		}
 	}
 	
@@ -1516,8 +1832,8 @@ void Overworld_DrawMap() {
 				continue;
 		}
 		
-		SetDrawColor(255, 255, 255);
-		DrawSprite(overworld.map.tilesetSpriteId, tileX, tileY, tile, 1, 1);
+		Drawer_SetDrawColor(255, 255, 255);
+		Drawer_DrawSprite(overworld.map.tilesetSpriteId, tileX, tileY, tile, 1, 1);
 	}
 }
 
@@ -1525,49 +1841,49 @@ void Overworld_DrawCharBox(int partyId, int x, int y, bool selected) {
 	PartyMember* partyMember = &partyMembers[partyId];
 	
 	if (selected)
-		SetDrawColor(255, 255, 0);
+		Drawer_SetDrawColor(255, 255, 0);
 	else
-		SetDrawColor(127, 127, 127);
+		Drawer_SetDrawColor(127, 127, 127);
 	
-	DrawSprite(SPR_gui_owcharbox, x, y, 0, 2, 2);
+	Drawer_DrawSprite(SPR_gui_owcharbox, x, y, 0, 2, 2);
 	
-	DrawText(partyMember->name, 6, x + 8, y + 4, 2, 2);
+	Drawer_DrawText(partyMember->name, 6, x + 8, y + 4, 2, 2);
 	
-	DrawSprite(SPR_gui_portraitbg, x + 10, y + 36, 0, 2, 2);
+	Drawer_DrawSprite(SPR_gui_portraitbg, x + 10, y + 36, 0, 2, 2);
 	
-	SetDrawColor(255, 255, 255);
+	Drawer_SetDrawColor(255, 255, 255);
 	DrawFighterChar(partyMember->headId, partyMember->bodyId, FIGHTER_STATE_IDLE, x + 54, y + 104, 2, 2, FACING_RIGHT);
 	
 	int hp = partyMember->hpMax - partyMember->hpDamage;
 	if (hp < 1) hp = 1;
 	
-	SetDrawColor(255, 0, 0);
-	FillRect(x + 12, y + 126, 88 * hp / partyMember->hpMax, 6);
+	Drawer_SetDrawColor(255, 0, 0);
+	Drawer_FillRect(x + 12, y + 126, 88 * hp / partyMember->hpMax, 6);
 	
-	SetDrawColor(255, 255, 255);
-	SetFontSprite(SPR_font_small);
+	Drawer_SetDrawColor(255, 255, 255);
+	Drawer_SetFontSprite(SPR_font_small);
 	snprintf(game.textBuffer, 32, "%d / %d", hp, partyMember->hpMax);
-	DrawText(game.textBuffer, 32, x + 10, y + 110, 2, 2);
+	Drawer_DrawText(game.textBuffer, 32, x + 10, y + 110, 2, 2);
 	
 	if (partyMember->tiredLevel >= 2) {
-		SetDrawColor(0, 0, 0);
-		DrawText("FATIGUED", 32, x + 12, y + 38, 2, 2);
-		DrawText("FATIGUED", 32, x + 14, y + 36, 2, 2);
-		DrawText("FATIGUED", 32, x + 16, y + 38, 2, 2);
-		DrawText("FATIGUED", 32, x + 14, y + 40, 2, 2);
-		SetDrawColor(255, 255, 255);
-		DrawText("FATIGUED", 32, x + 14, y + 38, 2, 2);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_DrawText("FATIGUED", 32, x + 12, y + 38, 2, 2);
+		Drawer_DrawText("FATIGUED", 32, x + 14, y + 36, 2, 2);
+		Drawer_DrawText("FATIGUED", 32, x + 16, y + 38, 2, 2);
+		Drawer_DrawText("FATIGUED", 32, x + 14, y + 40, 2, 2);
+		Drawer_SetDrawColor(255, 255, 255);
+		Drawer_DrawText("FATIGUED", 32, x + 14, y + 38, 2, 2);
 	}
 	else if (partyMember->tiredLevel == 1) {
-		SetDrawColor(0, 0, 0);
-		DrawText("TIRED", 32, x + 12, y + 38, 2, 2);
-		DrawText("TIRED", 32, x + 14, y + 36, 2, 2);
-		DrawText("TIRED", 32, x + 16, y + 38, 2, 2);
-		DrawText("TIRED", 32, x + 14, y + 40, 2, 2);
-		SetDrawColor(255, 255, 255);
-		DrawText("TIRED", 32, x + 14, y + 38, 2, 2);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_DrawText("TIRED", 32, x + 12, y + 38, 2, 2);
+		Drawer_DrawText("TIRED", 32, x + 14, y + 36, 2, 2);
+		Drawer_DrawText("TIRED", 32, x + 16, y + 38, 2, 2);
+		Drawer_DrawText("TIRED", 32, x + 14, y + 40, 2, 2);
+		Drawer_SetDrawColor(255, 255, 255);
+		Drawer_DrawText("TIRED", 32, x + 14, y + 38, 2, 2);
 	}
-	SetFontSprite(SPR_font_main);
+	Drawer_SetFontSprite(SPR_font_main);
 }
 
 void Overworld_UpdateMenu() {
@@ -1588,7 +1904,9 @@ void Overworld_UpdateMenu() {
 		else if (overworld.menu.optionPressed == 2) {
 			overworld.menuBuffer[0] = overworld.menu;
 			
+			overworld.menu.cursors[1] = 1;
 			Overworld_ChangeMenu(7);
+			overworld.menu.cursors[1] = 0;
 			Menu_ResetCursor(&overworld.menu);
 			
 			overworld.menuBuffer[1] = overworld.menu;
@@ -1676,7 +1994,7 @@ void Overworld_UpdateMenu() {
 		PartyMember* partyMember = &partyMembers[profile.partyOrder[overworld.menu.cursors[1]]];
 		
 		if (overworld.menu.optionPressed >= 0) {
-			PlaySound(SND_menu2);
+			Audio_PlaySound(SND_menu2);
 			if (overworld.menu.optionPressedValue == 0) {
 				Profile_UnequipAction(profile.partyOrder[overworld.menu.cursors[1]], overworld.menu.cursors[3]);
 				Overworld_ChangeMenu(5);
@@ -1710,7 +2028,7 @@ void Overworld_UpdateMenu() {
 		PartyMember* partyMember = &partyMembers[profile.partyOrder[overworld.menu.cursors[1]]];
 		
 		if (overworld.menu.optionPressed >= 0) {
-			PlaySound(SND_menu2);
+			Audio_PlaySound(SND_menu2);
 			Profile_EquipArmor(profile.partyOrder[overworld.menu.cursors[1]], overworld.menu.optionPressedValue);
 			Overworld_ChangeMenu(6);
 		}
@@ -1732,6 +2050,11 @@ void Overworld_UpdateMenu() {
 			}
 		}
 		else if (overworld.menu.optionPressed == MENUOPTION_BACK) {
+			int temp = overworld.menu.cursors[1];
+			overworld.menu.cursors[1] = 1;
+			Overworld_ChangeMenu(7);
+			overworld.menu.cursors[1] = temp;
+			
 			overworld.menuBuffer[1] = overworld.menu;
 			overworld.menuBuffer[1].cursors[overworld.menu.cursorId] = -1;
 			
@@ -1764,7 +2087,7 @@ void Overworld_UpdateMenu() {
 		PartyMember* partyMember = &partyMembers[profile.partyOrder[overworld.menu.cursors[1]]];
 		
 		if (overworld.menu.optionPressed >= 0) {
-			PlaySound(SND_menu2);
+			Audio_PlaySound(SND_menu2);
 			if (overworld.menu.optionPressedValue == 0) {
 				Profile_UnequipPassive(profile.partyOrder[overworld.menu.cursors[1]], overworld.menu.cursors[3] - partyMember->passiveCount + partyMember->extraPassiveCount);
 				Overworld_ChangeMenu(10);
@@ -1804,10 +2127,17 @@ void Overworld_UpdateMenu() {
 	}
 	else if (overworld.menu.id == 12) {
 		if (overworld.menu.optionPressed >= 0 && profile.keyItemInventory[0] > 0) {
-			overworld.menuBuffer[1] = overworld.menu;
-			
-			Overworld_ChangeMenu(13);
-			Menu_ResetCursor(&overworld.menu);
+			Item* item = &itemData[profile.keyItemInventory[overworld.menu.cursors[1]]];
+			if (item->type == 3) {
+				overworld.state = OVERWORLD_STATE_IDLE;
+				Event_Trigger(item->vars[0].i);
+			}
+			else {
+				overworld.menuBuffer[1] = overworld.menu;
+				
+				Overworld_ChangeMenu(13);
+				Menu_ResetCursor(&overworld.menu);
+			}
 		}
 		else if (overworld.menu.optionPressed == MENUOPTION_BACK) {
 			Overworld_ChangeMenu(1);
@@ -1852,13 +2182,13 @@ void Overworld_UpdateMenu() {
 	else if (overworld.menu.id == 10002) {
 		if (overworld.menu.optionPressed == 0) {
 			if (profile.cash >= overworld.shop.items[overworld.menu.cursors[0]].cost && !Profile_ItemInventoryIsFull()) {
-				PlaySound(SND_menu2);
+				Audio_PlaySound(SND_menu2);
 				
 				profile.cash -= overworld.shop.items[overworld.menu.cursors[0]].cost;
 				Profile_ItemAdd(overworld.shop.items[overworld.menu.cursors[0]].id);
 			}
 			else {
-				PlaySound(SND_menu1);
+				Audio_PlaySound(SND_menu1);
 			}
 			
 			Overworld_ChangeMenu(10001);
@@ -1872,19 +2202,28 @@ void Overworld_UpdateMenu() {
 			profile.flags[FLAG_SAVECOUNT]++;
 			int ret = Profile_SaveGameSlot(overworld.menu.optionPressed);
 			if (ret == 1) {
-				PlaySound(SND_save);
+				Audio_PlaySound(SND_save);
 				overworld.lockSaving = true;
 				game.saveFileNumber = overworld.menu.optionPressed;
 				overworld.menu.canNavigate = false;
 			}
 			else if (ret == -1) {
 				profile.flags[FLAG_SAVECOUNT]--;
-				PlaySound(SND_no);
+				Audio_PlaySound(SND_no);
 				CreatePopup("Failed to save. Make sure you have\npermission to modify the save folder\nand the file isn't used by other\nprograms.");
 			}
 		}
 		else if (overworld.menu.optionPressed == MENUOPTION_BACK) {
 			overworld.state = OVERWORLD_STATE_IDLE;
+		}
+	}
+	else if (overworld.menu.id == 10004) {
+		if (overworld.menu.optionPressed >= 0) {
+			overworld.state = OVERWORLD_STATE_IDLE;
+			Event_Trigger(72);
+		}
+		else if (overworld.menu.optionPressed == MENUOPTION_BACK) {
+			
 		}
 	}
 }
@@ -1894,7 +2233,7 @@ void Overworld_DrawMenu() {
 		DrawDialogBox(0, 0, 640, 72);
 	}
 	
-	SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+	Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 	
 	if (overworld.menu.id == 1)
 		Menu_DrawOptions(&overworld.menu, 0, 0, 632);
@@ -1924,25 +2263,25 @@ void Overworld_DrawMenu() {
 		DrawDialogBox(0, 0, 320, 196);
 		DrawDialogBox(320, 0, 320, 196);
 		
-		DrawText(partyMember->name, 32, 520, 4, 2, 2);
+		Drawer_DrawText(partyMember->name, 32, 520, 4, 2, 2);
 		
-		SetDrawColor(0, 127, 255);
-		DrawSprite(SPR_gui_portraitbg, 524, 40, 0, 2, 2);
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(0, 127, 255);
+		Drawer_DrawSprite(SPR_gui_portraitbg, 524, 40, 0, 2, 2);
+		Drawer_SetDrawColor(255, 255, 255);
 		
 		DrawFighterChar(partyMember->headId, partyMember->bodyId, FIGHTER_STATE_IDLE, 568, 108, 2, 2, FACING_RIGHT);
 		
-		DrawText(armor->name, 32, 328, 4, 2, 2);
+		Drawer_DrawText(armor->name, 32, 328, 4, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x01 %d (+%d)", partyMember->hpMax, armor->hp);
-		DrawText(game.textBuffer, 32, 328, 32, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 32, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x02 %d (+%d)", partyMember->mpMax, armor->mp);
-		DrawText(game.textBuffer, 32, 328, 60, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 60, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x03 %d (+%d)", partyMember->attack, armor->attack);
-		DrawText(game.textBuffer, 32, 328, 88, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 88, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x04 %d (+%d)", partyMember->defense, armor->defense);
-		DrawText(game.textBuffer, 32, 328, 116, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 116, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x05 %d (+%d)", partyMember->speed, armor->speed);
-		DrawText(game.textBuffer, 32, 328, 144, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 144, 2, 2);
 		
 		if (overworld.menu.id == 4)
 			Menu_DrawOptions(&overworld.menu, 0, 0, 312);
@@ -1982,34 +2321,34 @@ void Overworld_DrawMenu() {
 		DrawDialogBox(320, 0, 320, 296);
 		
 		snprintf(game.textBuffer, 64, "\x90\x07 %d / %d", profile.gp, profile.gpMax);
-		DrawText(game.textBuffer, 32, 8, 4, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 8, 4, 2, 2);
 		
-		DrawText(partyMember->name, 32, 520, 4, 2, 2);
+		Drawer_DrawText(partyMember->name, 32, 520, 4, 2, 2);
 		
-		SetDrawColor(0, 127, 255);
-		DrawSprite(SPR_gui_portraitbg, 524, 40, 0, 2, 2);
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(0, 127, 255);
+		Drawer_DrawSprite(SPR_gui_portraitbg, 524, 40, 0, 2, 2);
+		Drawer_SetDrawColor(255, 255, 255);
 		
 		DrawFighterChar(partyMember->headId, partyMember->bodyId, FIGHTER_STATE_IDLE, 568, 108, 2, 2, FACING_RIGHT);
 		
-		DrawText(armor->name, 32, 328, 4, 2, 2);
+		Drawer_DrawText(armor->name, 32, 328, 4, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x01 %d (+%d)", partyMember->hpMax, armor->hp);
-		DrawText(game.textBuffer, 32, 328, 32, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 32, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x02 %d (+%d)", partyMember->mpMax, armor->mp);
-		DrawText(game.textBuffer, 32, 328, 60, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 60, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x03 %d (+%d)", partyMember->attack, armor->attack);
-		DrawText(game.textBuffer, 32, 328, 88, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 88, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x04 %d (+%d)", partyMember->defense, armor->defense);
-		DrawText(game.textBuffer, 32, 328, 116, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 116, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x05 %d (+%d)", partyMember->speed, armor->speed);
-		DrawText(game.textBuffer, 32, 328, 144, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 144, 2, 2);
 		
-		SetDrawColor(0, 127, 255);
+		Drawer_SetDrawColor(0, 127, 255);
 		for (int i = 0; i < partyMember->passiveCount; i++) {
-			if (i >= partyMember->passiveCount - partyMember->extraPassiveCount) SetDrawColor(0, 127, 0);
-			DrawText(passiveData[partyMember->passives[i]].name, 32, 328, 172 + i * 28, 2, 2);
+			if (i >= partyMember->passiveCount - partyMember->extraPassiveCount) Drawer_SetDrawColor(0, 127, 0);
+			Drawer_DrawText(passiveData[partyMember->passives[i]].name, 32, 328, 172 + i * 28, 2, 2);
 		}
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(255, 255, 255);
 		
 		
 		
@@ -2019,23 +2358,23 @@ void Overworld_DrawMenu() {
 		
 		if (armor2 != NULL) {
 			snprintf(game.textBuffer, 64, "%s \x90\x07 %d", armor2->name, Party_CalculateArmorCost(menu->options[menu->cursors[menu->cursorId]].value));
-			DrawText(game.textBuffer, 32, 8, 48, 2, 2);
+			Drawer_DrawText(game.textBuffer, 32, 8, 48, 2, 2);
 			snprintf(game.textBuffer, 64, "\x90\x01 %d", armor2->hp);
-			DrawText(game.textBuffer, 32, 8, 76, 2, 2);
+			Drawer_DrawText(game.textBuffer, 32, 8, 76, 2, 2);
 			snprintf(game.textBuffer, 64, "\x90\x02 %d", armor2->mp);
-			DrawText(game.textBuffer, 32, 152, 76, 2, 2);
+			Drawer_DrawText(game.textBuffer, 32, 152, 76, 2, 2);
 			snprintf(game.textBuffer, 64, "\x90\x03 %d", armor2->attack);
-			DrawText(game.textBuffer, 32, 8, 104, 2, 2);
+			Drawer_DrawText(game.textBuffer, 32, 8, 104, 2, 2);
 			snprintf(game.textBuffer, 64, "\x90\x04 %d", armor2->defense);
-			DrawText(game.textBuffer, 32, 152, 104, 2, 2);
+			Drawer_DrawText(game.textBuffer, 32, 152, 104, 2, 2);
 			snprintf(game.textBuffer, 64, "\x90\x05 %d", armor2->speed);
-			DrawText(game.textBuffer, 32, 8, 132, 2, 2);
+			Drawer_DrawText(game.textBuffer, 32, 8, 132, 2, 2);
 			
-			SetDrawColor(0, 127, 255);
+			Drawer_SetDrawColor(0, 127, 255);
 			for (int i = 0; i < armor2->passiveCount; i++) {
-				DrawText(passiveData[armor2->passives[i]].name, 32, 8, 160 + i * 28, 2, 2);
+				Drawer_DrawText(passiveData[armor2->passives[i]].name, 32, 8, 160 + i * 28, 2, 2);
 			}
-			SetDrawColor(255, 255, 255);
+			Drawer_SetDrawColor(255, 255, 255);
 		}
 		
 		DrawDialogBox(0, 296, 640, 184);
@@ -2049,25 +2388,25 @@ void Overworld_DrawMenu() {
 			int y = 310 + (c / menu->pageColumns) * 82;
 			
 			if (i == menu->cursors[menu->cursorId])
-				SetDrawColor(255, 255, 0);
+				Drawer_SetDrawColor(255, 255, 0);
 			else if (option->value == partyMember->armorId)
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 255, 255);
 			else if (profile.armors[option->value] - profile.armorsEquipped[option->value] == 0)
-				SetDrawColor(63, 63, 63);
+				Drawer_SetDrawColor(63, 63, 63);
 			else
-				SetDrawColor(127, 127, 127);
+				Drawer_SetDrawColor(127, 127, 127);
 			
-			DrawSprite(SPR_gui_portraitbg, x, y, 0, 2, 2);
+			Drawer_DrawSprite(SPR_gui_portraitbg, x, y, 0, 2, 2);
 			
 			if (option->value == partyMember->armorId)
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 255, 255);
 			else if (!option->enabled || profile.armors[option->value] - profile.armorsEquipped[option->value] == 0)
-				SetDrawColor(0, 0, 0);
+				Drawer_SetDrawColor(0, 0, 0);
 			else
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 255, 255);
 			
 			DrawFighterChar(armor3->headId, armor3->bodyId, FIGHTER_STATE_IDLE, x + 44, y + 68, 2, 2, FACING_RIGHT);
-			SetDrawColor(255, 255, 255);
+			Drawer_SetDrawColor(255, 255, 255);
 			
 			c++;
 		}
@@ -2091,7 +2430,7 @@ void Overworld_DrawMenu() {
 		
 		DrawDialogBox(0, 244, 640, 128);
 		if (overworld.menu.id == 7 && profile.itemInventory[0] > 0) {
-			DrawText(GetDialogString(4500 + overworld.menu.options[overworld.menu.cursors[2]].value), 128, 8, 248, 2, 2);
+			Drawer_DrawText(GetDialogString(4500 + overworld.menu.options[overworld.menu.cursors[2]].value), 128, 8, 248, 2, 2);
 		}
 		
 		if (overworld.menu.id == 8) {
@@ -2115,27 +2454,27 @@ void Overworld_DrawMenu() {
 		DrawDialogBox(320, 0, 320, 196);
 		
 		snprintf(game.textBuffer, 64, "\x90\x07 %d / %d", profile.gp, profile.gpMax);
-		DrawText(game.textBuffer, 32, 8, 4, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 8, 4, 2, 2);
 		
-		DrawText(partyMember->name, 32, 520, 4, 2, 2);
+		Drawer_DrawText(partyMember->name, 32, 520, 4, 2, 2);
 		
-		SetDrawColor(0, 127, 255);
-		DrawSprite(SPR_gui_portraitbg, 524, 40, 0, 2, 2);
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(0, 127, 255);
+		Drawer_DrawSprite(SPR_gui_portraitbg, 524, 40, 0, 2, 2);
+		Drawer_SetDrawColor(255, 255, 255);
 		
 		DrawFighterChar(partyMember->headId, partyMember->bodyId, FIGHTER_STATE_IDLE, 568, 108, 2, 2, FACING_RIGHT);
 		
-		DrawText(armor->name, 32, 328, 4, 2, 2);
+		Drawer_DrawText(armor->name, 32, 328, 4, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x01 %d (+%d)", partyMember->hpMax, armor->hp);
-		DrawText(game.textBuffer, 32, 328, 32, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 32, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x02 %d (+%d)", partyMember->mpMax, armor->mp);
-		DrawText(game.textBuffer, 32, 328, 60, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 60, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x03 %d (+%d)", partyMember->attack, armor->attack);
-		DrawText(game.textBuffer, 32, 328, 88, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 88, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x04 %d (+%d)", partyMember->defense, armor->defense);
-		DrawText(game.textBuffer, 32, 328, 116, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 116, 2, 2);
 		snprintf(game.textBuffer, 64, "\x90\x05 %d (+%d)", partyMember->speed, armor->speed);
-		DrawText(game.textBuffer, 32, 328, 144, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 328, 144, 2, 2);
 		
 		int passiveId = overworld.menu.options[overworld.menu.cursors[overworld.menu.cursorId]].value;
 		
@@ -2154,11 +2493,11 @@ void Overworld_DrawMenu() {
 		DrawDialogBox(0, SCREEN_HEIGHT - 128, 640, 128);
 		if (passiveId > 0) {
 			snprintf(game.textBuffer, 160, "%s \x90\x07 %d", passiveData[passiveId].name, passiveData[passiveId].cost);
-			DrawText(game.textBuffer, 160, 8, 4 + SCREEN_HEIGHT - 128, 2, 2);
-			DrawText(passiveData[passiveId].desc, 160, 8, 32 + SCREEN_HEIGHT - 128, 2, 2);
+			Drawer_DrawText(game.textBuffer, 160, 8, 4 + SCREEN_HEIGHT - 128, 2, 2);
+			Drawer_DrawText(passiveData[passiveId].desc, 160, 8, 32 + SCREEN_HEIGHT - 128, 2, 2);
 			if (overworld.menu.id == 10) {
 				snprintf(game.textBuffer, 128, "Left: %d", profile.passives[passiveId] - profile.passivesEquipped[passiveId]);
-				DrawText(game.textBuffer, 128, 488, 4 + SCREEN_HEIGHT - 128, 2, 2);
+				Drawer_DrawText(game.textBuffer, 128, 488, 4 + SCREEN_HEIGHT - 128, 2, 2);
 			}
 		}
 	}
@@ -2173,44 +2512,61 @@ void Overworld_DrawMenu() {
 		DrawDialogBox(0, 72, 400, 352);
 		DrawDialogBox(400, 72, 240, 352);
 		
-		DrawText(partyMember->name, 32, 8, 76, 2, 2);
+		Drawer_DrawText(partyMember->name, 32, 8, 76, 2, 2);
 		
-		SetFontAlignment(FONT_ALIGN_RIGHT | FONT_ALIGN_TOP);
+		Drawer_SetFontAlignment(FONT_ALIGN_RIGHT | FONT_ALIGN_TOP);
 		snprintf(game.textBuffer, 64, "$%d", profile.cash);
-		DrawText(game.textBuffer, 32, 392, 76, 2, 2);
-		SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+		Drawer_DrawText(game.textBuffer, 32, 392, 76, 2, 2);
+		Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 		
-		SetDrawColor(0, 127, 255);
-		DrawSprite(SPR_gui_portraitbg, 12, 112, 0, 2, 2);
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(0, 127, 255);
+		Drawer_DrawSprite(SPR_gui_portraitbg, 12, 112, 0, 2, 2);
+		Drawer_SetDrawColor(255, 255, 255);
 		
 		DrawFighterChar(partyMember->headId, partyMember->bodyId, FIGHTER_STATE_IDLE, 56, 180, 2, 2, FACING_RIGHT);
 		
 		snprintf(game.textBuffer, 64, "Level %d", partyMember->level);
-		DrawText(game.textBuffer, 32, 8, 212, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 8, 216, 2, 2);
 		snprintf(game.textBuffer, 64, "EXP: %d (%d left)", partyMember->exp, partyMember->expNext - partyMember->exp);
-		DrawText(game.textBuffer, 32, 8, 240, 2, 2);
-		
-		
-		
-		DrawText(armor->name, 32, SCREEN_WIDTH - 232, 76, 2, 2);
-		snprintf(game.textBuffer, 64, "\x90\x01 %d (+%d)", partyMember->hpMax, armor->hp);
-		DrawText(game.textBuffer, 32, SCREEN_WIDTH - 232, 104, 2, 2);
-		snprintf(game.textBuffer, 64, "\x90\x02 %d (+%d)", partyMember->mpMax, armor->mp);
-		DrawText(game.textBuffer, 32, SCREEN_WIDTH - 232, 132, 2, 2);
-		snprintf(game.textBuffer, 64, "\x90\x03 %d (+%d)", partyMember->attack, armor->attack);
-		DrawText(game.textBuffer, 32, SCREEN_WIDTH - 232, 160, 2, 2);
-		snprintf(game.textBuffer, 64, "\x90\x04 %d (+%d)", partyMember->defense, armor->defense);
-		DrawText(game.textBuffer, 32, SCREEN_WIDTH - 232, 188, 2, 2);
-		snprintf(game.textBuffer, 64, "\x90\x05 %d (+%d)", partyMember->speed, armor->speed);
-		DrawText(game.textBuffer, 32, SCREEN_WIDTH - 232, 216, 2, 2);
-		
-		SetDrawColor(0, 127, 255);
-		for (int i = 0; i < partyMember->passiveCount; i++) {
-			if (i >= partyMember->passiveCount - partyMember->extraPassiveCount) SetDrawColor(0, 127, 0);
-			DrawText(passiveData[partyMember->passives[i]].name, 32, SCREEN_WIDTH - 232, 244 + i * 28, 2, 2);
+		Drawer_DrawText(game.textBuffer, 32, 8, 244, 2, 2);
+		snprintf(game.textBuffer, 64, "Rank: ");
+		switch (partyMember->rank) {
+			case 0: SetString(game.textBuffer + 6, "None"); break;
+			case 1: SetString(game.textBuffer + 6, "Amateur"); break;
+			case 2: SetString(game.textBuffer + 6, "Intermediate"); break;
+			case 3: SetString(game.textBuffer + 6, "Professional"); break;
+			case 4: SetString(game.textBuffer + 6, "Low Hero"); break;
+			case 5: SetString(game.textBuffer + 6, "Medium Hero"); break;
+			case 6: SetString(game.textBuffer + 6, "Top Hero"); break;
+			case 7: SetString(game.textBuffer + 6, "Superhero"); break;
+			case 8: SetString(game.textBuffer + 6, "Supernatural"); break;
+			case 9: SetString(game.textBuffer + 6, "Top Supernatural"); break;
+			case 10: SetString(game.textBuffer + 6, "Demigod"); break;
+			case 11: SetString(game.textBuffer + 6, "\x8f\x01God\x8f\xff"); break;
+			default: SetString(game.textBuffer + 6, "Unknown"); break;
 		}
-		SetDrawColor(255, 255, 255);
+		Drawer_DrawText(game.textBuffer, 32, 8, 384, 2, 2);
+		
+		
+		
+		Drawer_DrawText(armor->name, 32, SCREEN_WIDTH - 232, 76, 2, 2);
+		snprintf(game.textBuffer, 64, "\x90\x01 %d (+%d)", partyMember->hpMax, armor->hp);
+		Drawer_DrawText(game.textBuffer, 32, SCREEN_WIDTH - 232, 104, 2, 2);
+		snprintf(game.textBuffer, 64, "\x90\x02 %d (+%d)", partyMember->mpMax, armor->mp);
+		Drawer_DrawText(game.textBuffer, 32, SCREEN_WIDTH - 232, 132, 2, 2);
+		snprintf(game.textBuffer, 64, "\x90\x03 %d (+%d)", partyMember->attack, armor->attack);
+		Drawer_DrawText(game.textBuffer, 32, SCREEN_WIDTH - 232, 160, 2, 2);
+		snprintf(game.textBuffer, 64, "\x90\x04 %d (+%d)", partyMember->defense, armor->defense);
+		Drawer_DrawText(game.textBuffer, 32, SCREEN_WIDTH - 232, 188, 2, 2);
+		snprintf(game.textBuffer, 64, "\x90\x05 %d (+%d)", partyMember->speed, armor->speed);
+		Drawer_DrawText(game.textBuffer, 32, SCREEN_WIDTH - 232, 216, 2, 2);
+		
+		Drawer_SetDrawColor(0, 127, 255);
+		for (int i = 0; i < partyMember->passiveCount; i++) {
+			if (i >= partyMember->passiveCount - partyMember->extraPassiveCount) Drawer_SetDrawColor(0, 127, 0);
+			Drawer_DrawText(passiveData[partyMember->passives[i]].name, 32, SCREEN_WIDTH - 232, 244 + i * 28, 2, 2);
+		}
+		Drawer_SetDrawColor(255, 255, 255);
 	}
 	if (overworld.menu.id == 12 || overworld.menu.id == 13) {
 		DrawDialogBox(0, 72, 640, 280);
@@ -2222,7 +2578,7 @@ void Overworld_DrawMenu() {
 		
 		DrawDialogBox(0, SCREEN_HEIGHT - 128, 640, 128);
 		if (profile.keyItemInventory[0] > 0) {
-			DrawText(GetDialogString(4500 + overworld.menu.options[overworld.menu.cursors[1]].value), 128, 8, 4 + SCREEN_HEIGHT - 128, 2, 2);
+			Drawer_DrawText(GetDialogString(4500 + overworld.menu.options[overworld.menu.cursors[1]].value), 128, 8, 4 + SCREEN_HEIGHT - 128, 2, 2);
 		}
 		
 		if (overworld.menu.id == 13) {
@@ -2239,7 +2595,7 @@ void Overworld_DrawMenu() {
 		DrawDialogBox(400, 0, 240, 128);
 		DrawDialogBox(400, 128, 240, 160);
 		
-		DrawText("Shop", 32, 8, 4, 2, 2);
+		Drawer_DrawText("Shop", 32, 8, 4, 2, 2);
 		
 		if (overworld.menu.id == 10001)
 			Menu_DrawOptions(&overworld.menu, 0, 28, 312);
@@ -2247,16 +2603,16 @@ void Overworld_DrawMenu() {
 			Menu_DrawOptions(&overworld.menuBuffer[0], 0, 28, 312);
 		
 		if (profile.cash < overworld.shop.items[overworld.menu.cursors[0]].cost)
-			SetDrawColor(255, 0, 0);
+			Drawer_SetDrawColor(255, 0, 0);
 		else
-			SetDrawColor(255, 255, 0);
+			Drawer_SetDrawColor(255, 255, 0);
 		snprintf(game.textBuffer, 128, "$%d", profile.cash);
-		DrawText(game.textBuffer, 128, 408, 4, 2, 2);
+		Drawer_DrawText(game.textBuffer, 128, 408, 4, 2, 2);
 		
 		if (Profile_ItemInventoryIsFull())
-			SetDrawColor(255, 0, 0);
+			Drawer_SetDrawColor(255, 0, 0);
 		else
-			SetDrawColor(255, 255, 255);
+			Drawer_SetDrawColor(255, 255, 255);
 		int itemCount = 0;
 		for (itemCount = 0; itemCount < 16; itemCount++) {
 			if (profile.itemInventory[itemCount] == 0) {
@@ -2264,12 +2620,12 @@ void Overworld_DrawMenu() {
 			}
 		}
 		snprintf(game.textBuffer, 128, "Goods: %d/16", itemCount);
-		DrawText(game.textBuffer, 128, 408, 32, 2, 2);
+		Drawer_DrawText(game.textBuffer, 128, 408, 32, 2, 2);
 		
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(255, 255, 255);
 		
 		DrawDialogBox(0, 288, 640, 128);
-		DrawText(GetDialogString(4500 + overworld.shop.items[overworld.menu.cursors[0]].id), 128, 8, 292, 2, 2);
+		Drawer_DrawText(GetDialogString(4500 + overworld.shop.items[overworld.menu.cursors[0]].id), 128, 8, 292, 2, 2);
 		
 		if (overworld.menu.id == 10002) {
 			Menu_DrawOptions(&overworld.menu, 400, 128, 312);
@@ -2277,7 +2633,7 @@ void Overworld_DrawMenu() {
 	}
 	if (overworld.menu.id == 10003) {
 		DrawDialogBox(24, 0, 592, SCREEN_HEIGHT);
-		DrawText("Save", 128, 32, 4, 2, 2);
+		Drawer_DrawText("Save", 128, 32, 4, 2, 2);
 		Menu* menu = &overworld.menu;
 		int c = 0;
 		for (int i = menu->pageColumns * menu->pageRows * menu->page; i < menu->pageColumns * menu->pageRows * (menu->page + 1) && i < menu->optionCount; i++) {
@@ -2287,11 +2643,41 @@ void Overworld_DrawMenu() {
 			c++;
 		}
 		
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(255, 255, 255);
 		if (menu->page + 1 < menu->pageCount)
-			DrawSprite(SPR_gui_valuearrow, 608 - 4, 456, 0, 2, 2);
+			Drawer_DrawSprite(SPR_gui_valuearrow, 608 - 4, 456, 0, 2, 2);
 		if (menu->page - 1 >= 0)
-			DrawSprite(SPR_gui_valuearrow, 608 - 32, 456, 0, -2, 2);
+			Drawer_DrawSprite(SPR_gui_valuearrow, 608 - 32, 456, 0, -2, 2);
+	}
+	if (overworld.menu.id == 10004) {
+		DrawDialogBox(0, 0, 640, 128);
+		
+		Menu_DrawOptions(&overworld.menu, 0, 0, 632);
+		
+		DrawDialogBox(0, 352, 640, 128);
+		DrawDialogBox(0, 308, 640, 44);
+		switch (overworld.menu.cursors[0]) {
+			case 0:
+				Drawer_DrawText("Ruby's idea", 128, 8, 312, 2, 2);
+				Drawer_DrawText("The idea is simple - you fight the\nmanager.\n\nSuccess chance: decent", 128, 8, 356, 2, 2);
+				break;
+			case 1:
+				Drawer_DrawText("Noah's idea", 128, 8, 312, 2, 2);
+				Drawer_DrawText("Revolves around using the rolling\nfurniture to block the manager's path.\n\nSuccess chance: great (in theory)", 128, 8, 356, 2, 2);
+				break;
+			case 2:
+				Drawer_DrawText("Emmet's idea", 128, 8, 312, 2, 2);
+				Drawer_DrawText("Bribe the manager by offering lots of\nmoney.\n\nSuccess chance: poor unless you're rich", 128, 8, 356, 2, 2);
+				break;
+			case 3:
+				Drawer_DrawText("Sally's idea", 128, 8, 312, 2, 2);
+				Drawer_DrawText("Involves convincing the manager to\nnot proceed by words.\n\nSuccess chance: (doe, she know)", 128, 8, 356, 2, 2);
+				break;
+			default:
+				Drawer_DrawText("Glitch idea", 128, 8, 312, 2, 2);
+				Drawer_DrawText("This is an error. DO NOT TRY AT\nHOME OR YOUR SAVE FILES MIGHT BE\nLOST FOREVER!!! Report this first!\nSuccess chance: N/A", 128, 8, 356, 2, 2);
+				break;
+		}
 	}
 }
 
@@ -2365,7 +2751,7 @@ void Overworld_ChangeMenu(int id) {
 				
 				Item* item = &itemData[profile.itemInventory[i]];
 				
-				Menu_AddOption(&overworld.menu, item->type == 1 || overworld.menu.cursors[1] == 1, profile.itemInventory[i], item->name);
+				Menu_AddOption(&overworld.menu, item->type == 1 || item->type == 3 || overworld.menu.cursors[1] == 1, profile.itemInventory[i], item->name);
 			}
 			break;
 		case 8:
@@ -2433,7 +2819,7 @@ void Overworld_ChangeMenu(int id) {
 				
 				Item* item = &itemData[profile.keyItemInventory[i]];
 				
-				Menu_AddOption(&overworld.menu, item->type == 1, profile.keyItemInventory[i], item->name);
+				Menu_AddOption(&overworld.menu, item->type == 1 || item->type == 3, profile.keyItemInventory[i], item->name);
 			}
 			break;
 		case 13:
@@ -2468,10 +2854,19 @@ void Overworld_ChangeMenu(int id) {
 			break;
 		case 10003:
 			Menu_New(&overworld.menu, 10003, 1, 4, 0);
-			for (int i = 0; i < 16; i++) {
+			for (int i = 0; i < 32; i++) {
 				Menu_AddOption(&overworld.menu, true, i, "");
 			}
 			overworld.lockSaving = false;
+			break;
+		case 10004:
+			Menu_New(&overworld.menu, 10004, 2, 2, 0);
+			Menu_ResetCursor(&overworld.menu);
+			
+			Menu_AddOption(&overworld.menu, true, 0, "Ruby");
+			Menu_AddOption(&overworld.menu, true, 1, "Noah");
+			Menu_AddOption(&overworld.menu, true, 2, "Emmet");
+			Menu_AddOption(&overworld.menu, true, 3, "Sally");
 			break;
 	}
 }
@@ -2849,6 +3244,10 @@ void Overworld_CreateNPC(int objectId, int id, float x, float y, int direction) 
 			object->spriteId = SPR_owchar_noah;
 			break;
 		case 8:
+			if (profile.flags[FLAG_GREGORY_OPTIONALFIGHT]) {
+				object->spriteId = SPR_owchar_lisao;
+				break;
+			}
 			object->spriteId = SPR_misc_lisao_sleep;
 			object->spriteFrameSpeed = 0.01;
 			break;
@@ -3135,6 +3534,140 @@ void Overworld_CreateNPC(int objectId, int id, float x, float y, int direction) 
 		case 100:
 			object->spriteId = SPR_owchar_emmet;
 			break;
+		case 101:
+			object->spriteId = SPR_owchar_whitelight_0;
+			break;
+		case 102:
+			object->spriteId = SPR_owchar_whitelight_1;
+			break;
+		case 103:
+			object->spriteId = SPR_owchar_timon;
+			break;
+		case 104:
+			object->spriteId = SPR_owchar_rob;
+			break;
+		case 105:
+			object->spriteId = SPR_owchar_mani;
+			break;
+		case 106:
+			object->spriteId = SPR_owchar_timon;
+			break;
+		case 107:
+			if (profile.flags[FLAG_WHITELIGHT_HIDEANDSEEK_ATTEMPTS] >= 8 && overworld.areaId != 194) {
+				object->spriteId = SPR_misc_sally_serious;
+				object->spriteFrame = 1;
+				break;
+			}
+			object->spriteId = SPR_owchar_sally;
+			break;
+		case 108:
+			object->spriteId = SPR_owchar_npc_31;
+			break;
+		case 109:
+			object->spriteId = SPR_owchar_npc_32;
+			break;
+		case 110:
+			object->spriteId = SPR_misc_npc_33_arms;
+			break;
+		case 111:
+			object->spriteId = SPR_owchar_npc_34;
+			break;
+		case 112:
+			object->spriteId = SPR_owchar_npc_35;
+			break;
+		case 113:
+			object->spriteId = SPR_owchar_npc_36;
+			break;
+		case 114:
+			object->spriteId = SPR_owchar_npc_37;
+			break;
+		case 115:
+			object->spriteId = SPR_owchar_npc_38;
+			break;
+		case 116:
+			object->spriteId = SPR_owchar_npc_28;
+			break;
+		case 117:
+			object->spriteId = SPR_owchar_npc_39;
+			break;
+		case 118:
+			object->spriteId = SPR_misc_redgreenbatterlookingidiot;
+			object->spriteFrameSpeed = 0.125;
+			break;
+		case 119:
+			object->spriteId = SPR_owchar_npc_30;
+			break;
+		case 120:
+			object->spriteId = SPR_owchar_npc_40;
+			break;
+		case 121:
+			object->spriteId = SPR_owchar_kyle;
+			break;
+		case 122:
+			object->spriteId = SPR_owchar_tia;
+			break;
+		case 123:
+			object->spriteId = SPR_owchar_dirk;
+			break;
+		case 124:
+			object->spriteId = SPR_misc_pbsuperhero;
+			object->spriteFrameSpeed = 0.125;
+			break;
+		case 125:
+			object->spriteId = SPR_owchar_kara;
+			break;
+		case 126:
+			object->spriteId = SPR_owchar_agent;
+			break;
+		case 127:
+			object->spriteId = SPR_owchar_flora;
+			break;
+		case 128:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 50) {
+				object->spriteId = SPR_owchar_collapse_amp;
+				object->spriteFrame = 1;
+			}
+			else if (profile.flags[FLAG_PLOT] >= 250)
+				object->spriteId = SPR_misc_amp_sit;
+			else
+				object->spriteId = SPR_owchar_amp;
+			break;
+		case 129:
+			object->spriteId = SPR_owchar_gpolice_0;
+			break;
+		case 130:
+			if (profile.flags[FLAG_METRO_LOCATION] == 0)
+				object->spriteId = SPR_owchar_police_0;
+			else if (profile.flags[FLAG_METRO_LOCATION] == 1)
+				object->spriteId = SPR_owchar_police_1;
+			else if (profile.flags[FLAG_METRO_LOCATION] == 2)
+				object->spriteId = SPR_owchar_bpolice_1;
+			else
+				object->spriteId = SPR_owchar_gpolice_0;
+			break;
+		case 131:
+			object->spriteId = SPR_owchar_lulu_god;
+			break;
+		case 132:
+			object->spriteId = SPR_owchar_collapse_panda;
+			object->spriteFrame = 1;
+			break;
+		case 133:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 100) {
+				object->spriteId = SPR_owchar_collapse_maline;
+				object->spriteFrame = 1;
+				break;
+			}
+			object->spriteId = SPR_owchar_maline;
+			break;
+		case 134:
+			if (profile.flags[FLAG_ALONE_PLOT] >= 100) {
+				object->spriteId = SPR_owchar_collapse_cory;
+				object->spriteFrame = 1;
+				break;
+			}
+			object->spriteId = SPR_owchar_cory;
+			break;
 		
 		case 1000:
 			object->spriteId = SPR_owchar_hobo;
@@ -3409,6 +3942,82 @@ void Overworld_CreateNPC(int objectId, int id, float x, float y, int direction) 
 			object->w = 4;
 			object->h = 4;
 			break;
+		case 10054:
+			object->spriteId = -1;
+			break;
+		case 10055:
+			object->spriteId = SPR_misc_rubycomputer;
+			break;
+		case 10056:
+			object->spriteId = -1;
+			break;
+		case 10057:
+			object->spriteId = SPR_misc_guide_arrow;
+			object->w = 2;
+			object->h = 2;
+			object->ghost = true;
+			object->collisionOffsetY = 3;
+			break;
+		case 10058:
+			object->spriteId = SPR_misc_flowergame_button;
+			object->ghost = true;
+			break;
+		case 10059:
+			object->spriteId = SPR_misc_secretbosskey;
+			object->w = 8;
+			object->h = 4;
+			object->ghost = true;
+			break;
+		case 10060:
+			object->spriteId = SPR_misc_key;
+			object->w = 8;
+			object->h = 4;
+			object->ghost = true;
+			break;
+		case 10061:
+			object->spriteId = -1;
+			break;
+		case 10062:
+			object->spriteId = SPR_misc_discotable;
+			object->spriteFrameSpeed = 0.125;
+			object->w = 41;
+			object->h = 1;
+			object->collisionOffsetY = -4;
+			break;
+		case 10063:
+			object->spriteId = SPR_misc_turbospeaker;
+			object->spriteFrameSpeed = 0.144;
+			object->w = 40;
+			object->h = 32;
+			object->collisionOffsetY = -8;
+			break;
+		case 10064:
+			object->spriteId = SPR_misc_janitorbucket;
+			object->w = 10;
+			object->h = 2;
+			object->collisionOffsetY = -4;
+			break;
+		case 10065:
+			object->spriteId = SPR_misc_secretbosskey;
+			object->w = 8;
+			object->h = 4;
+			object->ghost = true;
+			break;
+		case 10066:
+			object->spriteId = SPR_misc_amper_movebutton;
+			object->collisionOffsetY = -8;
+			break;
+		case 10067:
+			object->spriteId = -1;
+			break;
+		case 10068:
+			object->spriteId = -1;
+			object->w = 104;
+			object->h = 32;
+			break;
+		case 10069:
+			object->spriteId = SPR_misc_spyingtelescope;
+			break;
 		
 		case 60000:
 			object->spriteId = SPR_misc_gems;
@@ -3434,7 +4043,11 @@ void Overworld_CreateNPC(int objectId, int id, float x, float y, int direction) 
 		case 70000:
 			object->spriteId = SPR_misc_voidportal;
 			object->spriteFrameSpeed = 0.125;
-			if (overworld.areaId == 110)
+			if (overworld.areaId == 202)
+				OverworldObject_SetColor(objectId, 255, 0, 0);
+			else if (overworld.areaId == 165)
+				OverworldObject_SetColor(objectId, 63, 63, 63);
+			else if (overworld.areaId == 110)
 				OverworldObject_SetColor(objectId, 0, 0, 255);
 			else if (overworld.areaId == 19)
 				OverworldObject_SetColor(objectId, 0, 255, 255);
@@ -3494,6 +4107,32 @@ void Overworld_CreateNPC(int objectId, int id, float x, float y, int direction) 
 			object->spriteId = SPR_misc_illusmonolith;
 			object->w = 34;
 			object->h = 24;
+			break;
+		case 70012:
+			object->spriteId = SPR_misc_hellgate_open;
+			object->w = 48;
+			object->h = 8;
+			object->z = 32;
+			object->collisionOffsetY = 24;
+			break;
+		case 70013:
+			object->spriteId = SPR_misc_illusmemorygems;
+			object->spriteFrame = 0;
+			break;
+		case 70014:
+			object->spriteId = SPR_misc_illusmemorygems;
+			object->spriteFrame = 1;
+			break;
+		case 70015:
+			object->spriteId = SPR_misc_illusmemorygems;
+			object->spriteFrame = 2;
+			break;
+		case 70016:
+			object->spriteId = SPR_misc_illusmemorygems;
+			object->spriteFrame = 3;
+			break;
+		case 70017:
+			object->spriteId = -1;
 			break;
 	}
 	
@@ -3605,7 +4244,7 @@ void Overworld_CreateEnemy(int objectId, int id, float x, float y) {
 		case 20:
 			object->spriteId = SPR_owchar_jackie;
 			break;
-		case 22:
+		case 22: case 70:
 			object->spriteId = SPR_owchar_lulu_omega;
 			break;
 		case 24: case 25:
@@ -3648,7 +4287,7 @@ void Overworld_CreateEnemy(int objectId, int id, float x, float y) {
 		case 41:
 			object->spriteId = SPR_owchar_sanji;
 			break;
-		case 42: case 43: case 44:
+		case 42: case 43: case 44: case 68:
 			object->spriteId = SPR_owchar_ninja;
 			break;
 		case 45:
@@ -3718,6 +4357,108 @@ void Overworld_CreateEnemy(int objectId, int id, float x, float y) {
 		case 67:
 			object->spriteId = SPR_gui_status;
 			break;
+		case 69:
+			object->spriteId = SPR_owchar_perry;
+			break;
+		case 71:
+			object->spriteId = SPR_owchar_brian;
+			break;
+		case 72:
+			object->spriteId = SPR_owchar_nekin;
+			break;
+		case 73:
+			object->spriteId = SPR_owchar_adios;
+			break;
+		case 74:
+			object->spriteId = SPR_owchar_builder;
+			break;
+		case 75:
+			object->spriteId = SPR_owchar_kyle;
+			break;
+		case 76:
+			object->spriteId = SPR_owchar_kara;
+			break;
+		case 77:
+			object->spriteId = SPR_owchar_ayinoying;
+			break;
+		case 78:
+			object->spriteId = SPR_owchar_aztec;
+			break;
+		case 79:
+			object->spriteId = SPR_misc_gemini;
+			break;
+		case 80:
+			object->spriteId = SPR_owchar_rob;
+			break;
+		case 81: case 82:
+			{
+				int r = Random_IRange(0, 1);
+				object->vars[1].i = r;
+				if (r == 1)
+					object->spriteId = SPR_owchar_whitelight_1;
+				else
+					object->spriteId = SPR_owchar_whitelight_0;
+			}
+			break;
+		case 83:
+			object->spriteId = SPR_owchar_gregory;
+			break;
+		case 84:
+			object->spriteId = SPR_owchar_sally_neo;
+			break;
+		case 85:
+			object->spriteId = SPR_owchar_reti;
+			break;
+		case 86:
+			object->spriteId = SPR_misc_pbsuperhero;
+			break;
+		case 87:
+			object->spriteId = SPR_owchar_lulu_master;
+			break;
+		case 88:
+		case 96:
+			object->spriteId = SPR_misc_gemini;
+			object->spriteFrame = 0;
+			object->ghost = true;
+			break;
+		case 89:
+			object->spriteId = SPR_misc_gemini;
+			object->spriteFrame = 1;
+			object->ghost = true;
+			break;
+		case 90:
+		case 97:
+			object->spriteId = SPR_misc_gemini;
+			object->spriteFrame = 2;
+			object->ghost = true;
+			break;
+		case 91:
+			object->spriteId = SPR_misc_gemini;
+			object->spriteFrame = 3;
+			object->ghost = true;
+			break;
+		case 98:
+		case 92:
+			object->spriteId = SPR_misc_gemini;
+			object->spriteFrame = 4;
+			object->ghost = true;
+			break;
+		case 93:
+			object->spriteId = SPR_misc_gemini;
+			object->spriteFrame = 5;
+			object->ghost = true;
+			break;
+		case 94:
+		case 99:
+			object->spriteId = SPR_misc_gemini;
+			object->spriteFrame = 6;
+			object->ghost = true;
+			break;
+		case 95:
+			object->spriteId = SPR_misc_gemini;
+			object->spriteFrame = 7;
+			object->ghost = true;
+			break;
 	}
 	
 	OverworldObject_ChangeSpriteId(objectId, object->spriteId);
@@ -3775,6 +4516,26 @@ void Overworld_CreateDoor(int id, int x1, int y1, int area1, int x2, int y2, int
 	overworld.map.doors[id].area2 = area2;
 	overworld.map.doors[id].direction1 = direction1;
 	overworld.map.doors[id].direction2 = direction2;
+	overworld.map.doors[id].w1 = 16;
+	overworld.map.doors[id].h1 = 16;
+	overworld.map.doors[id].w2 = 16;
+	overworld.map.doors[id].h2 = 16;
+}
+
+void Overworld_CreateDoor_Advanced(int id, int x1, int y1, int area1, int x2, int y2, int area2, int direction1, int direction2, int w1, int h1, int w2, int h2) {
+	overworld.map.doors[id].enabled = true;
+	overworld.map.doors[id].x1 = x1;
+	overworld.map.doors[id].y1 = y1;
+	overworld.map.doors[id].area1 = area1;
+	overworld.map.doors[id].x2 = x2;
+	overworld.map.doors[id].y2 = y2;
+	overworld.map.doors[id].area2 = area2;
+	overworld.map.doors[id].direction1 = direction1;
+	overworld.map.doors[id].direction2 = direction2;
+	overworld.map.doors[id].w1 = w1;
+	overworld.map.doors[id].h1 = h1;
+	overworld.map.doors[id].w2 = w2;
+	overworld.map.doors[id].h2 = h2;
 }
 
 void Overworld_CreateTrigger(int id, float x1, float y1, float x2, float y2, int eventId) {
@@ -3937,7 +4698,7 @@ void Player_TeleportToTile(int tileX, int tileY) {
 void Player_TakeDamage(int damage) {
 	if (overworld.player.invincibleFrames > 0) return;
 	
-	PlaySound(SND_hit3);
+	Audio_PlaySound(SND_hit3);
 	overworld.player.state = PLAYER_STATE_FLINCH;
 	overworld.player.timer = 0;
 	overworld.player.invincibleFrames = 40;
@@ -4014,10 +4775,14 @@ void Player_TryMove(float xMove, float yMove) {
 			int doorY1 = overworld.map.doors[i].y1;
 			int doorX2 = overworld.map.doors[i].x2;
 			int doorY2 = overworld.map.doors[i].y2;
+			int doorW1 = overworld.map.doors[i].w1;
+			int doorH1 = overworld.map.doors[i].h1;
+			int doorW2 = overworld.map.doors[i].w2;
+			int doorH2 = overworld.map.doors[i].h2;
 			
-			if (xNew + 7 > doorX1 && xNew - 7 < doorX1 + 16 && yNew > doorY1 && yNew - 8 < doorY1 + 16)
+			if (xNew + 7 > doorX1 + 8 - doorW1 / 2 && xNew - 7 < doorX1 + 8 + doorW1 / 2 && yNew > doorY1 + 8 - doorH1 / 2 && yNew - 8 < doorY1 + 8 + doorH1 / 2)
 				doorTouchedWhich = 0;
-			else if (xNew + 7 > doorX2 && xNew - 7 < doorX2 + 16 && yNew > doorY2 && yNew - 8 < doorY2 + 16)
+			else if (xNew + 7 > doorX2 + 8 - doorW2 / 2 && xNew - 7 < doorX2 + 8 + doorW2 / 2 && yNew > doorY2 + 8 - doorH2 / 2 && yNew - 8 < doorY2 + 8 + doorH2 / 2)
 				doorTouchedWhich = 1;
 			
 			if (doorTouchedWhich >= 0) {
@@ -4063,14 +4828,48 @@ void Player_TryMove(float xMove, float yMove) {
 				if (i == 8 && doorTouchedWhich == 1) {
 					profile.flags[FLAG_FOREST_FORK_PROGRESS] = 0;
 				}
+				else if (i == 9 && doorTouchedWhich == 1) {
+					if (profile.flags[FLAG_FOREST_FORK_PROGRESS] >= 1006) {
+						profile.flags[FLAG_FOREST_FORK_PROGRESS] = 1005;
+					}
+				}
+				else if (i == 10 && doorTouchedWhich == 1) {
+					if (profile.flags[FLAG_FOREST_FORK_PROGRESS] >= 104) {
+						profile.flags[FLAG_FOREST_FORK_PROGRESS] = 103;
+					}
+				}
 				else if (i == 9 && doorTouchedWhich == 0) {
-					if (profile.flags[FLAG_FOREST_FORK_PROGRESS] < 1) {
+					if (profile.flags[FLAG_FOREST_FORK_PROGRESS] >= 1005) {
+						profile.flags[FLAG_FOREST_FORK_PROGRESS] = 1006;
+						
+						overworld.transition.vars[1] = 2256;
+						overworld.transition.vars[2] = 1288;
+					}
+					else if (profile.flags[FLAG_FOREST_FORK_PROGRESS] == 101 || profile.flags[FLAG_FOREST_FORK_PROGRESS] == 102) {
 						profile.flags[FLAG_FOREST_FORK_PROGRESS]++;
 						
 						overworld.transition.vars[1] = 3040;
 						overworld.transition.vars[2] = 1912;
 					}
-					else if (profile.flags[FLAG_FOREST_FORK_PROGRESS] >= 10) {
+					else if (profile.flags[FLAG_FOREST_FORK_PROGRESS] < 1 || profile.flags[FLAG_FOREST_FORK_PROGRESS] == 1003) {
+						profile.flags[FLAG_FOREST_FORK_PROGRESS]++;
+						
+						overworld.transition.vars[1] = 3040;
+						overworld.transition.vars[2] = 1912;
+					}
+					else if (profile.flags[FLAG_FOREST_FORK_PROGRESS] == 10) {
+						profile.flags[FLAG_FOREST_FORK_PROGRESS] = 1000;
+						
+						overworld.transition.vars[1] = 3040;
+						overworld.transition.vars[2] = 1912;
+					}
+					else if (profile.flags[FLAG_FOREST_FORK_PROGRESS] == 11) {
+						profile.flags[FLAG_FOREST_FORK_PROGRESS] = 100;
+						
+						overworld.transition.vars[1] = 3040;
+						overworld.transition.vars[2] = 1912;
+					}
+					else if (profile.flags[FLAG_FOREST_FORK_PROGRESS] > 11) {
 						profile.flags[FLAG_FOREST_FORK_PROGRESS] = 0;
 						
 						overworld.transition.vars[1] = 3040;
@@ -4081,7 +4880,19 @@ void Player_TryMove(float xMove, float yMove) {
 					}
 				}
 				else if (i == 10 && doorTouchedWhich == 0) {
-					if (profile.flags[FLAG_FOREST_FORK_PROGRESS] >= 10 && profile.flags[FLAG_FOREST_FORK_PROGRESS] < 17) {
+					if (profile.flags[FLAG_FOREST_FORK_PROGRESS] == 1002 || profile.flags[FLAG_FOREST_FORK_PROGRESS] == 1004) {
+						profile.flags[FLAG_FOREST_FORK_PROGRESS]++;
+						
+						overworld.transition.vars[1] = 3040;
+						overworld.transition.vars[2] = 1912;
+					}
+					else if (profile.flags[FLAG_FOREST_FORK_PROGRESS] >= 103) {
+						profile.flags[FLAG_FOREST_FORK_PROGRESS] = 104;
+						
+						overworld.transition.vars[1] = 4112;
+						overworld.transition.vars[2] = 1416;
+					}
+					else if (profile.flags[FLAG_FOREST_FORK_PROGRESS] >= 10 && profile.flags[FLAG_FOREST_FORK_PROGRESS] < 17) {
 						profile.flags[FLAG_FOREST_FORK_PROGRESS]++;
 						
 						overworld.transition.vars[1] = 3040;
@@ -4098,7 +4909,19 @@ void Player_TryMove(float xMove, float yMove) {
 					}
 				}
 				else if (i == 11 && doorTouchedWhich == 0) {
-					if (profile.flags[FLAG_FOREST_FORK_PROGRESS] >= 20 && profile.flags[FLAG_FOREST_FORK_PROGRESS] < 21) {
+					if (profile.flags[FLAG_FOREST_FORK_PROGRESS] == 1000 || profile.flags[FLAG_FOREST_FORK_PROGRESS] == 1001) {
+						profile.flags[FLAG_FOREST_FORK_PROGRESS]++;
+						
+						overworld.transition.vars[1] = 3040;
+						overworld.transition.vars[2] = 1912;
+					}
+					else if (profile.flags[FLAG_FOREST_FORK_PROGRESS] == 100) {
+						profile.flags[FLAG_FOREST_FORK_PROGRESS]++;
+						
+						overworld.transition.vars[1] = 3040;
+						overworld.transition.vars[2] = 1912;
+					}
+					else if (profile.flags[FLAG_FOREST_FORK_PROGRESS] >= 20 && profile.flags[FLAG_FOREST_FORK_PROGRESS] < 21) {
 						profile.flags[FLAG_FOREST_FORK_PROGRESS]++;
 						
 						overworld.transition.vars[1] = 3040;
@@ -4115,13 +4938,13 @@ void Player_TryMove(float xMove, float yMove) {
 					}
 				}
 				
-				if (i == 7 && doorTouchedWhich == 0) {
+				if ((i == 7 || i == 202) && doorTouchedWhich == 0) {
 					overworld.transition.vars[3] = SPR_tileset_day_forest;
 				}
 				if (i == 55 && doorTouchedWhich == 0) {
 					overworld.transition.vars[3] = SPR_tileset_day_autumn;
 				}
-				if ((i == 7 || i == 55) && doorTouchedWhich == 1) {
+				if ((i == 7 || i == 55 || i == 202) && doorTouchedWhich == 1) {
 					overworld.transition.vars[3] = SPR_tileset_day;
 				}
 				
@@ -4131,17 +4954,15 @@ void Player_TryMove(float xMove, float yMove) {
 					else
 						overworld.transition.vars[3] = SPR_tileset_day;
 				}
-				if (profile.flags[FLAG_PLOT] >= 116 && profile.flags[FLAG_PLOT] <= 121) {
+				if (profile.flags[FLAG_PLOT] >= 112 && profile.flags[FLAG_PLOT] <= 121) {
 					if (targetArea == 80)
 						overworld.transition.vars[3] = SPR_tileset_night;
 					else
 						overworld.transition.vars[3] = SPR_tileset_day;
 				}
-				if (profile.flags[FLAG_PLOT] == 134) {
-					if (targetArea == 103)
-						overworld.transition.vars[3] = SPR_tileset_night;
-					else
-						overworld.transition.vars[3] = SPR_tileset_day;
+				
+				if (i == 43 && profile.flags[FLAG_FUN] >= 140 && profile.flags[FLAG_FUN] < 150 && profile.flags[FLAG_PLOT] < 50) {
+					profile.flags[FLAG_FUN_RIVERGREEN_MYSTERY_ROOM] = 1;
 				}
 				
 				overworld.player.dashing = false;
@@ -4313,7 +5134,7 @@ void Player_TryMove(float xMove, float yMove) {
 
 void Player_StopDashing() {
 	if (!overworld.player.dashing) return;
-	PlaySound(SND_hit1);
+	Audio_PlaySound(SND_hit1);
 	overworld.player.dashing = false;
 	overworld.player.dashChargeTimer = 0;
 	Party_UpdateCaterpillar();

@@ -5,8 +5,10 @@
 typedef struct {
 	short actions[1000];
 	short actionsEquipped[1000];
+	uint8_t actionsProgress[1000];
 	short armors[1000];
 	short armorsEquipped[1000];
+	uint8_t armorsProgress[1000];
 	short passives[1000];
 	short passivesEquipped[1000];
 	
@@ -30,7 +32,7 @@ typedef struct {
 		bool exists;
 		char party[5];
 		int level;
-	} saveFiles[16];
+	} saveFiles[32];
 } Profile;
 
 extern Profile profile;
@@ -62,6 +64,7 @@ void Profile_UnequipArmor(int partyId);
 void Profile_EquipPassive(int partyId, int passiveId);
 void Profile_UnequipPassive(int partyId, int extraPassiveId);
 void Profile_SwapPassive(int partyId, int extraPassiveId, int passiveId);
+void Profile_UnequipAll(int partyId);
 
 void Profile_InventoryPartyOrderAdd(int id);
 void Profile_InventoryPartyOrderRemove(int id);

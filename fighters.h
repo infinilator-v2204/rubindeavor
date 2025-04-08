@@ -17,6 +17,7 @@ typedef struct {
 	int collapseSpriteId;
 	int actionAnimId;
 	int ai;
+	int gender;
 	
 	int hpMax;
 	int mpMax;
@@ -31,6 +32,12 @@ typedef struct {
 	int passiveCount;
 	int passives[32];
 } FighterData;
+
+enum {
+	FIGHTER_GENDER_OTHER,
+	FIGHTER_GENDER_MALE,
+	FIGHTER_GENDER_FEMALE,
+};
 
 extern FighterData fighterData[OBJECT_COUNT_MAX];
 

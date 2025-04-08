@@ -1,5 +1,13 @@
 #pragma once
 
+// Game compilation settings
+
+#define RXS_LOAD_SPRITES_FROM_FOLDER
+#define RXS_INCLUDE_MAP_EDITOR
+#define RXS_INCLUDE_EXCEPTION_HANDLER
+
+
+
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <stdio.h>
@@ -10,30 +18,32 @@
 #define GLOBAL_TEXT_BUFFER_SIZE 2048
 #define OBJECT_COUNT_MAX 256
 
-extern SDL_Renderer* globalRenderer;
-extern SDL_Window* mainGameWindow;
 extern const int SCREEN_WIDTH;
 extern const int SCREEN_HEIGHT;
-extern int globalForceGameQuit;
-
-extern int mainGameWindowWidth;
-extern int mainGameWindowHeight;
-extern double mainGameRendererSize;
-extern double mainGameRendererX;
-extern double mainGameRendererY;
 
 typedef struct {
+	bool forceGameQuit;
+	
 	int debug;
 	int saveFileNumber;
 	int frameskip;
 	int frameskipCounter;
 	char textBuffer[GLOBAL_TEXT_BUFFER_SIZE];
 	
-	const Uint8* sdlKeyStates;
-	Uint8 keyStates[256];
-	Uint8 keyStatesPrev[256];
-	Uint8 keyPressed[256];
-	Uint8 keyReleased[256];
+	int windowWidth;
+	int windowHeight;
+	double rendererSize;
+	double rendererX;
+	double rendererY;
+	
+	bool keyStates[256];
+	bool keyStatesPrev[256];
+	bool keyPressed[256];
+	bool keyReleased[256];
+	bool playerKeyStates[32];
+	bool playerKeyStatesPrev[32];
+	bool playerKeyPressed[32];
+	bool playerKeyReleased[32];
 	int mouseX;
 	int mouseY;
 	int mouseXPrev;
@@ -60,11 +70,32 @@ typedef struct {
 	} cinema;
 	
 	struct {
+		int id;
+		int timer;
+		int stage;
+		int gems[6];
+		int actionCount;
+		int armorCount;
+		int passiveCount;
+		int totalActionCount;
+		int totalArmorCount;
+		int totalPassiveCount;
+	} ending;
+	
+	struct {
 		bool textSkip;
 		bool autoRun;
 		bool fullscreen;
 		bool showStatSymbolLabels;
+		
+		bool softwareRendering;
 	} settings;
+	
+	struct {
+		const Uint8* keyStates;
+		SDL_Window* window;
+		SDL_Renderer* renderer;
+	} internal;
 } Game;
 
 extern Game game;
@@ -75,6 +106,7 @@ enum {
 	SCENE_OVERWORLD,
 	SCENE_BATTLE,
 	SCENE_GAMEOVER,
+	SCENE_ENDING,
 	SCENE_MAPEDITOR,
 	SCENE_CHESS,
 };
@@ -86,6 +118,10 @@ enum {
 	PLAYER_BUTTON_A,
 	PLAYER_BUTTON_S,
 	PLAYER_BUTTON_D,
+	PLAYER_BUTTON_LEFT,
+	PLAYER_BUTTON_RIGHT,
+	PLAYER_BUTTON_UP,
+	PLAYER_BUTTON_DOWN,
 };
 
 enum {
@@ -116,6 +152,8 @@ int Random_IRange(int x1, int x2);
 int Max(int x1, int x2);
 int Min(int x1, int x2);
 
+void UpdateFullscreenMode();
+
 int PlayerButtonPressed(int button);
 int PlayerButtonHeld(int button);
 
@@ -129,6 +167,7 @@ int MouseReleased(int button);
 void EngageBattle(int id, int enemyObjectId);
 void CreatePopup(const char* message);
 void ShowCinemaCutscene(int id);
+void ShowEnding(int id);
 
 void DrawDialogBox(int x, int y, int w, int h);
 void DrawSaveFile(int id, int x, int y, int variation, bool selected);
@@ -137,6 +176,7 @@ void DrawActionDetailBox(int actionId, int x, int y, int manaCostReduction, bool
 void Setup();
 
 void Init();
+void UpdateInput();
 void Update();
 void Draw();
 void ChangeScene(int scene);
@@ -154,3 +194,7 @@ void Cinema_SlideImage(int spriteId);
 void GameOver_Init();
 void GameOver_Update();
 void GameOver_Draw();
+
+void Ending_Init();
+void Ending_Update();
+void Ending_Draw();

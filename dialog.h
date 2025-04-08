@@ -16,13 +16,13 @@ typedef struct {
 	int voiceDelayTimer;
 	
 	int textLength;
-	char text[DIALOG_TEXT_SIZE];
+	unsigned char text[DIALOG_TEXT_SIZE];
 	
 	char name[32];
 	
 	int bufferPtr;
 	int bufferLength;
-	char buffer[DIALOG_BUFFER_SIZE];
+	unsigned char buffer[DIALOG_BUFFER_SIZE];
 	
 	Menu menu;
 	int optionSelected;

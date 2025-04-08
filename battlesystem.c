@@ -26,18 +26,32 @@ void Fighter_TakeDamage(Fighter* fighter, Fighter* attacker, int damage, unsigne
 	}
 	if (damage < 0) return;
 	
+	if (!fighter->statusOverride[FIGHTER_STATUS_ABSORPTION] && fighter->status[FIGHTER_STATUS_ABSORPTION] > 0) {
+		fighter->status[FIGHTER_STATUS_ABSORPTION] -= damage;
+		if (fighter->status[FIGHTER_STATUS_ABSORPTION] < 0) {
+			damage = -fighter->status[FIGHTER_STATUS_ABSORPTION];
+			fighter->status[FIGHTER_STATUS_ABSORPTION] = 0;
+		}
+		else {
+			damage = 0;
+		}
+	}
+	
 	fighter->hp -= damage;
 	if (fighter->hp < 0) fighter->hp = 0;
 	
 	fighter->blockTimer = -1;
 	fighter->blockCooldownTimer = -1;
 	
+	Fighter_CheckDefeat(fighter, flags);
+}
+
+void Fighter_CheckDefeat(Fighter* fighter, unsigned int flags) {
 	if (fighter->hp <= 0) {
 		if ((flags & DAMAGE_FLAG_LETHAL) || fighter->status[FIGHTER_STATUS_SERIOUS]) {
 			fighter->fatalInjury = true;
 		}
 		fighter->alive = 0;
-		fighter->actionId = 0;
 		Fighter_ClearAllStatus(fighter);
 		
 		if (fighter->x != fighter->xStart || fighter->y != fighter->yStart) {
@@ -47,8 +61,9 @@ void Fighter_TakeDamage(Fighter* fighter, Fighter* attacker, int damage, unsigne
 }
 
 void Fighter_DealDamage(Fighter* fighter, Fighter* target, int damage, unsigned int flags) {
+	int damageOriginal = damage;
+	fighter->actionInflictedDamage = 0;
 	if (damage > -99999) {
-		damage += -target->status[FIGHTER_STATUS_ENDURANCE] + target->status[FIGHTER_STATUS_DISARM];
 		if (target->status[FIGHTER_STATUS_GUARD]) damage -= target->status[FIGHTER_STATUS_GUARD] - 1;
 		
 		for (int i = 0; i < fighter->passiveCount; i++) Passive_OnDealDamage(fighter->passives[i], fighter, target, &damage, &flags);
@@ -57,16 +72,38 @@ void Fighter_DealDamage(Fighter* fighter, Fighter* target, int damage, unsigned 
 		if (damage > -99999 && damage < 0) damage = 0;
 	}
 	
+	if (damage > damageOriginal && (flags & DAMAGE_FLAG_CAPPED)) {
+		damage = damageOriginal;
+	}
+	
 	if (target->status[FIGHTER_STATUS_COUNTER] && fighter->counterTargetId < 0) {
 		target->counterTargetId = fighter->id;
 	}
+	if (target->status[FIGHTER_STATUS_DEFLECT]) {
+		int points = target->status[FIGHTER_STATUS_DEFLECT] + target->defense + target->status[FIGHTER_STATUS_ENDURANCE] - target->status[FIGHTER_STATUS_DISARM];
+		if (points > 0) {
+			fighter->mp -= points;
+			if (fighter->mp < 0) fighter->mp = 0;
+			Audio_PlaySoundInterrupt(SND_deflect);
+			snprintf(game.textBuffer, 16, "%d", points);
+			Battle_CreateLabel(6, game.textBuffer, fighter->x, fighter->y - 32);
+			Battle_CreateLabel(6, "DEFLECT", fighter->x, fighter->y - 56);
+			target->status[FIGHTER_STATUS_DEFLECT]--;
+		}
+	}
 	
-	if (target->blockTimer >= 0 && target->blockTimer < target->dodgeTime && (flags & DAMAGE_FLAG_DODGABLE)) {
+	if (((target->blockTimer >= 0 && target->blockTimer < target->dodgeTime) || target->status[FIGHTER_STATUS_EVADE]) && (flags & DAMAGE_FLAG_DODGABLE) && !target->status[FIGHTER_STATUS_ANTIGUARD]) {
 		damage = 0;
 		target->state = FIGHTER_STATE_ATTACK1;
-		PlaySoundInterrupt(SND_dodge);
+		Audio_PlaySoundInterrupt(SND_dodge);
 		
-		Battle_CreateLabel(1, "DODGE", target->x, target->y - 32);
+		if (!target->status[FIGHTER_STATUS_EVADE]) {
+			Battle_CreateLabel(1, "DODGE", target->x, target->y - 32);
+		}
+		target->aiDodgeCount++;
+		if (target->aiDefenseScore <= -80)
+			target->aiDefenseScore = -40;
+		target->aiDefenseScore += 25;
 	}
 	else if (damage < 0) {
 		
@@ -74,17 +111,21 @@ void Fighter_DealDamage(Fighter* fighter, Fighter* target, int damage, unsigned 
 	else if (damage == 0) {
 		Battle_CreateLabel(0, "0", target->x, target->y - 32);
 	}
-	else if (((target->blockTimer >= 0 && target->blockTimer < target->blockTime) || target->status[FIGHTER_STATUS_GUARD]) && (flags & DAMAGE_FLAG_BLOCKABLE)) {
+	else if (((target->blockTimer >= 0 && target->blockTimer < target->blockTime) || target->status[FIGHTER_STATUS_GUARD]) && (flags & DAMAGE_FLAG_BLOCKABLE) && !target->status[FIGHTER_STATUS_ANTIGUARD]) {
 		damage /= 2;
 		target->state = FIGHTER_STATE_BLOCK;
 		target->flinchTicks = 18;
-		PlaySoundInterrupt(SND_hit1);
+		Audio_PlaySoundInterrupt(SND_hit1);
 		
 		snprintf(game.textBuffer, 16, "%d", damage);
 		Battle_CreateLabel(0, game.textBuffer, target->x, target->y - 32);
 		if (!target->status[FIGHTER_STATUS_GUARD]) {
 			Battle_CreateLabel(2, "BLOCK", target->x, target->y - 56);
 		}
+		target->aiBlockCount++;
+		if (target->aiDefenseScore <= -80)
+			target->aiDefenseScore = -40;
+		target->aiDefenseScore += 12;
 	}
 	else if ((flags & DAMAGE_FLAG_CRITICAL) || (target->blockTimer >= 0 && (flags & DAMAGE_FLAG_BLOCKABLE))) {
 		damage *= 3;
@@ -92,41 +133,57 @@ void Fighter_DealDamage(Fighter* fighter, Fighter* target, int damage, unsigned 
 		damage /= 2;
 		target->state = FIGHTER_STATE_HURT;
 		target->flinchTicks = 24;
-		PlaySoundInterrupt(SND_hit3);
+		Audio_PlaySoundInterrupt(SND_hit3);
 		
 		snprintf(game.textBuffer, 16, "%d", damage);
 		Battle_CreateLabel(0, game.textBuffer, target->x, target->y - 32);
 		Battle_CreateLabel(3, "CRITICAL", target->x, target->y - 56);
+		target->aiBlockCritCount++;
+		if (target->aiDefenseScore >= 80)
+			target->aiDefenseScore = 40;
+		target->aiDefenseScore -= 27;
 	}
 	else if (damage > 0) {
 		target->state = FIGHTER_STATE_HURT;
 		target->flinchTicks = 21;
-		PlaySoundInterrupt(SND_hit2);
+		Audio_PlaySoundInterrupt(SND_hit2);
 		
 		snprintf(game.textBuffer, 16, "%d", damage);
 		Battle_CreateLabel(0, game.textBuffer, target->x, target->y - 32);
+		if (target->aiDefenseScore >= 80)
+			target->aiDefenseScore = 40;
+		target->aiDefenseScore -= 12;
 	}
+	
+	target->aiTakeAttackCount++;
 	
 	if (damage < 0) return;
 	
 	Fighter_TakeDamage(target, fighter, damage, flags);
+	fighter->actionInflictedDamage = damage;
 	if (fighter->status[FIGHTER_STATUS_HYPERENERGIZER]) {
-		PlaySoundInterrupt(SND_explode);
+		Audio_PlaySoundInterrupt(SND_explode);
 		Battle_ShakeScreen(20);
 	}
 }
 
 void Fighter_InflictStatus(Fighter* fighter, Fighter* target, int statusId, int count, bool instant) {
-	for (int i = 0; i < target->passiveCount; i++) Passive_OnTakeStatus(target->passives[i], target, fighter, &statusId, &count);
+	for (int i = 0; i < target->passiveCount; i++) Passive_OnTakeStatus(target->passives[i], target, fighter, &statusId, &count, 0);
 	Fighter_GainStatus(target, statusId, count, instant);
 }
 
+void Fighter_InflictStatusNextTurn(Fighter* fighter, Fighter* target, int statusId, int count) {
+	for (int i = 0; i < target->passiveCount; i++) Passive_OnTakeStatus(target->passives[i], target, fighter, &statusId, &count, 0);
+	Fighter_GainStatusNextTurn(target, statusId, count);
+}
+
 void Fighter_InflictStatusDodgable(Fighter* fighter, Fighter* target, int statusId, int count, bool instant) {
-	if (target->blockTimer >= 0 && target->blockTimer < target->dodgeTime) {
+	if ((target->blockTimer >= 0 && target->blockTimer < target->dodgeTime) || target->status[FIGHTER_STATUS_EVADE]) {
 		return;
 	}
 	
-	Fighter_InflictStatus(fighter, target, statusId, count, instant);
+	for (int i = 0; i < target->passiveCount; i++) Passive_OnTakeStatus(target->passives[i], target, fighter, &statusId, &count, DAMAGE_FLAG_DODGABLE | DAMAGE_FLAG_BLOCKABLE);
+	Fighter_GainStatus(target, statusId, count, instant);
 }
 
 
@@ -139,12 +196,32 @@ void Fighter_OnAttackSwing(Fighter* fighter) {
 			Fighter_TakeDamage(fighter, NULL, fighter->status[FIGHTER_STATUS_BLEED], 0);
 		fighter->status[FIGHTER_STATUS_BLEED] = fighter->status[FIGHTER_STATUS_BLEED] * 2 / 3;
 		Battle_CreateSpark(3, fighter->x, fighter->y - 24, 0);
-		PlaySoundInterrupt(SND_poison);
+		Audio_PlaySoundInterrupt(SND_poison);
+	}
+	
+	if (battle.target) {
+		if (battle.target->aiTakeAttackCount == 1) {
+			battle.target->aiTakeAttackPredictTime = battle.target->readyTimer;
+		}
+		else if (battle.target->aiTakeAttackCount > 1) {
+			if (battle.target->aiDefenseScore > 40) {
+				battle.target->aiTakeAttackPredictTime += (battle.target->readyTimer - battle.target->aiTakeAttackPredictTime) / 4;
+			}
+			else if (battle.target->aiDefenseScore > 0) {
+				battle.target->aiTakeAttackPredictTime += (battle.target->readyTimer - battle.target->aiTakeAttackPredictTime) / 2;
+			}
+			else if (battle.target->aiDefenseScore > -40) {
+				battle.target->aiTakeAttackPredictTime += (battle.target->readyTimer - battle.target->aiTakeAttackPredictTime) * 2 / 3;
+			}
+			else {
+				battle.target->aiTakeAttackPredictTime += Max(0, (battle.target->readyTimer - battle.target->aiTakeAttackPredictTime) + Random_IRange(-60, 60));
+			}
+		}
 	}
 }
 
 void Fighter_PrepareToBlock(Fighter* fighter) {
-	fighter->state = FIGHTER_STATE_IDLE;
+	Fighter_SwitchToDefaultState(fighter);
 	fighter->blockTimer = -1;
 	fighter->blockCooldownTimer = -1;
 	
@@ -197,7 +274,7 @@ void Fighter_UpdateBlock(Fighter* fighter) {
 		fighter->blockTimer++;
 		
 		if (fighter->blockTimer == fighter->blockTime) {
-			fighter->state = FIGHTER_STATE_IDLE;
+			Fighter_SwitchToDefaultState(fighter);
 		}
 		if (fighter->blockTimer >= fighter->criticalTime) {
 			fighter->blockTimer = -1;
@@ -228,15 +305,30 @@ void Fighter_MoveToStart(Fighter* fighter) {
 	fighter->moveTarget.facing = 1 - fighter->side * 2;
 }
 
+void Fighter_SwitchToDefaultState(Fighter* fighter) {
+	if (!fighter->alive)
+		fighter->state = FIGHTER_STATE_DOWN;
+	else if (fighter->status[FIGHTER_STATUS_WEAPONSEARCH] > 0)
+		fighter->state = FIGHTER_STATE_SPECIAL1;
+	else if (fighter->status[FIGHTER_STATUS_COUNTER] > 0)
+		fighter->state = FIGHTER_STATE_ATTACK1;
+	else if (fighter->status[FIGHTER_STATUS_GUARD] > 0)
+		fighter->state = FIGHTER_STATE_BLOCK;
+	else
+		fighter->state = FIGHTER_STATE_IDLE;
+}
+
 
 
 void Fighter_HealHP(Fighter* fighter, int amount) {
 	if (amount == 0) return;
 	
-	fighter->hp += amount;
-	if (fighter->hp >= fighter->hpMax) fighter->hp = fighter->hpMax;
-	
-	PlaySoundInterrupt(SND_heal);
+	if (!fighter->status[FIGHTER_STATUS_ANTIREGEN]) {
+		fighter->hp += amount;
+		if (fighter->hp >= fighter->hpMax) fighter->hp = fighter->hpMax;
+		
+		Audio_PlaySoundInterrupt(SND_heal);
+	}
 	
 	fighter->storeHealedHP += amount;
 }
@@ -247,18 +339,27 @@ void Fighter_HealMP(Fighter* fighter, int amount) {
 	fighter->mp += amount;
 	if (fighter->mp >= fighter->mpMax) fighter->mp = fighter->mpMax;
 	
-	PlaySoundInterrupt(SND_mana);
+	Audio_PlaySoundInterrupt(SND_mana);
 	
 	fighter->storeHealedMP += amount;
 }
 
 void Fighter_GainStatus(Fighter* fighter, int statusId, int count, bool instant) {
 	if (statusId == FIGHTER_STATUS_FLOWER) {
-		PlaySoundInterrupt(SND_flower2);
+		Audio_PlaySoundInterrupt(SND_flower2);
 	}
 	
-	if (instant || statusEffectData[statusId].instantByDefault)
+	if (statusId == FIGHTER_STATUS_MANADISCOUNT)
+		fighter->status[statusId] = count;
+	else if (instant || statusEffectData[statusId].instantByDefault)
 		fighter->status[statusId] += count;
+	else
+		fighter->statusNext[statusId] += count;
+}
+
+void Fighter_GainStatusNextTurn(Fighter* fighter, int statusId, int count) {
+	if (statusId == FIGHTER_STATUS_MANADISCOUNT)
+		fighter->status[statusId] = count;
 	else
 		fighter->statusNext[statusId] += count;
 }
@@ -274,7 +375,7 @@ void Fighter_ClearAllStatus(Fighter* fighter) {
 void Fighter_EnableAction(Fighter* fighter, int actionId) {
 	for (int i = 0; i < fighter->movesetCount; i++) {
 		if (fighter->moveset[i] == actionId) {
-			fighter->movesetDisabled[i] = false;
+			fighter->movesetDisabled[i] = 0;
 		}
 	}
 }
@@ -282,7 +383,15 @@ void Fighter_EnableAction(Fighter* fighter, int actionId) {
 void Fighter_DisableAction(Fighter* fighter, int actionId) {
 	for (int i = 0; i < fighter->movesetCount; i++) {
 		if (fighter->moveset[i] == actionId) {
-			fighter->movesetDisabled[i] = true;
+			fighter->movesetDisabled[i] = 1;
+		}
+	}
+}
+
+void Fighter_DisableActionPermamently(Fighter* fighter, int actionId) {
+	for (int i = 0; i < fighter->movesetCount; i++) {
+		if (fighter->moveset[i] == actionId) {
+			fighter->movesetDisabled[i] = 2;
 		}
 	}
 }
@@ -304,6 +413,7 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = false;
 	effect->type = STATUS_TYPE_POSITIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[1];
 	SetString(effect->name, "Feeble");
@@ -311,6 +421,7 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = false;
 	effect->type = STATUS_TYPE_NEGATIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[2];
 	SetString(effect->name, "Endurance");
@@ -318,6 +429,7 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = false;
 	effect->type = STATUS_TYPE_POSITIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[3];
 	SetString(effect->name, "Disarm");
@@ -325,6 +437,7 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = false;
 	effect->type = STATUS_TYPE_NEGATIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[4];
 	SetString(effect->name, "Haste");
@@ -332,6 +445,7 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = false;
 	effect->type = STATUS_TYPE_POSITIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[5];
 	SetString(effect->name, "Bind");
@@ -339,6 +453,7 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = false;
 	effect->type = STATUS_TYPE_NEGATIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[6];
 	SetString(effect->name, "Burn");
@@ -346,6 +461,7 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = true;
 	effect->type = STATUS_TYPE_NEGATIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[7];
 	SetString(effect->name, "Bleed");
@@ -353,6 +469,7 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = false;
 	effect->type = STATUS_TYPE_NEGATIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[8];
 	SetString(effect->name, "Guard");
@@ -360,6 +477,7 @@ void LoadStatusEffectData() {
 	effect->visible = false;
 	effect->instantByDefault = true;
 	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[9];
 	SetString(effect->name, "Counter");
@@ -367,6 +485,7 @@ void LoadStatusEffectData() {
 	effect->visible = false;
 	effect->instantByDefault = true;
 	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[10];
 	SetString(effect->name, "Paralysis");
@@ -374,6 +493,7 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = false;
 	effect->type = STATUS_TYPE_NEGATIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[11];
 	SetString(effect->name, "Poison");
@@ -381,6 +501,7 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = false;
 	effect->type = STATUS_TYPE_NEGATIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[12];
 	SetString(effect->name, "Timed Bomb");
@@ -388,20 +509,23 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = false;
 	effect->type = STATUS_TYPE_NEGATIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[13];
 	SetString(effect->name, "Anti-Guard");
 	SetString(effect->desc, "No blocking");
 	effect->visible = true;
 	effect->instantByDefault = false;
-	effect->type = STATUS_TYPE_NEGATIVE;
+	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = false;
 	
 	effect = &statusEffectData[14];
 	SetString(effect->name, "Immobile");
 	SetString(effect->desc, "Can't act");
 	effect->visible = true;
 	effect->instantByDefault = false;
-	effect->type = STATUS_TYPE_NEGATIVE;
+	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = false;
 	
 	effect = &statusEffectData[15];
 	SetString(effect->name, "Chill");
@@ -409,13 +533,15 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = true;
 	effect->type = STATUS_TYPE_NEGATIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[16];
 	SetString(effect->name, "Flower");
 	SetString(effect->desc, "Drains MP");
 	effect->visible = true;
-	effect->instantByDefault = true;
+	effect->instantByDefault = false;
 	effect->type = STATUS_TYPE_NEGATIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[17];
 	SetString(effect->name, "Charge");
@@ -423,6 +549,7 @@ void LoadStatusEffectData() {
 	effect->visible = true;
 	effect->instantByDefault = true;
 	effect->type = STATUS_TYPE_POSITIVE;
+	effect->stackable = true;
 	
 	effect = &statusEffectData[18];
 	SetString(effect->name, "Serious");
@@ -430,6 +557,7 @@ void LoadStatusEffectData() {
 	effect->visible = false;
 	effect->instantByDefault = true;
 	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = false;
 	
 	effect = &statusEffectData[19];
 	SetString(effect->name, "Hyperenergizer");
@@ -437,6 +565,7 @@ void LoadStatusEffectData() {
 	effect->visible = false;
 	effect->instantByDefault = true;
 	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = false;
 	
 	effect = &statusEffectData[20];
 	SetString(effect->name, "Searching");
@@ -444,6 +573,63 @@ void LoadStatusEffectData() {
 	effect->visible = false;
 	effect->instantByDefault = true;
 	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = false;
+	
+	effect = &statusEffectData[21];
+	SetString(effect->name, "Mana Discount");
+	SetString(effect->desc, "");
+	effect->visible = false;
+	effect->instantByDefault = true;
+	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = true;
+	
+	effect = &statusEffectData[22];
+	SetString(effect->name, "ATK Multiplier");
+	SetString(effect->desc, "");
+	effect->visible = false;
+	effect->instantByDefault = false;
+	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = true;
+	
+	effect = &statusEffectData[23];
+	SetString(effect->name, "Evade");
+	SetString(effect->desc, "Dodge attacks");
+	effect->visible = false;
+	effect->instantByDefault = true;
+	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = true;
+	
+	effect = &statusEffectData[24];
+	SetString(effect->name, "Deflect");
+	SetString(effect->desc, "Deflect DMG");
+	effect->visible = false;
+	effect->instantByDefault = true;
+	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = true;
+	
+	effect = &statusEffectData[25];
+	SetString(effect->name, "Absorption");
+	SetString(effect->desc, "Extra HP");
+	effect->visible = true;
+	effect->instantByDefault = false;
+	effect->type = STATUS_TYPE_POSITIVE;
+	effect->stackable = true;
+	
+	effect = &statusEffectData[26];
+	SetString(effect->name, "Mana Perma Discount");
+	SetString(effect->desc, "");
+	effect->visible = false;
+	effect->instantByDefault = true;
+	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = true;
+	
+	effect = &statusEffectData[27];
+	SetString(effect->name, "Anti-Regen");
+	SetString(effect->desc, "No HP recover");
+	effect->visible = true;
+	effect->instantByDefault = false;
+	effect->type = STATUS_TYPE_NEUTRAL;
+	effect->stackable = false;
 }
 
 
@@ -459,6 +645,7 @@ void Battle_Init() {
 	battle.retry = false;
 	battle.loadLastSave = false;
 	battle.fleeing = false;
+	battle.everythingButSkillsDisabled = false;
 	battle.state = BATTLE_STATE_START;
 	battle.timer = 0;
 	battle.globalTimer = 0;
@@ -521,6 +708,7 @@ void Battle_Init() {
 					case 27: fighter->headId = 28; break;
 					case 33: fighter->headId = 45; break;
 					case 37: fighter->headId = 63; break;
+					case 72: fighter->headId = 73; break;
 				}
 			}
 			
@@ -557,6 +745,58 @@ void Battle_Init() {
 		
 		fighter->hp = fighter->hpMax;
 		fighter->mp = fighter->mpMax;
+		
+		fighter->status[FIGHTER_STATUS_SERIOUS] = 1;
+	}
+	if (battle.encounter == 84) {
+		Fighter* fighter = &battle.fighters[8];
+		
+		PartyMember* partyMember = &partyMembers[3];
+		
+		fighter->exp += partyMember->exp / 128;
+		fighter->hpMax = partyMember->hpMax;
+		fighter->mpMax = partyMember->mpMax;
+		fighter->attack = partyMember->attack;
+		fighter->defense = partyMember->defense;
+		fighter->speed = partyMember->speed;
+		
+		fighter->hp = fighter->hpMax;
+		fighter->mp = fighter->mpMax;
+	}
+	if (battle.encounter == 102) {
+		if (profile.flags[FLAG_RUBY_GODMODE]) {
+			battle.everythingButSkillsDisabled = true;
+			
+			battle.musicId = MUS_trance;
+			
+			Fighter* fighter = &battle.fighters[8];
+			
+			fighter->defense -= -1015821984;
+		}
+		else {
+			battle.everythingButSkillsDisabled = true;
+			
+			Fighter* fighter = &battle.fighters[0];
+			
+			fighter->ai = 0;
+			fighter->bodyId = 10;
+			fighter->actionAnimId = 62;
+			fighter->movesetCount = 1;
+			fighter->moveset[0] = 5;
+			fighter->passiveCount = 0;
+		}
+	}
+	if (battle.encounter == 103) {
+		Fighter* fighter = &battle.fighters[8];
+		
+		fighter->status[FIGHTER_STATUS_SERIOUS] = 1;
+	}
+	if (battle.encounter == 104) {
+		Fighter* fighter = &battle.fighters[8];
+		
+		fighter->status[FIGHTER_STATUS_SERIOUS] = 1;
+		
+		fighter = &battle.fighters[9];
 		
 		fighter->status[FIGHTER_STATUS_SERIOUS] = 1;
 	}
@@ -617,21 +857,29 @@ void Battle_Update() {
 		if (fighter->flinchTicks > 0) {
 			fighter->flinchTicks--;
 			if (fighter->flinchTicks == 0 && fighter->hp > 0) {
-				fighter->state = FIGHTER_STATE_IDLE;
+				Fighter_SwitchToDefaultState(fighter);
 			}
 		}
 		
 		if (fighter->storeHealedHP != 0) {
-			snprintf(game.textBuffer, 16, "%d", fighter->storeHealedHP);
-			Battle_CreateLabel(4, game.textBuffer, fighter->x, fighter->y - 32);
+			if (fighter->status[FIGHTER_STATUS_ANTIREGEN]) {
+				Audio_PlaySoundInterrupt(SND_closeskill);
+			}
+			else {
+				float y = fighter->y;
+				if (fighter->storeHealedMP != 0) y -= 16;
+				snprintf(game.textBuffer, 16, "%d", fighter->storeHealedHP);
+				Battle_CreateLabel(4, game.textBuffer, fighter->x, y - 32);
+			}
 			
 			Battle_CreateSpark(4, fighter->x, fighter->y - 24, 0);
 			
 			fighter->storeHealedHP = 0;
 		}
 		if (fighter->storeHealedMP != 0) {
+			float y = fighter->y;
 			snprintf(game.textBuffer, 16, "%d", fighter->storeHealedMP);
-			Battle_CreateLabel(5, game.textBuffer, fighter->x, fighter->y - 32);
+			Battle_CreateLabel(5, game.textBuffer, fighter->x, y - 32);
 			
 			Battle_CreateSpark(5, fighter->x, fighter->y - 24, 0);
 			
@@ -704,6 +952,131 @@ void Battle_Update() {
 				break;
 			case 6:
 				if (battle.sparks[i].timer >= 12) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 7:
+				if (battle.sparks[i].timer >= 16) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 8:
+				if (battle.sparks[i].timer >= 16) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 9:
+				battle.sparks[i].yVel = -16;
+				if (battle.sparks[i].timer >= 160 || battle.sparks[i].y < 0) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 10:
+				if (battle.sparks[i].timer >= 16) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 11:
+				if (battle.sparks[i].timer >= 300 || battle.attacker == NULL || battle.target == NULL || battle.state != BATTLE_STATE_ACTION) {
+					battle.sparks[i].id = 0;
+					break;
+				}
+				if (battle.sparks[i].x < -16 || battle.sparks[i].x > 656) {
+					battle.sparks[i].id = 0;
+					break;
+				}
+				if (battle.attacker->actionVars[0].i == 0) {
+					if (battle.sparks[i].y < 136) {
+						Audio_PlaySound(SND_birchhit1);
+						battle.sparks[i].y = 136;
+						
+						float velocity = PointDistance(0, 0, battle.sparks[i].xVel, battle.sparks[i].yVel);
+						float angle = PointDirection(battle.sparks[i].x, battle.sparks[i].y, battle.target->x, battle.target->y - 24);
+						battle.sparks[i].xVel = cos(angle) * velocity;
+						battle.sparks[i].yVel = sin(angle) * velocity;
+					}
+					if (battle.sparks[i].y > 352) {
+						Audio_PlaySound(SND_birchhit1);
+						battle.sparks[i].y = 352;
+						
+						float velocity = PointDistance(0, 0, battle.sparks[i].xVel, battle.sparks[i].yVel);
+						float angle = PointDirection(battle.sparks[i].x, battle.sparks[i].y, battle.target->x, battle.target->y - 24);
+						battle.sparks[i].xVel = cos(angle) * velocity;
+						battle.sparks[i].yVel = sin(angle) * velocity;
+					}
+				}
+				else if (battle.attacker->actionVars[0].i == 3) {
+					if (battle.sparks[i].y < 136) {
+						Audio_PlaySound(SND_birchhit1);
+						battle.sparks[i].y = 136;
+						battle.sparks[i].yVel = -battle.sparks[i].yVel;
+					}
+					if (battle.sparks[i].y > 352) {
+						Audio_PlaySound(SND_birchhit1);
+						battle.sparks[i].y = 352;
+						battle.sparks[i].yVel = -battle.sparks[i].yVel;
+					}
+				}
+				if (battle.attacker->attackTimer < 1 && battle.sparks[i].x > battle.target->x - 24 && battle.sparks[i].x < battle.target->x + 24 && battle.sparks[i].y > battle.target->y - 48 && battle.sparks[i].y < battle.target->y) {
+					battle.attacker->attackTimer = 1;
+					Audio_PlaySound(SND_birchhit2);
+					Battle_ShakeScreen(4);
+					battle.sparks[i].id = 0;
+					Battle_CreateSpark(12, battle.target->x, battle.target->y - 24, 0);
+					break;
+				}
+				break;
+			case 12:
+				if (battle.sparks[i].timer >= 8) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 13:
+				if (battle.sparks[i].timer >= 10) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 14:
+				if (battle.sparks[i].timer >= 6) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 15:
+				if (battle.sparks[i].timer >= 6) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 16:
+				if (battle.sparks[i].timer >= 6) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 17:
+				if (battle.sparks[i].timer >= 11) {
+					battle.sparks[i].id = 0;
+					Battle_CreateSpark(18, battle.sparks[i].x, battle.sparks[i].y + 32, 0);
+					Audio_PlaySound(SND_gunfire2);
+					Audio_PlaySound(SND_explode);
+					Battle_ShakeScreen(48);
+				}
+				break;
+			case 18:
+				if (battle.sparks[i].timer >= 16) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 19:
+				if (battle.sparks[i].timer >= 24) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 20:
+				if (battle.sparks[i].timer >= 6) {
+					battle.sparks[i].id = 0;
+				}
+				break;
+			case 21:
+				if (battle.sparks[i].timer >= 20) {
 					battle.sparks[i].id = 0;
 				}
 				break;
@@ -785,14 +1158,14 @@ void Battle_Update() {
 
 void Battle_Update_Start() {
 	if (battle.timer == 1) {
-		PlaySound(SND_encounter);
+		Audio_PlaySound(SND_encounter);
 		for (int i = 0; i < 5; i++) {
 			if (profile.party[i] < 0) continue;
 			
 			PartyMember* partyMember = &partyMembers[profile.party[i]];
 			
 			if (partyMember->armorId != 0) {
-				PlaySound(SND_encountermg);
+				Audio_PlaySound(SND_encountermg);
 				break;
 			}
 		}
@@ -800,7 +1173,9 @@ void Battle_Update_Start() {
 	if (battle.timer >= 45) {
 		battle.state = BATTLE_STATE_IDLE;
 		battle.timer = 0;
-		PlayMusic(battle.musicId);
+		if (!profile.tempFlags[TEMPFLAG_DISABLEBATTLEMUSIC]) {
+			Audio_PlayMusic(battle.musicId);
+		}
 	}
 }
 
@@ -830,63 +1205,81 @@ void Battle_Update_Idle() {
 			fighter->usedItemId = 0;
 			fighter->manaCostReduction = 0;
 			
-			fighter->mp += 1 - fighter->status[FIGHTER_STATUS_CHILL] - fighter->status[FIGHTER_STATUS_FLOWER] - (fighter->status[FIGHTER_STATUS_POISON] + 1) / 2;
-			fighter->mp += fighter->mpMax / 20;
-			if (fighter->mp < 0) fighter->mp = 0;
-			if (fighter->mp > fighter->mpMax) fighter->mp = fighter->mpMax;
+			fighter->mp += 1 + fighter->mpMax / 20;
 			
-			if (fighter->status[FIGHTER_STATUS_BURN] > 0) {
+			if (!fighter->statusOverride[FIGHTER_STATUS_BURN] && fighter->status[FIGHTER_STATUS_BURN] > 0) {
 				Fighter_TakeDamage(fighter, NULL, fighter->status[FIGHTER_STATUS_BURN], 0);
 				fighter->status[FIGHTER_STATUS_BURN] = fighter->status[FIGHTER_STATUS_BURN] * 2 / 3;
-				PlaySoundInterrupt(SND_burn);
+				Audio_PlaySoundInterrupt(SND_burn);
 				Battle_CreateSpark(2, fighter->x, fighter->y - 24, 0);
 			}
 			
-			if (fighter->status[FIGHTER_STATUS_BLEED] > 0) {
+			if (!fighter->statusOverride[FIGHTER_STATUS_BLEED] && fighter->status[FIGHTER_STATUS_BLEED] > 0) {
 				Fighter_TakeDamage(fighter, NULL, fighter->status[FIGHTER_STATUS_BLEED], 0);
 				Battle_CreateSpark(3, fighter->x, fighter->y - 24, 0);
-				PlaySoundInterrupt(SND_poison);
+				Audio_PlaySoundInterrupt(SND_poison);
 			}
 			
-			if (fighter->status[FIGHTER_STATUS_POISON] > 0) {
+			if (!fighter->statusOverride[FIGHTER_STATUS_POISON] && fighter->status[FIGHTER_STATUS_POISON] > 0) {
+				fighter->mp -= (fighter->status[FIGHTER_STATUS_POISON] + 1) / 2;
 				Fighter_TakeDamage(fighter, NULL, fighter->status[FIGHTER_STATUS_POISON], 0);
 				fighter->status[FIGHTER_STATUS_POISON] = fighter->status[FIGHTER_STATUS_POISON] * 2 / 3;
-				PlaySoundInterrupt(SND_poison);
+				Audio_PlaySoundInterrupt(SND_poison);
 			}
 			
-			if (fighter->status[FIGHTER_STATUS_TIMEDBOMB] > 0) {
+			if (!fighter->statusOverride[FIGHTER_STATUS_TIMEDBOMB] && fighter->status[FIGHTER_STATUS_TIMEDBOMB] > 0) {
 				Fighter_TakeDamage(fighter, NULL, fighter->status[FIGHTER_STATUS_TIMEDBOMB], 0);
 				fighter->status[FIGHTER_STATUS_TIMEDBOMB] = 0;
-				PlaySoundInterrupt(SND_explode);
+				Audio_PlaySoundInterrupt(SND_explode);
 				Battle_ShakeScreen(6);
 				Battle_CreateSpark(2, fighter->x, fighter->y - 24, 0);
 			}
 			
-			if (fighter->status[FIGHTER_STATUS_CHILL] > 0) {
+			if (!fighter->statusOverride[FIGHTER_STATUS_CHILL] && fighter->status[FIGHTER_STATUS_CHILL] > 0) {
+				fighter->mp -= fighter->status[FIGHTER_STATUS_CHILL];
 				fighter->status[FIGHTER_STATUS_CHILL] = fighter->status[FIGHTER_STATUS_CHILL] * 2 / 3;
 			}
 			
-			if (fighter->status[FIGHTER_STATUS_FLOWER] > 0) {
+			if (!fighter->statusOverride[FIGHTER_STATUS_FLOWER] && fighter->status[FIGHTER_STATUS_FLOWER] > 0) {
+				fighter->mp -= fighter->status[FIGHTER_STATUS_FLOWER];
 				fighter->status[FIGHTER_STATUS_FLOWER] = fighter->status[FIGHTER_STATUS_FLOWER] * 2 / 3;
 			}
 			
-			fighter->status[FIGHTER_STATUS_STRENGTH] = 0;
-			fighter->status[FIGHTER_STATUS_FEEBLE] = 0;
-			fighter->status[FIGHTER_STATUS_ENDURANCE] = 0;
-			fighter->status[FIGHTER_STATUS_DISARM] = 0;
-			fighter->status[FIGHTER_STATUS_HASTE] = 0;
-			fighter->status[FIGHTER_STATUS_BIND] = 0;
-			fighter->status[FIGHTER_STATUS_BLEED] = 0;
-			fighter->status[FIGHTER_STATUS_GUARD] = 0;
-			fighter->status[FIGHTER_STATUS_COUNTER] = 0;
-			fighter->status[FIGHTER_STATUS_PARALYSIS] = 0;
-			fighter->status[FIGHTER_STATUS_ANTIGUARD] = 0;
-			fighter->status[FIGHTER_STATUS_IMMOBILE] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_MANADISCOUNT] && fighter->status[FIGHTER_STATUS_MANADISCOUNT] > 0) {
+				fighter->manaCostReduction += fighter->status[FIGHTER_STATUS_MANADISCOUNT] & 0xffff;
+				fighter->status[FIGHTER_STATUS_MANADISCOUNT] -= 1 << 16;
+				if (fighter->status[FIGHTER_STATUS_MANADISCOUNT] < 0) fighter->status[FIGHTER_STATUS_MANADISCOUNT] = 0;
+			}
 			
-			for (int i = 0; i < 16; i++) {
+			if (!fighter->statusOverride[FIGHTER_STATUS_MANAPERMADISCOUNT] && fighter->status[FIGHTER_STATUS_MANAPERMADISCOUNT] != 0) {
+				fighter->manaCostReduction += fighter->status[FIGHTER_STATUS_MANAPERMADISCOUNT];
+			}
+			
+			if (!fighter->statusOverride[FIGHTER_STATUS_STRENGTH]) fighter->status[FIGHTER_STATUS_STRENGTH] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_FEEBLE]) fighter->status[FIGHTER_STATUS_FEEBLE] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_ENDURANCE]) fighter->status[FIGHTER_STATUS_ENDURANCE] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_DISARM]) fighter->status[FIGHTER_STATUS_DISARM] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_HASTE]) fighter->status[FIGHTER_STATUS_HASTE] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_BIND]) fighter->status[FIGHTER_STATUS_BIND] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_BLEED]) fighter->status[FIGHTER_STATUS_BLEED] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_GUARD]) fighter->status[FIGHTER_STATUS_GUARD] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_COUNTER]) fighter->status[FIGHTER_STATUS_COUNTER] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_PARALYSIS]) fighter->status[FIGHTER_STATUS_PARALYSIS] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_ANTIGUARD]) fighter->status[FIGHTER_STATUS_ANTIGUARD] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_IMMOBILE]) fighter->status[FIGHTER_STATUS_IMMOBILE] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_ATTACKMULT]) fighter->status[FIGHTER_STATUS_ATTACKMULT] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_EVADE]) fighter->status[FIGHTER_STATUS_EVADE] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_DEFLECT]) fighter->status[FIGHTER_STATUS_DEFLECT] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_ABSORPTION]) fighter->status[FIGHTER_STATUS_ABSORPTION] = 0;
+			if (!fighter->statusOverride[FIGHTER_STATUS_ANTIREGEN]) fighter->status[FIGHTER_STATUS_ANTIREGEN] = 0;
+			
+			for (int i = 0; i < 32; i++) {
 				fighter->status[i] += fighter->statusNext[i];
 				fighter->statusNext[i] = 0;
 			}
+			
+			if (fighter->mp < 0) fighter->mp = 0;
+			if (fighter->mp > fighter->mpMax) fighter->mp = fighter->mpMax;
 			
 			
 			
@@ -901,16 +1294,19 @@ void Battle_Update_Idle() {
 				continue;
 			}
 			
-			if (!fighter->alive)
-				fighter->state = FIGHTER_STATE_DOWN;
-			else if (fighter->status[FIGHTER_STATUS_WEAPONSEARCH] > 0)
-				fighter->state = FIGHTER_STATE_SPECIAL1;
-			else if (fighter->status[FIGHTER_STATUS_COUNTER] > 0)
-				fighter->state = FIGHTER_STATE_ATTACK1;
-			else if (fighter->status[FIGHTER_STATUS_GUARD] > 0)
-				fighter->state = FIGHTER_STATE_BLOCK;
-			else
-				fighter->state = FIGHTER_STATE_IDLE;
+			fighter->speedRoll = fighter->speed + fighter->status[FIGHTER_STATUS_HASTE] - fighter->status[FIGHTER_STATUS_BIND] - fighter->status[FIGHTER_STATUS_PARALYSIS] - fighter->status[FIGHTER_STATUS_CHILL];
+			fighter->speedRollMin = fighter->speedRoll - 3;
+			fighter->speedRollMax = fighter->speedRoll + 3;
+			
+			if (fighter->speedRollMin < 1) fighter->speedRollMin = 1;
+			if (fighter->speedRollMax < 1) fighter->speedRollMax = 1;
+			
+			if (fighter->status[FIGHTER_STATUS_PARALYSIS])
+				fighter->speedRollMax = fighter->speedRollMin;
+			
+			fighter->speedRoll = Random_IRange(fighter->speedRollMin, fighter->speedRollMax);
+			
+			Fighter_SwitchToDefaultState(fighter);
 		}
 		
 		for (int i = 0; i < 16; i++) {
@@ -924,18 +1320,6 @@ void Battle_Update_Idle() {
 		for (int i = 0; i < 16; i++) {
 			Fighter* fighter = &battle.fighters[i];
 			if (!fighter->enabled) continue;
-			
-			fighter->speedRoll = fighter->speed + fighter->status[FIGHTER_STATUS_HASTE] - fighter->status[FIGHTER_STATUS_BIND] - fighter->status[FIGHTER_STATUS_PARALYSIS] - fighter->status[FIGHTER_STATUS_CHILL];
-			fighter->speedRollMin = fighter->speedRoll - 3;
-			fighter->speedRollMax = fighter->speedRoll + 3;
-			
-			if (fighter->speedRollMin < 1) fighter->speedRollMin = 1;
-			if (fighter->speedRollMax < 1) fighter->speedRollMax = 1;
-			
-			if (fighter->status[FIGHTER_STATUS_PARALYSIS])
-				fighter->speedRollMax = fighter->speedRollMin;
-			
-			fighter->speedRoll = Random_IRange(fighter->speedRollMin, fighter->speedRollMax);
 			
 			if (Fighter_AI_TurnStart(fighter)) {
 				return;
@@ -960,8 +1344,11 @@ void Battle_Update_Idle() {
 			for (int j = 0; j < fighter->movesetCount; j++) {
 				Action* action = &actionData[fighter->moveset[j]];
 				
-				if (action->condition != ACTIONCONDITION_EXHAUST) {
+				if (fighter->movesetDisabled[j] == 1) {
 					Fighter_EnableAction(fighter, fighter->moveset[j]);
+				}
+				else if (fighter->movesetDisabled[j] == 2) {
+					continue;
 				}
 				
 				if (action->targetType == TARGETTYPE_DOWNALLY) {
@@ -978,13 +1365,18 @@ void Battle_Update_Idle() {
 					}
 				}
 				
-				if (action->condition == ACTIONCONDITION_HPHALF) {
+				if (action->condition == ACTIONCONDITION_HPHALF || action->condition == ACTIONCONDITION_EXHAUST_HPHALF) {
 					if (fighter->hp > (fighter->hpMax + 1) / 2) {
 						Fighter_DisableAction(fighter, fighter->moveset[j]);
 					}
 				}
 				else if (action->condition == ACTIONCONDITION_STATUSCOST) {
 					if (fighter->status[action->conditionVars[0].i] < action->conditionVars[1].i) {
+						Fighter_DisableAction(fighter, fighter->moveset[j]);
+					}
+				}
+				else if (action->condition == ACTIONCONDITION_AZTEC_1) {
+					if (fighter->status[FIGHTER_STATUS_PARALYSIS] != 3 || fighter->movesetCount != 5 || fighter->mp % 8 != 0) {
 						Fighter_DisableAction(fighter, fighter->moveset[j]);
 					}
 				}
@@ -999,16 +1391,7 @@ void Battle_Update_Idle() {
 				Fighter_AI_ChooseAction(fighter);
 			}
 			
-			if (!fighter->alive)
-				fighter->state = FIGHTER_STATE_DOWN;
-			else if (fighter->status[FIGHTER_STATUS_WEAPONSEARCH] > 0)
-				fighter->state = FIGHTER_STATE_SPECIAL1;
-			else if (fighter->status[FIGHTER_STATUS_COUNTER] > 0)
-				fighter->state = FIGHTER_STATE_ATTACK1;
-			else if (fighter->status[FIGHTER_STATUS_GUARD] > 0)
-				fighter->state = FIGHTER_STATE_BLOCK;
-			else
-				fighter->state = FIGHTER_STATE_IDLE;
+			Fighter_SwitchToDefaultState(fighter);
 		}
 		
 		battle.turn = -1;
@@ -1040,8 +1423,8 @@ void Battle_Update_Idle() {
 		
 		switch (battle.menu.id) {
 			case 0:
-				if (PlayerButtonPressed(PLAYER_BUTTON_C)) {
-					PlaySoundInterrupt(SND_menu6);
+				if (PlayerButtonPressed(PLAYER_BUTTON_C) && !battle.everythingButSkillsDisabled) {
+					Audio_PlaySoundInterrupt(SND_menu6);
 					Battle_ChangeMenu(5);
 					Menu_ResetCursor(&battle.menu);
 				}
@@ -1051,11 +1434,11 @@ void Battle_Update_Idle() {
 						Menu_ResetCursor(&battle.menu);
 					}
 				}
-				else if (battle.menu.optionPressed == 1) {
+				else if (battle.menu.optionPressed == 1 && !battle.everythingButSkillsDisabled) {
 					Battle_ChangeMenu(4);
 					Menu_ResetCursor(&battle.menu);
 				}
-				else if (battle.menu.optionPressed == 2) {
+				else if (battle.menu.optionPressed == 2 && !battle.everythingButSkillsDisabled) {
 					for (int i = 0; i < 16; i++) {
 						if (profile.itemInventory[i] > 0) {
 							Battle_ChangeMenu(3);
@@ -1064,7 +1447,7 @@ void Battle_Update_Idle() {
 						}
 					}
 				}
-				else if (battle.menu.optionPressed == 3) {
+				else if (battle.menu.optionPressed == 3 && !battle.everythingButSkillsDisabled) {
 					while (++battle.turn < 8 && (!battle.fighters[battle.turn].enabled || !battle.fighters[battle.turn].alive));
 					
 					Battle_ChangeMenu(0);
@@ -1216,7 +1599,7 @@ void Battle_Update_Idle() {
 					battle.loadLastSave = true;
 				}
 				else if (battle.menu.optionPressed == MENUOPTION_BACK || PlayerButtonPressed(PLAYER_BUTTON_C)) {
-					PlaySoundInterrupt(SND_menu3);
+					Audio_PlaySoundInterrupt(SND_menu3);
 					Battle_ChangeMenu(0);
 				}
 				break;
@@ -1316,10 +1699,11 @@ void Battle_Update_Action() {
 					}
 					
 					if (battle.attacker && battle.attacker->alive && battle.attacker->actionId > 0 && battle.target && ((battle.target->enabled && (battle.target->alive || actionData[battle.attacker->actionId].targetType == TARGETTYPE_DOWNALLY)) || actionData[battle.attacker->actionId].targetType == TARGETTYPE_NONE)) {
-						if (actionData[battle.attacker->actionId].condition == ACTIONCONDITION_EXHAUST) {
-							Fighter_DisableAction(battle.attacker, battle.attacker->actionId);
+						if (battle.attacker->mp < Max(0, actionData[battle.attacker->actionId].cost - battle.attacker->manaCostReduction)) {
+							battle.attacker->readyTimer = -404;
+							Dialog_Run(4009);
+							break;
 						}
-						
 						battle.attacker->blockTimer = -1;
 						battle.attacker->blockCooldownTimer = -1;
 						battle.attacker->attackTimer = -1;
@@ -1341,6 +1725,7 @@ void Battle_Update_Action() {
 						if (actionData[battle.attacker->actionId].animationId >= 0)
 							battle.attacker->actionTempAnimId = actionData[battle.attacker->actionId].animationId;
 						
+						battle.attacker->attackAnimTime = actionAnimData[battle.attacker->actionTempAnimId].time;
 						if (battle.attacker->targetId == TARGET_ALLYPARTY) {
 							for (int i = 0; i < 8; i++) {
 								Fighter* fighter = &battle.fighters[i];
@@ -1413,7 +1798,10 @@ void Battle_Update_Action() {
 			battle.timer--;
 		}
 		else {
-			if (battle.attacker->counterTargetId < 0) {
+			if (battle.attacker->readyTimer == -404) {
+				battle.timer--;
+			}
+			else if (battle.attacker->counterTargetId < 0) {
 				Action* action = &actionData[battle.attacker->actionId];
 				battle.attacker->mp -= Max(0, action->cost - battle.attacker->manaCostReduction);
 				if (action->condition == ACTIONCONDITION_STATUSCOST) {
@@ -1421,6 +1809,9 @@ void Battle_Update_Action() {
 					if (battle.attacker->status[action->conditionVars[0].i] < 0) {
 						battle.attacker->status[action->conditionVars[0].i] = 0;
 					}
+				}
+				if (action->condition == ACTIONCONDITION_EXHAUST || action->condition == ACTIONCONDITION_EXHAUST_HPHALF) {
+					Fighter_DisableActionPermamently(battle.attacker, battle.attacker->actionId);
 				}
 				for (int i = 0; i < battle.attacker->passiveCount; i++) Passive_OnSkillUse(battle.attacker->passives[i], battle.attacker);
 			}
@@ -1480,7 +1871,21 @@ void Battle_Update_Action() {
 	}
 	
 	if (battle.timer == 5) {
-		if (battle.attacker->counterTargetId >= 0) {
+		battle.target->aiTakeAttackCount++;
+		
+		if (battle.target->hp <= 0 && actionData[battle.attacker->actionId].targetType == TARGETTYPE_ENEMY) {
+			for (int i = 0; i < 16; i++) {
+				Fighter* fighter = &battle.fighters[i];
+				if (!fighter->enabled) continue;
+				
+				for (int j = 0; j < fighter->passiveCount; j++) Passive_OnFighterDefeat(fighter->passives[j], fighter, battle.target);
+			}
+		}
+		
+		if (battle.attacker->readyTimer == -404) {
+			
+		}
+		else if (battle.attacker->counterTargetId >= 0) {
 			battle.attacker->counterTargetId = -1;
 		}
 		else {
@@ -1491,14 +1896,6 @@ void Battle_Update_Action() {
 			}
 		}
 		
-		if (battle.target->hp <= 0 && actionData[battle.attacker->actionId].targetType == TARGETTYPE_ENEMY) {
-			for (int i = 0; i < 16; i++) {
-				Fighter* fighter = &battle.fighters[i];
-				if (!fighter->enabled) continue;
-				
-				for (int j = 0; j < fighter->passiveCount; j++) Passive_OnFighterDefeat(fighter->passives[j], fighter, battle.target);
-			}
-		}
 		for (int i = 0; i < 16; i++) {
 			Fighter* fighter = &battle.fighters[i];
 			if (!fighter->enabled || fighter->trulyDead) continue;
@@ -1513,14 +1910,7 @@ void Battle_Update_Action() {
 				continue;
 			}
 			
-			if (!fighter->alive)
-				fighter->state = FIGHTER_STATE_DOWN;
-			else if (fighter->status[FIGHTER_STATUS_COUNTER] > 0)
-				fighter->state = FIGHTER_STATE_ATTACK1;
-			else if (fighter->status[FIGHTER_STATUS_GUARD] > 0)
-				fighter->state = FIGHTER_STATE_BLOCK;
-			else
-				fighter->state = FIGHTER_STATE_IDLE;
+			Fighter_SwitchToDefaultState(fighter);
 		}
 		if (battle.timer == 5) battle.timer = 0;
 	}
@@ -1541,7 +1931,7 @@ void Battle_Update_Action() {
 		battle.attacker->flinchTicks = 12;
 	}
 	if (battle.timer == 154) {
-		PlaySound(SND_poison);
+		Audio_PlaySound(SND_poison);
 		battle.attacker->flinchTicks = 18;
 		if (battle.attacker->collapseSpriteId >= 0) {
 			battle.attacker->spriteFrame = 1;
@@ -1596,19 +1986,12 @@ void Battle_Update_End() {
 				battle.expEarned += fighter->exp * (1 + fighter->trulyDead);
 				battle.cashEarned += fighter->cash;
 				for (int j = 0; j < fighter->rewardCount; j++) {
-					float chance = 1;
-					if (fighter->rewards[j].rarity == 1)
-						chance = 0.5;
-					else if (fighter->rewards[j].rarity == 2)
-						chance = 0.25;
-					else if (fighter->rewards[j].rarity == 3)
-						chance = 0.1;
-					else if (fighter->rewards[j].rarity == 4)
-						chance = 0.05;
-					else if (fighter->rewards[j].rarity == 5)
-						chance = 0.01;
+					uint16_t progress = (uint16_t)profile.armorsProgress[fighter->rewards[j].id] + (uint16_t)(256 >> fighter->rewards[j].rarity);
 					
-					if (Random(1) < chance) {
+					if (progress >= 256) {
+						progress &= 0xff;
+						profile.armorsProgress[fighter->rewards[j].id] = (uint8_t)progress;
+						
 						if (fighter->rewards[j].type != 0)
 						if (armorData[fighter->rewards[j].id].specialAbility == 1 && profile.armors[fighter->rewards[j].id] > 0) {
 							continue;
@@ -1633,6 +2016,9 @@ void Battle_Update_End() {
 							battle.rewards[battle.rewardCount].count = 1;
 							battle.rewardCount++;
 						}
+					}
+					else {
+						profile.armorsProgress[fighter->rewards[j].id] = (uint8_t)progress;
 					}
 				}
 			}
@@ -1715,11 +2101,15 @@ void Battle_Update_End() {
 		}
 	}
 	if (battle.timer == 5) {
-		FadeOutMusic(500);
+		if (!profile.tempFlags[TEMPFLAG_DISABLEBATTLEMUSIC]) {
+			Audio_FadeOutMusic(500);
+		}
 	}
 	if (battle.timer == 35) {
-		StopMusic();
-		RemoveSoundFilter();
+		if (!profile.tempFlags[TEMPFLAG_DISABLEBATTLEMUSIC]) {
+			Audio_StopMusic();
+		}
+		Audio_RemoveSoundFilter();
 		game.frameskip = 0;
 		if (battle.retry) {
 			profile = profileBuffer;
@@ -1738,7 +2128,7 @@ void Battle_Update_End() {
 					return;
 				}
 				else {
-					PlaySound(SND_no);
+					Audio_PlaySound(SND_no);
 					if (ret == -2) {
 						CreatePopup("File is not a Rubindeavor save.");
 					}
@@ -1757,7 +2147,7 @@ void Battle_Update_End() {
 		}
 		else {
 			ChangeScene(SCENE_OVERWORLD);
-			PlayMusic(overworld.lastMusicId);
+			Audio_PlayMusic(overworld.lastMusicId);
 			overworld.transition.timer++;
 		}
 	}
@@ -1773,7 +2163,7 @@ void Battle_Update_End() {
 		Dialog_Run(4008);
 	}
 	if (battle.timer >= 101 && battle.timer <= 120 && battle.timer % 8 == 5) {
-		PlaySound(SND_chess_move);
+		Audio_PlaySound(SND_chess_move);
 	}
 	if (battle.timer == 132) {
 		Dialog_Continue();
@@ -1865,7 +2255,7 @@ void Battle_Update_Event() {
 			}
 			if (battle.timer == 360) {
 				if (battle.battleEventVars[0] == 1 || battle.battleEventVars[0] == 3 || battle.battleEventVars[0] == 6)
-					FadeOutMusic(2000);
+					Audio_FadeOutMusic(2000);
 			}
 			if (battle.timer == 420) {
 				battle.backgroundId = 8;
@@ -1879,7 +2269,7 @@ void Battle_Update_Event() {
 				}
 				if (battle.battleEventVars[0] == 10) {
 					battle.timer = 1000;
-					FadeOutMusic(5000);
+					Audio_FadeOutMusic(5000);
 				}
 			}
 			if (battle.timer == 480) {
@@ -1887,24 +2277,24 @@ void Battle_Update_Event() {
 			}
 			if (battle.timer == 500) {
 				if (battle.battleEventVars[0] == 1) {
-					PlayMusic(MUS_battlegate2);
+					Audio_PlayMusic(MUS_battlegate2);
 				}
 				else if (battle.battleEventVars[0] == 2) {
-					ApplySoundFilter(0);
+					Audio_ApplySoundFilter(0);
 				}
 				else if (battle.battleEventVars[0] == 3) {
-					PlayMusic(MUS_battlegate3);
+					Audio_PlayMusic(MUS_battlegate3);
 					game.frameskip = 1;
 				}
 				else if (battle.battleEventVars[0] == 6) {
-					PlayMusic(MUS_battlegate4);
+					Audio_PlayMusic(MUS_battlegate4);
 					game.frameskip = 4;
 				}
 				else if (battle.battleEventVars[0] == 7) {
-					ApplySoundFilter(1);
+					Audio_ApplySoundFilter(1);
 				}
 				else if (battle.battleEventVars[0] == 9) {
-					ApplySoundFilter(2);
+					Audio_ApplySoundFilter(2);
 					game.frameskip = 18;
 				}
 			}
@@ -1914,7 +2304,7 @@ void Battle_Update_Event() {
 			}
 			
 			if (battle.timer == 1450) {
-				RemoveSoundFilter();
+				Audio_RemoveSoundFilter();
 				game.frameskip = 0;
 				Dialog_Continue();
 				ChangeScene(SCENE_OVERWORLD);
@@ -1931,11 +2321,11 @@ void Battle_Update_Event() {
 				battle.battleEventFighter->state = FIGHTER_STATE_SPECIAL3;
 			}
 			else if (battle.timer == 180) {
-				PlaySound(SND_unknown3);
+				Audio_PlaySound(SND_unknown3);
 				battle.battleEventFighter->state = FIGHTER_STATE_SPECIAL4;
 			}
 			else if (battle.timer == 200) {
-				PlaySound(SND_unknown2);
+				Audio_PlaySound(SND_unknown2);
 				battle.battleEventFighter->state = FIGHTER_STATE_SPECIAL5;
 			}
 			else if (battle.timer == 220) {
@@ -2054,13 +2444,13 @@ void Battle_Update_Event() {
 			}
 			else if (battle.timer == 75) {
 				battle.battleEventFighter->state = FIGHTER_STATE_BLOCK;
-				PlaySound(SND_boost);
+				Audio_PlaySound(SND_boost);
 			}
 			else if (battle.timer == 135) {
 				battle.battleEventFighter->state = FIGHTER_STATE_ATTACK1;
 				Battle_ShakeScreen(20);
-				PlaySound(SND_reset);
-				PlayMusic(MUS_lastresort_pitchup);
+				Audio_PlaySound(SND_reset);
+				Audio_PlayMusic(MUS_lastresort_pitchup);
 				battle.battleEventVars[1] = 1;
 				battle.battleEventVars[2] = battle.backgroundId;
 				battle.backgroundId = 10;
@@ -2085,7 +2475,7 @@ void Battle_Update_Event() {
 			break;
 		case 9:
 			if (battle.timer == 1) {
-				PlayMusic(MUS_battle);
+				Audio_PlayMusic(MUS_battle);
 				battle.backgroundId = battle.battleEventVars[2];
 				battle.battleEventFighter->state = FIGHTER_STATE_HURT;
 				battle.battleEventFighter->status[FIGHTER_STATUS_HYPERENERGIZER] = 0;
@@ -2106,7 +2496,7 @@ void Battle_Update_Event() {
 			if (battle.timer == 65) {
 				int damage = 256;
 				battle.battleEventFighter->state = FIGHTER_STATE_HURT;
-				PlaySoundInterrupt(SND_hit2);
+				Audio_PlaySoundInterrupt(SND_hit2);
 				
 				snprintf(game.textBuffer, 16, "%d", damage);
 				Battle_CreateLabel(0, game.textBuffer, battle.battleEventFighter->x, battle.battleEventFighter->y - 32);
@@ -2121,14 +2511,14 @@ void Battle_Update_Event() {
 		case 11:
 			if (battle.timer == 1) {
 				battle.backgroundId = 8;
-				RemoveSoundFilter();
+				Audio_RemoveSoundFilter();
 				game.frameskip = 0;
-				StopMusic();
+				Audio_StopMusic();
 				battle.battleEventVars[1] = 999;
 				battle.battleEventFighter->facing = FACING_RIGHT;
 			}
 			if (battle.timer == 60) {
-				PlaySound(SND_gatedefeat);
+				Audio_PlaySound(SND_gatedefeat);
 			}
 			if (battle.timer >= 61 && battle.timer < 360) {
 				Battle_ShakeScreen(2 + (battle.timer - 61) / 155 * 3);
@@ -2148,7 +2538,7 @@ void Battle_Update_Event() {
 			}
 			if (battle.timer == 640) {
 				Dialog_Continue();
-				PlayMusic(MUS_brilliant3);
+				Audio_PlayMusic(MUS_brilliant3);
 				battle.battleEventDialogWait = true;
 			}
 			if (battle.timer == 641) {
@@ -2237,15 +2627,818 @@ void Battle_Update_Event() {
 				finished = true;
 			}
 			break;
+		case 17:
+			if (battle.timer == 1) {
+				battle.state = BATTLE_STATE_END;
+				battle.timer = 4;
+			}
+			break;
+		case 18:
+			if (battle.timer == 1) {
+				Dialog_Run(2570);
+			}
+			if (battle.timer == 2) {
+				profile.flags[FLAG_AMPERCORP_PBSUPERHERO_DIALOG] = 8;
+				battle.state = BATTLE_STATE_END;
+				battle.timer = 4;
+			}
+			break;
+		case 19:
+			if (battle.timer == 1) {
+				Dialog_Run(2644);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 20:
+			if (battle.timer == 1) {
+				Dialog_Run(2645);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 21:
+			if (battle.timer == 1) {
+				battle.battleEventVars[0] = 1;
+			}
+			if (battle.timer == 4) {
+				Audio_PlaySound(SND_explode);
+				battle.battleEventFighter->flinchTicks = 18;
+				Battle_ShakeScreen(10);
+			}
+			if (battle.timer == 75 || battle.timer == 185 || battle.timer == 210 || battle.timer == 317) {
+				Audio_PlaySound(SND_explode);
+				Battle_ShakeScreen(4);
+			}
+			if (battle.timer >= 75 && battle.timer < 471 && battle.timer % 4 == 0) {
+				battle.battleEventFighter->flinchTicks = 6;
+			}
+			if (battle.timer == 491) {
+				Audio_PlaySound(SND_firemassattack);
+			}
+			if (battle.timer == 515) {
+				Audio_PlaySound(SND_nerf);
+				Audio_FadeOutMusic(4000);
+				battle.battleEventFighter->y -= 10000;
+				battle.battleEventFighter->yStart -= 10000;
+			}
+			
+			if (battle.timer == 816) {
+				finished = true;
+			}
+			break;
+		case 22:
+			if (battle.timer == 1) {
+				Dialog_Run(2648);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 23:
+			if (battle.timer == 1) {
+				Dialog_Run(2646);
+			}
+			if (battle.timer == 2) {
+				Dialog_Run(2647);
+			}
+			if (battle.timer == 3) {
+				finished = true;
+			}
+			break;
+		case 24:
+			if (battle.timer == 1) {
+				Audio_FadeOutMusic(3000);
+			}
+			if (battle.timer == 181) {
+				Dialog_Run(2649);
+			}
+			if (battle.timer == 182) {
+				battle.state = BATTLE_STATE_END;
+				battle.timer = 4;
+			}
+			break;
+		case 25:
+			if (battle.timer == 1) {
+				Audio_StopMusic();
+				battle.battleEventFighter->spriteId = SPR_misc_helltree_collapsed;
+			}
+			if (battle.timer >= 146 && battle.timer <= 289 && battle.timer % 13 == 0) {
+				Battle_CreateSpark(7, battle.battleEventFighter->x + Random_IRange(-80, 80), battle.battleEventFighter->y + Random_IRange(-120, 40), 0);
+				Audio_PlaySound(SND_explode);
+				Battle_ShakeScreen(10);
+			}
+			if (battle.timer == 290) {
+				Battle_CreateSpark(7, battle.battleEventFighter->x - 72, battle.battleEventFighter->y, 0);
+				Battle_CreateSpark(7, battle.battleEventFighter->x, battle.battleEventFighter->y, 0);
+				Battle_CreateSpark(7, battle.battleEventFighter->x + 72, battle.battleEventFighter->y, 0);
+				Audio_PlaySound(SND_firemassattack);
+				Battle_ShakeScreen(20);
+				battle.battleEventFighter->y -= 10000;
+				battle.battleEventFighter->spriteId = -1;
+			}
+			if (battle.timer == 485) {
+				battle.state = BATTLE_STATE_END;
+				battle.timer = 4;
+			}
+			break;
+		case 26:
+			if (battle.timer == 1) {
+				Dialog_Run(1536);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 27:
+			if (battle.timer == 1) {
+				Dialog_Run(1537);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 28:
+			if (battle.timer == 1) {
+				Dialog_Run(1538);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 29:
+			if (battle.timer == 1) {
+				Dialog_Run(1541);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 30:
+			if (battle.timer == 1) {
+				Dialog_Run(1542);
+			}
+			if (battle.timer == 2) {
+				Dialog_Run(1543);
+			}
+			if (battle.timer == 3) {
+				finished = true;
+			}
+			break;
+		case 31:
+			if (battle.timer == 1) {
+				Dialog_Run(1544);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 32:
+			if (battle.timer == 1) {
+				Dialog_Run(1539);
+			}
+			if (battle.timer == 2) {
+				Dialog_Run(1540);
+			}
+			if (battle.timer == 3) {
+				finished = true;
+			}
+			break;
+		case 33:
+			if (battle.timer == 1) {
+				Dialog_Run(1545);
+			}
+			if (battle.timer == 2) {
+				Dialog_Run(1546);
+			}
+			if (battle.timer == 3) {
+				finished = true;
+			}
+			break;
+		case 34:
+			if (battle.timer == 1) {
+				Dialog_Run(1547);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 35:
+			if (battle.timer == 1) {
+				Dialog_Run(1548);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 36:
+			if (battle.timer == 1) {
+				Dialog_Run(1549);
+			}
+			if (battle.timer == 2) {
+				battle.fighters[0].state = FIGHTER_STATE_ATTACK1;
+				Dialog_Run(1550);
+			}
+			if (battle.timer == 3) {
+				Dialog_Run(1551);
+			}
+			if (battle.timer == 4) {
+				finished = true;
+			}
+			break;
+		case 37:
+			if (battle.timer == 1) {
+				Dialog_Run(1552);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 38:
+			if (battle.timer == 1) {
+				Dialog_Run(1553);
+			}
+			if (battle.timer == 2) {
+				battle.battleEventFighter->state = FIGHTER_STATE_ATTACK1;
+			}
+			if (battle.timer == 14) {
+				battle.battleEventFighter->state = FIGHTER_STATE_ATTACK3;
+				Audio_PlaySound(SND_menu1);
+			}
+			if (battle.timer == 115) {
+				battle.battleEventFighter->state = FIGHTER_STATE_IDLE;
+				Dialog_Run(1554);
+			}
+			if (battle.timer == 116) {
+				finished = true;
+			}
+			break;
+		case 39:
+			if (battle.timer == 1) {
+				Dialog_Run(2663);
+			}
+			if (profile.flags[FLAG_ALONE]) {
+				if (battle.timer == 2) {
+					finished = true;
+				}
+			}
+			else {
+				if (battle.timer == 2) {
+					Dialog_Run(2664);
+				}
+				if (battle.timer == 3) {
+					Dialog_Run(2665);
+				}
+				if (battle.timer == 4) {
+					finished = true;
+				}
+			}
+			break;
+		case 40:
+			if (battle.timer == 1) {
+				Dialog_Run(2666);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 41:
+			if (battle.timer == 1) {
+				Dialog_Run(1651);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 42:
+			if (battle.timer == 1) {
+				Dialog_Run(1652);
+			}
+			if (battle.timer == 2) {
+				Dialog_Run(1655);
+			}
+			if (battle.timer == 3) {
+				finished = true;
+			}
+			break;
+		case 43:
+			if (battle.timer == 1) {
+				battle.battleEventFighter->state = FIGHTER_STATE_ATTACK1;
+				Dialog_Run(1653);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 44:
+			if (battle.timer == 1) {
+				Dialog_Run(1654);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 45:
+			if (battle.timer == 1) {
+				battle.battleEventFighter->state = FIGHTER_STATE_ATTACK1;
+				Dialog_Run(1656);
+			}
+			if (battle.timer == 2) {
+				Dialog_Run(1657);
+			}
+			if (battle.timer == 3) {
+				Dialog_Run(1658);
+			}
+			if (battle.timer == 4) {
+				finished = true;
+			}
+			break;
+		case 46:
+			if (battle.timer == 1) {
+				Dialog_Run(1659);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 47:
+			if (battle.timer == 1) {
+				Dialog_Run(1660);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 48:
+			if (battle.timer == 1) {
+				battle.battleEventFighter->state = FIGHTER_STATE_ATTACK1;
+				Dialog_Run(1661);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 49:
+			if (battle.timer == 1) {
+				Audio_FadeOutMusic(2000);
+			}
+			if (battle.timer == 300) {
+				finished = true;
+			}
+			break;
+		case 50:
+			if (battle.timer == 1) {
+				Audio_FadeOutMusic(3000);
+				battle.battleEventVars[1] = 0;
+			}
+			if (battle.timer == 251) {
+				Audio_StopMusic();
+			}
+			if (battle.timer >= 251 && battle.timer < 394) {
+				if (PlayerButtonPressed(PLAYER_BUTTON_Z) || PlayerButtonPressed(PLAYER_BUTTON_X)) {
+					battle.battleEventVars[1] = 1;
+				}
+				if (battle.timer >= 320 && battle.battleEventVars[1] == 1) {
+					battle.battleEventVars[1] = 0;
+					battle.timer = 394;
+				}
+			}
+			if (battle.timer == 395) {
+				Audio_PlayMusic(MUS_bin);
+			}
+			if (battle.timer >= 785 && battle.timer < 1239) {
+				if (PlayerButtonPressed(PLAYER_BUTTON_Z) || PlayerButtonPressed(PLAYER_BUTTON_X)) {
+					battle.battleEventVars[1]++;
+				}
+				if (battle.timer >= Max(890, 1240 - battle.battleEventVars[1] * 15) && battle.battleEventVars[1] >= 1) {
+					battle.battleEventVars[1] = 0;
+					battle.timer = 1239;
+				}
+			}
+			if (battle.timer == 1240) {
+				Audio_PlaySound(SND_introwakeup);
+			}
+			if (battle.timer >= 1240 && battle.timer < 1490 && battle.timer % 4 == 0) {
+				Audio_PlaySound(SND_explode);
+				Battle_CreateSpark(13, Random_Range(16, SCREEN_WIDTH / 3), SCREEN_HEIGHT, 0);
+				Battle_CreateSpark(13, Random_Range(SCREEN_WIDTH / 2, SCREEN_WIDTH * 2 / 3), SCREEN_HEIGHT, 0);
+				Battle_CreateSpark(13, Random_Range(SCREEN_WIDTH * 2 / 3, SCREEN_WIDTH - 16), SCREEN_HEIGHT, 0);
+			}
+			if (battle.timer == 1540) {
+				Audio_StopMusic();
+				Audio_PlaySound(SND_subspace_transform);
+				
+				PartyMember* partyMember = &partyMembers[0];
+				
+				partyMember->headId = 86;
+				partyMember->defaultArmorId = 10;
+				partyMember->tiredThreshold = 0x1fff1fff;
+				partyMember->hpDamage = 0;
+				partyMember->tiredness = 0;
+				partyMember->tiredLevel = 0;
+				
+				partyMember->starter.hpMax = 5700;
+				partyMember->starter.mpMax = 850;
+				partyMember->starter.attack = 65;
+				partyMember->starter.defense = 8;
+				partyMember->starter.speed = 95;
+				
+				partyMember->growth.hpMax = 551;
+				partyMember->growth.mpMax = 112;
+				partyMember->growth.attack = 66;
+				partyMember->growth.defense = 8;
+				partyMember->growth.speed = 68;
+				
+				Profile_UnequipAll(0);
+				
+				Profile_AddAction(176, 1);
+				Profile_AddAction(177, 1);
+				Profile_AddAction(179, 1);
+				Profile_AddAction(180, 1);
+				Profile_AddAction(181, 1);
+				Profile_AddAction(182, 1);
+				
+				Profile_EquipAction(0, 176);
+				Profile_EquipAction(0, 177);
+				Profile_EquipAction(0, 179);
+				Profile_EquipAction(0, 180);
+				Profile_EquipAction(0, 181);
+				Profile_EquipAction(0, 182);
+				
+				battle.fighters[0].enabled = false;
+				Battle_CreateFighter(1, 0);
+				{
+					Fighter* fighter = &battle.fighters[0];
+					fighter->speedRoll = fighter->speed;
+					fighter->speedRollMin = fighter->speedRoll - 3;
+					fighter->speedRollMax = fighter->speedRoll + 3;
+					
+					if (fighter->speedRollMin < 1) fighter->speedRollMin = 1;
+					if (fighter->speedRollMax < 1) fighter->speedRollMax = 1;
+					
+					fighter->speedRoll = Random_IRange(fighter->speedRollMin, fighter->speedRollMax);
+				}
+				
+				battle.battleEventFighter->state = FIGHTER_STATE_HURT;
+				
+				profile.flags[FLAG_RUBY_GODMODE] = 1;
+			}
+			if (battle.timer >= 1540 && battle.timer < 1679) {
+				if (PlayerButtonPressed(PLAYER_BUTTON_Z) || PlayerButtonPressed(PLAYER_BUTTON_X)) {
+					battle.battleEventVars[1] = 1;
+				}
+				if (battle.timer >= 1570 && battle.battleEventVars[1] == 1) {
+					battle.battleEventVars[1] = 0;
+					battle.timer = 1679;
+				}
+			}
+			if (battle.timer == 1740) {
+				Audio_PlayMusic(MUS_lastresort);
+			}
+			if (battle.timer == 2220) {
+				battle.battleEventFighter->state = FIGHTER_STATE_IDLE;
+				Dialog_Run(1676);
+			}
+			if (battle.timer == 2221) {
+				Dialog_Run(1677);
+			}
+			if (battle.timer == 2222) {
+				finished = true;
+			}
+			break;
+		case 51:
+			if (battle.timer == 1) {
+				Audio_FadeOutMusic(1000);
+				battle.battleEventFighter->state = FIGHTER_STATE_HURT;
+				Dialog_Run(1679);
+			}
+			if (battle.timer == 55) {
+				Dialog_Run(1680);
+			}
+			if (battle.timer == 56) {
+				Dialog_Run(1681);
+			}
+			if (battle.timer == 107) {
+				Audio_PlayMusic(MUS_risk);
+				battle.battleEventFighter->spriteId = SPR_misc_lulu_god_rage;
+				battle.battleEventFighter->spriteFrame = 0;
+			}
+			if (battle.timer == 118) {
+				Dialog_Run(1683);
+			}
+			if (battle.timer == 119) {
+				Dialog_Run(1682);
+			}
+			if (battle.timer >= 120 && battle.timer < 180) {
+				if (battle.timer % 12 == 0) {
+					battle.battleEventFighter->x = battle.battleEventFighter->xStart - 2;
+				}
+				else if (battle.timer % 12 == 6) {
+					battle.battleEventFighter->x = battle.battleEventFighter->xStart + 2;
+				}
+			}
+			if (battle.timer == 180) {
+				Audio_PlaySound(SND_introwakeup);
+				battle.battleEventFighter->x = battle.battleEventFighter->xStart;
+				battle.battleEventFighter->spriteFrame = 1;
+			}
+			if (battle.timer >= 180 && battle.timer <= 540) {
+				if (battle.timer % 20 == 0) {
+					Audio_PlaySound(SND_burn);
+				}
+				if (battle.timer >= 330 && battle.timer % 8 == 0) {
+					Audio_PlaySound(SND_explode);
+					Battle_CreateSpark(9905, battle.battleEventFighter->x + Random_Range(-48, 48), battle.battleEventFighter->y + Random_Range(-64, 32), 0);
+				}
+				if (battle.timer >= 420 && battle.timer % 8 == 4) {
+					Audio_PlaySound(SND_explode);
+					Battle_CreateSpark(9905, battle.battleEventFighter->x + Random_Range(-48, 48), battle.battleEventFighter->y + Random_Range(-64, 32), 0);
+				}
+				if (battle.timer % 10 == 0) {
+					Battle_CreateSpark(9905, battle.battleEventFighter->x + Random_Range(-48, 48), battle.battleEventFighter->y + Random_Range(-64, 32), 0);
+				}
+				Battle_ShakeScreen(1 + (battle.timer - 180) / 30);
+			}
+			if (battle.timer == 570) {
+				Audio_StopMusic();
+				Audio_PlaySound(SND_firemassattack);
+				
+				battle.fighters[8].enabled = false;
+				Battle_CreateFighter(107, 1);
+				{
+					Fighter* fighter = &battle.fighters[8];
+					fighter->speedRoll = fighter->speed;
+					fighter->speedRollMin = fighter->speedRoll - 3;
+					fighter->speedRollMax = fighter->speedRoll + 3;
+					
+					if (fighter->speedRollMin < 1) fighter->speedRollMin = 1;
+					if (fighter->speedRollMax < 1) fighter->speedRollMax = 1;
+					
+					fighter->speedRoll = Random_IRange(fighter->speedRollMin, fighter->speedRollMax);
+				}
+				Fighter_ClearAllStatus(&battle.fighters[0]);
+			}
+			if (battle.timer == 900) {
+				Audio_PlayMusic(MUS_ultboss);
+				battle.battleEventVars[0] = 0;
+				battle.turnCount = 1;
+				battle.backgroundId = 20;
+			}
+			if (battle.timer == 1305) {
+				Dialog_Run(1684);
+			}
+			if (battle.timer == 1306) {
+				finished = true;
+			}
+			break;
+		case 52:
+			if (battle.timer == 1) {
+				Dialog_Run(1678);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 53:
+			if (battle.timer == 1) {
+				Dialog_Run(1685);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 54:
+			if (battle.timer == 1) {
+				Dialog_Run(1686);
+			}
+			if (battle.timer == 2) {
+				finished = true;
+			}
+			break;
+		case 55:
+			if (battle.timer == 1) {
+				Audio_FadeOutMusic(2000);
+				battle.battleEventFighter->state = FIGHTER_STATE_HURT;
+			}
+			if (battle.timer == 111) {
+				Audio_PlaySound(SND_poison);
+				battle.battleEventFighter->spriteId = SPR_misc_lulu_ultimate_stagger;
+				battle.battleEventFighter->spriteFrame = 0;
+			}
+			if (battle.timer == 160) {
+				Dialog_Run(1687);
+			}
+			if (battle.timer == 161) {
+				Dialog_Run(1688);
+			}
+			if (battle.timer == 225) {
+				battle.battleEventFighter->state = FIGHTER_STATE_IDLE;
+				battle.battleEventFighter->spriteId = -1;
+				Dialog_Run(1689);
+			}
+			if (battle.timer == 226) {
+				Audio_PlayMusic(MUS_ultboss_shortpre);
+				battle.battleEventFighter->spriteId = SPR_misc_lulu_ultimate_rage;
+				battle.battleEventFighter->spriteFrame = 0;
+			}
+			if (battle.timer == 334) {
+				Dialog_Run(1690);
+			}
+			if (battle.timer == 335) {
+				battle.battleEventFighter->state = FIGHTER_STATE_ATTACK1;
+				battle.battleEventFighter->spriteId = -1;
+				Dialog_Run(1691);
+			}
+			if (battle.timer == 336) {
+				Audio_PlaySound(SND_swing);
+				Audio_PlaySound(SND_beamsword);
+				Audio_PlaySound(SND_thunder);
+				battle.fighters[0].state = FIGHTER_STATE_ATTACK3;
+			}
+			if (battle.timer == 346) {
+				Audio_StopMusic();
+				Audio_PlaySound(SND_hit1);
+				battle.battleEventFighter->spriteId = SPR_misc_lulu_ultimate_rage;
+				battle.battleEventFighter->spriteFrame = 0;
+				Fighter_MoveTo(battle.battleEventFighter, battle.battleEventFighter->x + 56, battle.battleEventFighter->y, 4, 0);
+			}
+			if (battle.timer == 348) {
+				Battle_ShakeScreen(18);
+				Audio_PlaySound(SND_crusherhit2);
+			}
+			if (battle.timer == 404) {
+				battle.battleEventFighter->spriteId = SPR_misc_lulu_ultimate_stagger;
+				battle.battleEventFighter->spriteFrame = 0;
+			}
+			if (battle.timer == 455) {
+				battle.fighters[0].state = FIGHTER_STATE_IDLE;
+				Dialog_Run(1692);
+			}
+			if (battle.timer == 456) {
+				battle.battleEventFighter->state = FIGHTER_STATE_ATTACK1;
+				battle.battleEventFighter->spriteId = -1;
+				Dialog_Run(1693);
+			}
+			if (battle.timer == 457) {
+				battle.fighters[0].state = FIGHTER_STATE_HURT;
+				Dialog_Run(1694);
+			}
+			if (battle.timer == 458) {
+				Audio_PlayMusic(MUS_ultboss_short);
+				battle.battleEventFighter->spriteId = SPR_misc_lulu_ultimate_rage;
+				battle.battleEventFighter->spriteFrame = 1;
+				Battle_ShakeScreen(20);
+				Dialog_Run(1695);
+			}
+			if (battle.timer == 459) {
+				battle.fighters[0].state = FIGHTER_STATE_IDLE;
+				Dialog_Run(1696);
+				battle.battleEventDialogWait = false;
+			}
+			if (battle.timer == 494) {
+				battle.battleEventFighter->state = FIGHTER_STATE_ATTACK1;
+				battle.battleEventFighter->spriteId = -1;
+			}
+			if (battle.timer == 503) {
+				Battle_CreateSpark(20, battle.battleEventFighter->x, battle.battleEventFighter->y - 40, 0);
+				Audio_PlaySound(SND_ultimateskill);
+				battle.battleEventFighter->state = FIGHTER_STATE_BLOCK;
+			}
+			if (battle.timer == 568) {
+				Fighter_MoveTo(battle.battleEventFighter, battle.fighters[0].x - battle.battleEventFighter->facing * 32, battle.fighters[0].y, 12, 0);
+				battle.battleEventFighter->state = FIGHTER_STATE_SPECIAL1;
+			}
+			if (battle.timer == 569 && battle.battleEventFighter->moveTarget.enabled) battle.timer--;
+			
+			if (battle.timer == 578) {
+				battle.battleEventDialogWait = true;
+				dialogSystem.state = DIALOG_STATE_IDLE;
+				dialogSystem.textLength = 0;
+				
+				Audio_StopAllSounds();
+				Audio_StopMusic();
+				Audio_PlaySound(SND_firemassattack);
+				Audio_PlaySound(SND_hit3);
+				Audio_PlaySound(SND_crusherhit2);
+				Battle_CreateSpark(16, battle.battleEventFighter->x, battle.battleEventFighter->y - 24, 0);
+				Battle_CreateSpark(21, battle.battleEventFighter->x, battle.battleEventFighter->y - 24, 0);
+				
+				battle.fighters[0].state = FIGHTER_STATE_BLOCK;
+				battle.battleEventFighter->state = FIGHTER_STATE_HURT;
+			}
+			if (battle.timer == 685) {
+				Audio_PlaySound(SND_hit2);
+				
+				Battle_CreateSpark(14, battle.battleEventFighter->x, battle.battleEventFighter->y - 24, 0);
+				Battle_CreateSpark(21, battle.battleEventFighter->x, battle.battleEventFighter->y - 24, 0);
+				battle.fighters[0].state = FIGHTER_STATE_ATTACK3;
+				Fighter_MoveTo(battle.battleEventFighter, 616, battle.battleEventFighter->yStart, 56, 0);
+			}
+			if (battle.timer == 686 && battle.battleEventFighter->moveTarget.enabled) battle.timer--;
+			if (battle.timer == 687) {
+				Audio_PlaySound(SND_hit3);
+				
+				battle.battleEventFighter->spriteId = SPR_misc_lulu_ultimate_stagger;
+				battle.battleEventFighter->spriteFrame = 0;
+				Fighter_MoveTo(battle.battleEventFighter, battle.battleEventFighter->xStart, battle.battleEventFighter->yStart, 18, 0);
+				
+				battle.battleEventVars[1] = 0;
+			}
+			
+			if (battle.timer >= 768 && battle.timer < 1128) {
+				if ((battle.timer - 768) % 18 < 13) {
+					if (PlayerButtonPressed(PLAYER_BUTTON_Z) || PlayerButtonPressed(PLAYER_BUTTON_X)) {
+						battle.battleEventVars[1] = 1;
+					}
+				}
+				
+				if ((battle.timer - 768) % 18 == 0) {
+					Audio_PlaySound(SND_swing);
+					Audio_PlaySound(SND_beamsword);
+					Audio_PlaySound(SND_thunder);
+					battle.fighters[0].state = ((battle.timer - 768) % 36 == 0) ? FIGHTER_STATE_ATTACK2 : FIGHTER_STATE_ATTACK3;
+				}
+				else if ((battle.timer - 768) % 18 == 10) {
+					Audio_PlaySound(SND_hit3);
+					battle.battleEventFighter->flinchTicks = 24;
+					Battle_CreateSpark(21, battle.battleEventFighter->x, battle.battleEventFighter->y - 24, 0);
+				}
+				else if ((battle.timer - 768) % 18 == 12) {
+					Battle_ShakeScreen(18);
+					Audio_PlaySound(SND_crusherhit2);
+				}
+				else if ((battle.timer - 768) % 18 >= 13 && (battle.timer - 768) % 18 < 17 && battle.battleEventVars[1] == 1) {
+					battle.battleEventVars[1] = 0;
+					battle.timer += 17 - (battle.timer - 768) % 18;
+				}
+			}
+			if (battle.timer == 1140) {
+				Audio_PlaySound(SND_swing);
+				Audio_PlaySound(SND_beamsword);
+				Battle_CreateSpark(16, battle.battleEventFighter->x, battle.battleEventFighter->y - 24, 0);
+			}
+			if (battle.timer == 1250) {
+				Audio_PlaySound(SND_firemassattack);
+				Audio_PlaySound(SND_gunfire2);
+				Audio_PlaySound(SND_gunfire2);
+				Battle_CreateSpark(21, battle.battleEventFighter->x + 8, battle.battleEventFighter->y - 24, 0);
+				Battle_CreateSpark(21, battle.battleEventFighter->x - 32, battle.battleEventFighter->y - 64, 0);
+				Battle_CreateSpark(21, battle.battleEventFighter->x - 32, battle.battleEventFighter->y + 16, 0);
+			}
+			
+			if (battle.timer == 1600) {
+				battle.timer = 1;
+				Battle_Update_End();
+				dialogSystem.state = DIALOG_STATE_IDLE;
+				dialogSystem.textLength = 0;
+				
+				Party_GainExp(0, battle.expEarned);
+				
+				battle.state = BATTLE_STATE_END;
+				battle.timer = 34;
+			}
+			break;
+		case 56:
+			if (battle.timer == 1) {
+				Audio_StopMusic();
+				battle.battleEventFighter->spriteId = SPR_misc_helltree_collapsed;
+			}
+			if (battle.timer == 2) {
+				Battle_CreateSpark(7, battle.battleEventFighter->x - 72, battle.battleEventFighter->y, 0);
+				Battle_CreateSpark(7, battle.battleEventFighter->x, battle.battleEventFighter->y, 0);
+				Battle_CreateSpark(7, battle.battleEventFighter->x + 72, battle.battleEventFighter->y, 0);
+				Audio_PlaySound(SND_explode);
+				Audio_PlaySound(SND_firemassattack);
+				Audio_PlaySound(SND_subspace_transform);
+				Battle_ShakeScreen(90);
+				battle.battleEventFighter->y -= 10000;
+				battle.battleEventFighter->spriteId = -1;
+			}
+			if (battle.timer == 287) {
+				battle.state = BATTLE_STATE_END;
+				battle.timer = 34;
+			}
+			break;
+		case 57:
+			if (battle.timer == 1) {
+				Audio_FadeOutMusic(4000);
+			}
+			if (battle.timer == 720) {
+				battle.state = BATTLE_STATE_END;
+				battle.timer = 34;
+			}
+			break;
 		
 		case 191:
 			if (battle.timer == 1) {
-				FadeOutMusic(2000);
+				Audio_FadeOutMusic(2000);
 				battle.battleEventFighter->state = FIGHTER_STATE_HURT;
 				Dialog_Run(578);
 			}
 			if (battle.timer == 2) {
-				PlayMusic(MUS_bin);
+				Audio_PlayMusic(MUS_bin);
 				battle.battleEventFighter->spriteId = SPR_misc_lulu_omega_rage;
 				battle.battleEventFighter->spriteFrame = 0;
 				Dialog_Run(579);
@@ -2266,20 +3459,20 @@ void Battle_Update_Event() {
 				}
 			}
 			if (battle.timer == 180) {
-				PlaySound(SND_introwakeup);
+				Audio_PlaySound(SND_introwakeup);
 				battle.battleEventFighter->x = battle.battleEventFighter->xStart;
 				battle.battleEventFighter->spriteFrame = 1;
 			}
 			if (battle.timer >= 180 && battle.timer <= 540) {
 				if (battle.timer % 20 == 0) {
-					PlaySound(SND_burn);
+					Audio_PlaySound(SND_burn);
 				}
 				if (battle.timer >= 330 && battle.timer % 8 == 0) {
-					PlaySound(SND_explode);
+					Audio_PlaySound(SND_explode);
 					Battle_CreateSpark(9905, battle.battleEventFighter->x + Random_Range(-48, 48), battle.battleEventFighter->y + Random_Range(-64, 32), 0);
 				}
 				if (battle.timer >= 420 && battle.timer % 8 == 4) {
-					PlaySound(SND_explode);
+					Audio_PlaySound(SND_explode);
 					Battle_CreateSpark(9905, battle.battleEventFighter->x + Random_Range(-48, 48), battle.battleEventFighter->y + Random_Range(-64, 32), 0);
 				}
 				if (battle.timer % 10 == 0) {
@@ -2288,8 +3481,8 @@ void Battle_Update_Event() {
 				Battle_ShakeScreen(1 + (battle.timer - 180) / 30);
 			}
 			if (battle.timer == 570) {
-				StopMusic();
-				PlaySound(SND_firemassattack);
+				Audio_StopMusic();
+				Audio_PlaySound(SND_firemassattack);
 				
 				battle.battleEventFighter->hp = 1500;
 				battle.battleEventFighter->hpMax = 1500;
@@ -2307,7 +3500,7 @@ void Battle_Update_Event() {
 			if (battle.timer == 720) {
 				battle.battleEventFighter->spriteId = -1;
 				
-				PlayMusic(MUS_lastresort);
+				Audio_PlayMusic(MUS_lastresort);
 				battle.battleEventVars[0] = 1;
 			}
 			if (battle.timer == 1200) {
@@ -2350,12 +3543,12 @@ void Battle_Update_Event() {
 		
 		case 196:
 			if (battle.timer == 1) {
-				StopMusic();
+				Audio_StopMusic();
 				battle.battleEventFighter->state = FIGHTER_STATE_HURT;
 				Dialog_Run(578);
 			}
 			if (battle.timer == 2) {
-				PlayMusic(MUS_bin);
+				Audio_PlayMusic(MUS_bin);
 				battle.battleEventFighter->spriteId = SPR_misc_lulu_omega_rage;
 				battle.battleEventFighter->spriteFrame = 0;
 				Dialog_Run(579);
@@ -2376,13 +3569,13 @@ void Battle_Update_Event() {
 				}
 			}
 			if (battle.timer == 180) {
-				PlaySound(SND_introwakeup);
+				Audio_PlaySound(SND_introwakeup);
 				battle.battleEventFighter->x = battle.battleEventFighter->xStart;
 				battle.battleEventFighter->spriteFrame = 1;
 			}
 			if (battle.timer >= 180 && battle.timer <= 240) {
 				if (battle.timer % 10 == 0) {
-					PlaySound(SND_burn);
+					Audio_PlaySound(SND_burn);
 				}
 				if (battle.timer % 10 == 0) {
 					Battle_CreateSpark(9905, battle.battleEventFighter->x + Random_Range(-48, 48), battle.battleEventFighter->y + Random_Range(-64, 32), 0);
@@ -2390,17 +3583,17 @@ void Battle_Update_Event() {
 				Battle_ShakeScreen(1);
 			}
 			if (battle.timer == 244) {
-				PlayMusic(MUS_lastresort2);
+				Audio_PlayMusic(MUS_lastresort2);
 			}
 			if (battle.timer >= 260 && battle.timer <= 940) {
 				if (battle.timer % 20 == 0 && battle.timer <= 320) {
-					PlaySound(SND_burn);
+					Audio_PlaySound(SND_burn);
 				}
 				if (battle.timer >= 330 && battle.timer % 180 == 150) {
-					PlaySound(SND_subspace_transform);
+					Audio_PlaySound(SND_subspace_transform);
 				}
 				if (battle.timer >= 330 && battle.timer % 32 == 0) {
-					PlaySound(SND_explode);
+					Audio_PlaySound(SND_explode);
 					Battle_CreateSpark(9905, battle.battleEventFighter->x + Random_Range(-48, 48), battle.battleEventFighter->y + Random_Range(-64, 32), 0);
 					for (int i = 0; i < 5; i++) {
 						Battle_CreateSpark(9906, Random_Range(0, 640), 480, 0);
@@ -2425,9 +3618,9 @@ void Battle_Update_Event() {
 			}
 			if (battle.timer == 950) {
 				battle.backgroundId = 15;
-				StopMusic();
-				PlaySound(SND_firemassattack);
-				PlaySound(SND_subspace_transform);
+				Audio_StopMusic();
+				Audio_PlaySound(SND_firemassattack);
+				Audio_PlaySound(SND_subspace_transform);
 				
 				SetString(battle.battleEventFighter->name, "SD Lulu");
 				battle.battleEventFighter->hp = 50000;
@@ -2451,16 +3644,16 @@ void Battle_Update_Event() {
 			}
 			if (battle.timer >= 960 && battle.timer <= 1290) {
 				if (battle.timer % 20 == 0) {
-					PlaySound(SND_burn);
+					Audio_PlaySound(SND_burn);
 				}
 				if (battle.timer == 960) {
-					PlaySound(SND_subspace_transform2);
+					Audio_PlaySound(SND_subspace_transform2);
 				}
 				if (battle.timer % 90 == 80) {
-					PlaySound(SND_subspace_transform);
+					Audio_PlaySound(SND_subspace_transform);
 				}
 				if (battle.timer % 6 == 0) {
-					PlaySound(SND_explode);
+					Audio_PlaySound(SND_explode);
 					Battle_CreateSpark(9905, battle.battleEventFighter->x + Random_Range(-48, 48), battle.battleEventFighter->y + Random_Range(-64, 32), 0);
 					for (int i = 0; i < 10; i++) {
 						Battle_CreateSpark(9906, Random_Range(0, 640), 480, 0);
@@ -2478,63 +3671,63 @@ void Battle_Update_Event() {
 				}
 				Battle_ShakeScreen(1 + (battle.timer - 180) / 60);
 				if (battle.timer % 90 == 0 || battle.timer % 90 == 36) {
-					PlaySound(SND_firemassattack);
+					Audio_PlaySound(SND_firemassattack);
 					for (int i = 0; i < 5; i++) {
 						Battle_CreateSpark(9908, 40 + i * 140, 480, 0);
 					}
 				}
 			}
 			if (battle.timer == 1300) {
-				StopMusic();
+				Audio_StopMusic();
 				battle.battleEventFighter->spriteFrame = 1;
 				
-				PlaySound(SND_subspace_transform);
-				PlaySound(SND_subspace_transform);
+				Audio_PlaySound(SND_subspace_transform);
+				Audio_PlaySound(SND_subspace_transform);
 				battle.battleEventVars[0] = 1;
 				Battle_ShakeScreen(90);
 			}
 			if (battle.timer >= 1301 && battle.timer <= 1970) {
 				if (battle.timer % 8 == 0) {
-					PlaySound(SND_explode);
+					Audio_PlaySound(SND_explode);
 					for (int i = 0; i < 4; i++) {
 						Battle_CreateSpark(9907, Random_Range(0, 640), 480, 0);
 					}
 				}
 				if (battle.timer >= 1480 && battle.timer % 16 == 1 && battle.timer <= 1800) {
-					PlaySound(SND_explode);
+					Audio_PlaySound(SND_explode);
 					for (int i = 0; i < 32; i++) {
 						Battle_CreateSpark(9907, Random_Range(0, 640), 480, 0);
 					}
 				}
 				if (battle.timer == 1301) {
-					PlaySound(SND_firemassattack);
+					Audio_PlaySound(SND_firemassattack);
 					for (int i = 0; i < 5; i++) {
 						Battle_CreateSpark(9908, 40 + i * 140, 480, 0);
 					}
 				}
 				if (battle.timer == 1400 || battle.timer == 1432) {
-					PlaySound(SND_firemassattack);
+					Audio_PlaySound(SND_firemassattack);
 					for (int i = 0; i < 4; i++) {
 						Battle_CreateSpark(9908, 50 + i * 180, 480, 0);
 					}
 					Battle_ShakeScreen(30);
 				}
 				if (battle.timer == 1416) {
-					PlaySound(SND_firemassattack);
+					Audio_PlaySound(SND_firemassattack);
 					for (int i = 0; i < 3; i++) {
 						Battle_CreateSpark(9908, 120 + i * 200, 480, 0);
 					}
 					Battle_ShakeScreen(30);
 				}
 				if (battle.timer >= 1480 && battle.timer % 48 == 0 && battle.timer <= 1800) {
-					PlaySound(SND_firemassattack);
+					Audio_PlaySound(SND_firemassattack);
 					for (int i = 0; i < 5; i++) {
 						Battle_CreateSpark(9908, 40 + i * 140, 480, 0);
 					}
 				}
 			}
 			if (battle.timer == 2100) {
-				PlayMusic(MUS_battlepower);
+				Audio_PlayMusic(MUS_battlepower);
 				battle.battleEventFighter->spriteId = -1;
 			}
 			if (battle.timer == 2101) {
@@ -2562,7 +3755,7 @@ void Battle_Update_Event() {
 				battle.battleEventFighter->spriteId = SPR_misc_lulu_subspace_rage;
 				battle.battleEventFighter->spriteFrame = 0;
 				
-				PlayMusic(MUS_battlepower);
+				Audio_PlayMusic(MUS_battlepower);
 				battle.battleEventFighter->spriteId = -1;
 				finished = true;
 				battle.battleEventVars[0] = 1;
@@ -2603,80 +3796,325 @@ void Battle_Draw_Event() {
 			}
 			
 			if (battle.timer >= 360 && battle.timer < 420) {
-				SetDrawColor(0, 0, 0);
-				SetDrawAlpha((battle.timer - 360) * 255 / 60);
-				FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
-				SetDrawAlpha(255);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_SetDrawAlpha((battle.timer - 360) * 255 / 60);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawAlpha(255);
+				Drawer_SetDrawColor(255, 255, 255);
 			}
 			else if ((battle.timer >= 420 && battle.timer < 480) || battle.timer >= 1000) {
-				SetDrawColor(0, 0, 0);
-				FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(255, 255, 255);
 			}
 			else if (battle.timer >= 480 && battle.timer < 540) {
-				SetDrawColor(0, 0, 0);
-				SetDrawAlpha(255 - (battle.timer - 480) * 255 / 60);
-				FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
-				SetDrawAlpha(255);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_SetDrawAlpha(255 - (battle.timer - 480) * 255 / 60);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawAlpha(255);
+				Drawer_SetDrawColor(255, 255, 255);
 			}
 			break;
 		case 10:
 			if (battle.timer >= 5 && battle.timer < 65) {
-				DrawSprite_Angle(SPR_misc_sign_3, battle.battleEventFighter->x, battle.battleEventFighter->y - 32 - (65 - battle.timer) * 24, 0, 2, 2, -15);
+				Drawer_DrawSprite_Angle(SPR_misc_sign_3, battle.battleEventFighter->x, battle.battleEventFighter->y - 32 - (65 - battle.timer) * 24, 0, 2, 2, -15);
 			}
 			else if (battle.timer >= 65 && battle.timer < 125) {
-				DrawSprite_Angle(SPR_misc_sign_3, battle.battleEventFighter->x - (battle.timer - 65) * 6, battle.battleEventFighter->y - 32 + (battle.timer - 75) * (battle.timer - 75) / 2 - 100, 0, 2, 2, -30 - (battle.timer - 65) * 10);
+				Drawer_DrawSprite_Angle(SPR_misc_sign_3, battle.battleEventFighter->x - (battle.timer - 65) * 6, battle.battleEventFighter->y - 32 + (battle.timer - 75) * (battle.timer - 75) / 2 - 100, 0, 2, 2, -30 - (battle.timer - 65) * 10);
 			}
 			break;
 		case 11:
 			if (battle.timer >= 61 && battle.timer < 448) {
-				SetDrawBlend(SDL_BLENDMODE_MUL);
-				SetDrawColor(255 * (battle.timer % 126 < 42), 255 * (battle.timer % 126 >= 42 && battle.timer % 132 < 84), 255 * (battle.timer % 138 >= 84));
-				SetDrawAlpha(127);
-				FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
-				SetDrawAlpha(255);
-				SetDrawColor(255, 255, 255);
-				SetDrawBlend(SDL_BLENDMODE_BLEND);
+				Drawer_SetDrawBlend(BLENDMODE_MUL);
+				Drawer_SetDrawColor(255 * (battle.timer % 126 < 42), 255 * (battle.timer % 126 >= 42 && battle.timer % 132 < 84), 255 * (battle.timer % 138 >= 84));
+				Drawer_SetDrawAlpha(127);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawAlpha(255);
+				Drawer_SetDrawColor(255, 255, 255);
+				Drawer_SetDrawBlend(BLENDMODE_BLEND);
+			}
+			break;
+		case 21:
+			if (battle.timer == 4 || battle.timer == 5
+			|| battle.timer == 75 || battle.timer == 76
+			|| battle.timer == 185 || battle.timer == 186
+			|| battle.timer == 210 || battle.timer == 211
+			|| battle.timer == 317 || battle.timer == 318) {
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+			}
+			
+			if (battle.timer >= 451 && battle.timer < 652) {
+				if (battle.timer >= 450 && battle.timer < 471)
+					Drawer_SetDrawAlpha((battle.timer - 449) * 12);
+				else if (battle.timer >= 621)
+					Drawer_SetDrawAlpha(255 - (battle.timer - 620) * 8);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawAlpha(255);
+			}
+			break;
+		case 50:
+			if (battle.timer < 251) {
+				
+			}
+			else if (battle.timer < 785) {
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(255, 255, 255);
+				if (battle.timer < 395) {
+					Drawer_DrawSprite(SPR_owchar_collapse_ruby, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 8, 1, 2, 2);
+				}
+				else if (battle.timer < 625) {
+					Drawer_DrawSprite(SPR_misc_ruby_suppressed, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 24, 1, 2, 2);
+				}
+				else if (battle.timer < 725) {
+					Drawer_DrawSprite(SPR_misc_ruby_suppressed, SCREEN_WIDTH / 2 + ((battle.timer % 8 < 4) ? -1 : 1), SCREEN_HEIGHT / 2 + 24, 1, 2, 2);
+				}
+				else {
+					Drawer_SetDrawAlpha(255 - (battle.timer - 725) * 255 / 60);
+					Drawer_DrawSprite(SPR_misc_ruby_suppressed, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 24, 1, 2, 2);
+					Drawer_SetDrawAlpha(255);
+				}
+			}
+			else if (battle.timer < 1240) {
+				Drawer_SetDrawColor(128 + (int)(sin((float)(battle.timer - 785) / 12) * 127), 0, 0);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(0, 0, 0);
+				if (battle.timer < 890) {
+					Drawer_DrawSprite(SPR_misc_ruby_rage, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 24, 0, 2, 2);
+				}
+				else if (battle.timer < 1070) {
+					Drawer_DrawSprite(SPR_misc_ruby_rage, SCREEN_WIDTH / 2 + ((battle.timer % 8 < 4) ? -2 : 2), SCREEN_HEIGHT / 2 + 24, 0, 2, 2);
+				}
+				else {
+					Drawer_DrawSprite(SPR_misc_ruby_rage, SCREEN_WIDTH / 2 + ((battle.timer % 6 < 3) ? -4 : 4), SCREEN_HEIGHT / 2 + 24, 0, 2, 2);
+				}
+				Drawer_SetDrawColor(255, 255, 255);
+			}
+			else if (battle.timer < 1510) {
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_DrawSprite(SPR_misc_ruby_rage, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 + 24 + ((battle.timer % 4 < 2) ? -16 : 16), 1, 2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
+				if (battle.timer > 1360) {
+					Drawer_SetDrawAlpha((battle.timer - 1360) * 255 / 150);
+					Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+					Drawer_SetDrawAlpha(255);
+				}
+			}
+			else if (battle.timer < 1680) {
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+			}
+			else if (battle.timer < 1830) {
+				Drawer_SetDrawAlpha(255 - (battle.timer - 1680) * 255 / 150);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawAlpha(255);
+			}
+			break;
+		case 51:
+			if (battle.timer < 540) {
+				
+			}
+			else if (battle.timer < 720) {
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+			}
+			else if (battle.timer < 840) {
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(255, 255, 255);
+				Drawer_SetDrawAlpha(255 - (battle.timer - 720) * 255 / 120);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawAlpha(255);
+			}
+			else if (battle.timer < 900) {
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(255, 255, 255);
+			}
+			else if (battle.timer < 1030) {
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(255, 255, 255);
+				Drawer_SetDrawAlpha((battle.timer - 900) * 255 / 130);
+				Drawer_DrawSprite(SPR_owchar_lulu_ultimate, battle.battleEventFighter->x, battle.battleEventFighter->y, 1, 2, 2);
+				Drawer_SetDrawAlpha(255);
+			}
+			else if (battle.timer < 1267) {
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(255, 255, 255);
+				Drawer_DrawSprite(SPR_owchar_lulu_ultimate, battle.battleEventFighter->x, battle.battleEventFighter->y, 1, 2, 2);
+			}
+			else if (battle.timer < 1273) {
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(255, 255, 255);
+				Drawer_DrawSprite(SPR_owchar_lulu_ultimate, battle.battleEventFighter->x, battle.battleEventFighter->y, 2, -2, 2);
+			}
+			else if (battle.timer < 1303) {
+				Drawer_SetDrawAlpha(255 - (battle.timer - 1273) * 255 / 30);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawAlpha(255);
+				DrawFighterChar(battle.battleEventFighter->headId, battle.battleEventFighter->bodyId, battle.battleEventFighter->state, battle.battleEventFighter->x, battle.battleEventFighter->y, 2, 2, battle.battleEventFighter->facing);
+			}
+			break;
+		case 55:
+			if (battle.timer < 336) {
+				
+			}
+			else if (battle.timer < 354) {
+				Drawer_SetDrawColor(255, 0, 0);
+				if (battle.timer < 340) {
+					int x = battle.battleEventFighter->x;
+					for (int y = battle.battleEventFighter->y; y > 128; y -= 2) {
+						Drawer_SetDrawColor(159, 0, 0);
+						Drawer_FillRect(x - 9, y - 1, 18, 2);
+						Drawer_SetDrawColor(255, 0, 0);
+						Drawer_FillRect(x - 5, y - 1, 10, 2);
+						Drawer_SetDrawColor(255, 255, 255);
+						Drawer_FillRect(x - 1, y - 1, 2, 2);
+						x += Random_IRange(-1, 1) * 2;
+					}
+				}
+				else if (battle.timer < 342) {
+					Drawer_SetDrawAlpha(63);
+					Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+					Drawer_SetDrawAlpha(255);
+				}
+				else if (battle.timer < 346) {
+					Drawer_DrawSprite(SPR_spark_slashultra, battle.battleEventFighter->x, battle.battleEventFighter->y - 24, 0, 2, 2);
+				}
+				else if (battle.timer < 350) {
+					Drawer_DrawSprite(SPR_spark_slashultra, battle.battleEventFighter->x, battle.battleEventFighter->y - 24, 1, 2, 2);
+				}
+				else {
+					Drawer_DrawSprite(SPR_spark_slashultra, battle.battleEventFighter->x, battle.battleEventFighter->y - 24, 2, 2, 2);
+				}
+				Drawer_SetDrawColor(255, 255, 255);
+			}
+			else if (battle.timer < 570) {
+				
+			}
+			else if (battle.timer < 633) {
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-64, -64, SCREEN_WIDTH + 128, SCREEN_HEIGHT + 128);
+				Drawer_SetDrawColor(255, 255, 255);
+			}
+			else if (battle.timer < 768) {
+				
+			}
+			else if (battle.timer < 1128) {
+				Drawer_SetDrawColor(255, 0, 0);
+				if ((battle.timer - 768) % 18 < 6) {
+					int x = battle.battleEventFighter->x;
+					for (int y = battle.battleEventFighter->y; y > 128; y -= 2) {
+						Drawer_SetDrawColor(159, 0, 0);
+						Drawer_FillRect(x - 9, y - 1, 18, 2);
+						Drawer_SetDrawColor(255, 0, 0);
+						Drawer_FillRect(x - 5, y - 1, 10, 2);
+						Drawer_SetDrawColor(255, 255, 255);
+						Drawer_FillRect(x - 1, y - 1, 2, 2);
+						x += Random_IRange(-1, 1) * 2;
+					}
+				}
+				else if ((battle.timer - 768) % 18 < 9) {
+					Drawer_SetDrawAlpha(63);
+					Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+					Drawer_SetDrawAlpha(255);
+				}
+				else if ((battle.timer - 768) % 18 < 12) {
+					Drawer_DrawSprite(SPR_spark_slashultra, battle.battleEventFighter->x, battle.battleEventFighter->y - 24, 0, 2, 2);
+				}
+				else if ((battle.timer - 768) % 18 < 15) {
+					Drawer_DrawSprite(SPR_spark_slashultra, battle.battleEventFighter->x, battle.battleEventFighter->y - 24, 1, 2, 2);
+				}
+				else {
+					Drawer_DrawSprite(SPR_spark_slashultra, battle.battleEventFighter->x, battle.battleEventFighter->y - 24, 2, 2, 2);
+				}
+				Drawer_SetDrawColor(255, 255, 255);
+			}
+			else {
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-64, -64, SCREEN_WIDTH + 128, SCREEN_HEIGHT + 128);
+				Drawer_SetDrawColor(255, 255, 255);
+			}
+			break;
+		case 56:
+			if (battle.timer < 2) {
+				
+			}
+			else if (battle.timer < 17) {
+				Drawer_SetDrawAlpha((battle.timer - 2) * 255 / 15);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+			}
+			else if (battle.timer < 77) {
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+			}
+			else if (battle.timer < 137) {
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(255, 255, 255);
+				Drawer_SetDrawAlpha(255 - (battle.timer - 77) * 255 / 60);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawAlpha(255);
+			}
+			else {
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(255, 255, 255);
+			}
+			break;
+		case 57:
+			if (battle.timer < 2) {
+				
+			}
+			else if (battle.timer < 302) {
+				Drawer_SetDrawAlpha((battle.timer - 2) * 255 / 300);
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(255, 255, 255);
+			}
+			else {
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawColor(255, 255, 255);
 			}
 			break;
 		
 		case 191:
 			if (battle.timer >= 540 && battle.timer <= 720) {
-				FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
 			}
 			else if (battle.timer > 720 && battle.timer <= 840) {
-				SetDrawAlpha(255 - (battle.timer - 720) * 255 / 120);
-				FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
-				SetDrawAlpha(255);
+				Drawer_SetDrawAlpha(255 - (battle.timer - 720) * 255 / 120);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawAlpha(255);
 			}
 			break;
 		
 		case 196:
 			if (battle.timer >= 950 && battle.timer <= 960) {
-				FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
 			}
 			else if (battle.timer >= 960 && battle.timer <= 1300) {
-				SetDrawBlend(SDL_BLENDMODE_MUL);
-				SetDrawColor(191, 0, 63);
-				SetDrawAlpha(191 + (battle.timer % 16 < 8) * 32);
-				FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
-				SetDrawAlpha(255);
-				SetDrawColor(255, 255, 255);
-				SetDrawBlend(SDL_BLENDMODE_BLEND);
+				Drawer_SetDrawBlend(BLENDMODE_MUL);
+				Drawer_SetDrawColor(191, 0, 63);
+				Drawer_SetDrawAlpha(191 + (battle.timer % 16 < 8) * 32);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawAlpha(255);
+				Drawer_SetDrawColor(255, 255, 255);
+				Drawer_SetDrawBlend(BLENDMODE_BLEND);
 			}
 			else if (battle.timer >= 1300 && battle.timer <= 1304) {
-				FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
 			}
 			else if (battle.timer >= 1305 && battle.timer <= 1940) {
-				SetDrawBlend(SDL_BLENDMODE_MUL);
-				SetDrawColor(191, 0, 0);
-				SetDrawAlpha((battle.timer % 56 < 28) * 223);
-				FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
-				SetDrawAlpha(255);
-				SetDrawColor(255, 255, 255);
-				SetDrawBlend(SDL_BLENDMODE_BLEND);
+				Drawer_SetDrawBlend(BLENDMODE_MUL);
+				Drawer_SetDrawColor(191, 0, 0);
+				Drawer_SetDrawAlpha((battle.timer % 56 < 28) * 223);
+				Drawer_FillRect(-100, -100, SCREEN_WIDTH + 200, SCREEN_HEIGHT + 200);
+				Drawer_SetDrawAlpha(255);
+				Drawer_SetDrawColor(255, 255, 255);
+				Drawer_SetDrawBlend(BLENDMODE_BLEND);
 			}
 			break;
 	}
@@ -2728,12 +4166,12 @@ void Battle_CreateFighter(int fighterId, int side) {
 	
 	fighter->headId = fd->headId;
 	fighter->bodyId = fd->bodyId;
-	fighter->charId = fd->charId;
 	fighter->collapseSpriteId = fd->collapseSpriteId;
 	fighter->spriteId = -1;
 	fighter->spriteFrame = 0;
 	fighter->actionAnimId = fd->actionAnimId;
 	fighter->ai = fd->ai;
+	fighter->gender = fd->gender;
 	
 	switch (id) {
 		case 0:
@@ -2808,7 +4246,6 @@ void Battle_CreateFighter(int fighterId, int side) {
 		
 		fighter->headId = partyMember->headId;
 		fighter->bodyId = partyMember->bodyId;
-		fighter->charId = partyMember->charId;
 		Armor* armor;
 		if (partyMember->armorId == 0)
 			armor = &armorData[partyMember->defaultArmorId];
@@ -2853,11 +4290,14 @@ void Battle_CreateFighter(int fighterId, int side) {
 	for (int i = 0; i < 32; i++) {
 		fighter->status[i] = 0;
 		fighter->statusNext[i] = 0;
+		fighter->statusOverride[i] = false;
 	}
 	for (int i = 0; i < 4; i++) fighter->battleEventVars[i] = 0;
+	for (int i = 0; i < 8; i++) fighter->aiVars[i].i = 0;
 	
 	fighter->bodyguardId = -1;
 	fighter->counterTargetId = -1;
+	fighter->manaCostReduction = 0;
 	
 	fighter->blockTimer = -1;
 	fighter->blockCooldownTimer = -1;
@@ -2865,6 +4305,12 @@ void Battle_CreateFighter(int fighterId, int side) {
 	fighter->attackAnimTimer = -1;
 	fighter->attackAnimTime = -1;
 	fighter->readyTimer = -1;
+	
+	fighter->aiTakeAttackCount = 0;
+	fighter->aiTakeAttackPredictTime = -1;
+	fighter->aiBlockCount = 0;
+	fighter->aiDodgeCount = 0;
+	fighter->aiDefenseScore = 0;
 }
 
 void Battle_CreateLabel(int color, const char* string, float x, float y) {
@@ -2944,28 +4390,28 @@ void Battle_Camera_MoveToStart(float speed) {
 
 void Battle_Draw() {
 	if (battle.shakeTimer == 0)
-		SetProjection(battle.camera.x, battle.camera.y, battle.camera.zoom);
+		Drawer_SetProjection(battle.camera.x, battle.camera.y, battle.camera.zoom);
 	else
-		SetProjection(battle.camera.x + Random_Range(-battle.shakeTimer, battle.shakeTimer), battle.camera.y + Random_Range(-battle.shakeTimer, battle.shakeTimer), battle.camera.zoom);
+		Drawer_SetProjection(battle.camera.x + Random_Range(-battle.shakeTimer, battle.shakeTimer), battle.camera.y + Random_Range(-battle.shakeTimer, battle.shakeTimer), battle.camera.zoom);
 	
 	if (battle.backgroundId == 0) {
-		SetDrawColor(15, 23, 15);
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		Drawer_SetDrawColor(15, 23, 15);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		
-		SetDrawColor(0, 63, 0);
+		Drawer_SetDrawColor(0, 63, 0);
 		for (int i = -100; i < 100; i++) {
-			FillRect(32*i - 0.5 - (battle.globalTimer % 256) / 4, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 - (battle.globalTimer % 256) / 4, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -100; i < 100; i++) {
-			FillRect(0, 32*i - 0.5, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5, SCREEN_WIDTH, 1);
 		}
 		
-		SetDrawColor(79, 0, 79);
+		Drawer_SetDrawColor(79, 0, 79);
 		for (int i = -4; i < 60; i++) {
-			FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -4; i < 60; i++) {
-			FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
 		}
 	}
 	else if (battle.backgroundId == 1) {
@@ -2977,29 +4423,29 @@ void Battle_Draw() {
 		else if ((battle.globalTimer % 72) / 24 == 1)
 			scale = 4;
 		
-		SetDrawColor(0, 0, 0);
-		FillRect(0, 0, 1280, 720);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_FillRect(0, 0, 1280, 720);
 		
-		SetDrawColor(16 - (int)(cos((float)battle.globalTimer / 128) * 16), 12 + (int)(cos((float)battle.globalTimer / 128) * 11), 0);
+		Drawer_SetDrawColor(16 - (int)(cos((float)battle.globalTimer / 128) * 16), 12 + (int)(cos((float)battle.globalTimer / 128) * 11), 0);
 		for (int j = -9; j < 16; j++)
 		for (int i = -9; i < 14; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i*scale - (battle.globalTimer % 64) / 4, y + 64*j*scale - (battle.globalTimer % 64) / 4, 0, scale, scale);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i*scale - (battle.globalTimer % 64) / 4, y + 64*j*scale - (battle.globalTimer % 64) / 4, 0, scale, scale);
 		}
 		
-		SetDrawColor(16 - (int)(cos((float)battle.globalTimer / 128) * 16), 6 + (int)(cos((float)battle.globalTimer / 128) * 5), 0);
-		SetDrawBlend(SDL_BLENDMODE_ADD);
+		Drawer_SetDrawColor(16 - (int)(cos((float)battle.globalTimer / 128) * 16), 6 + (int)(cos((float)battle.globalTimer / 128) * 5), 0);
+		Drawer_SetDrawBlend(BLENDMODE_ADD);
 		for (int j = -9; j < 20; j++)
 		for (int i = -9; i < 17; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i*scale + (battle.globalTimer % 64) / 2, y + 64*j*scale - (battle.globalTimer % 64) / 2, 0, scale, scale);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i*scale + (battle.globalTimer % 64) / 2, y + 64*j*scale - (battle.globalTimer % 64) / 2, 0, scale, scale);
 		}
-		SetDrawBlend(SDL_BLENDMODE_BLEND);
+		Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		
-		SetDrawColor(0, 31, 0);
+		Drawer_SetDrawColor(0, 31, 0);
 		for (int i = -4; i < 60; i++) {
-			FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -4; i < 60; i++) {
-			FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
 		}
 	}
 	else if (battle.backgroundId == 2) {
@@ -3013,28 +4459,28 @@ void Battle_Draw() {
 		else if ((battle.globalTimer % 72) / 24 == 1)
 			scale = 4;
 		
-		SetDrawColor(0, 0, 0);
-		FillRect(0, 0, 1280, 720);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_FillRect(0, 0, 1280, 720);
 		
-		SetDrawColor(16 - (int)(cos((float)battle.globalTimer / 128) * 16), 12 + (int)(cos((float)battle.globalTimer / 128) * 11), 24 + (int)(cos((float)battle.globalTimer / 128) * 23));
+		Drawer_SetDrawColor(16 - (int)(cos((float)battle.globalTimer / 128) * 16), 12 + (int)(cos((float)battle.globalTimer / 128) * 11), 24 + (int)(cos((float)battle.globalTimer / 128) * 23));
 		for (int j = -9; j < 16; j++)
 		for (int i = -14; i < 19; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i*scale - (battle.globalTimer % 64) / 4, y + 64*j*scale - (battle.globalTimer % 64) / 4, 0, scale, scale);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i*scale - (battle.globalTimer % 64) / 4, y + 64*j*scale - (battle.globalTimer % 64) / 4, 0, scale, scale);
 		}
 		
-		SetDrawBlend(SDL_BLENDMODE_ADD);
+		Drawer_SetDrawBlend(BLENDMODE_ADD);
 		for (int j = -9; j < 20; j++)
 		for (int i = -14; i < 22; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i*scale + (battle.globalTimer % 64) / 2, -y + 64*j*scale - (battle.globalTimer % 64) / 2, 0, scale, scale);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i*scale + (battle.globalTimer % 64) / 2, -y + 64*j*scale - (battle.globalTimer % 64) / 2, 0, scale, scale);
 		}
-		SetDrawBlend(SDL_BLENDMODE_BLEND);
+		Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		
-		SetDrawColor(0, 15, 31);
+		Drawer_SetDrawColor(0, 15, 31);
 		for (int i = -4; i < 60; i++) {
-			FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -4; i < 60; i++) {
-			FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
 		}
 	}
 	else if (battle.backgroundId == 3) {
@@ -3047,52 +4493,52 @@ void Battle_Draw() {
 			scaleY += (float)((battle.globalTimer - 511) % 1024) / 400;
 		}
 		
-		SetDrawColor(11 + (int)(cos((float)battle.globalTimer / 32) * 12), 0, 0);
-		FillRect(0, 0, 1280, 720);
+		Drawer_SetDrawColor(11 + (int)(cos((float)battle.globalTimer / 32) * 12), 0, 0);
+		Drawer_FillRect(0, 0, 1280, 720);
 		
-		SetDrawBlend(SDL_BLENDMODE_ADD);
-		SetDrawColor(0, 0, 63);
+		Drawer_SetDrawBlend(BLENDMODE_ADD);
+		Drawer_SetDrawColor(0, 0, 63);
 		for (int j = -18; j < 18; j++)
 		for (int i = -22; i < 22; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_2, x / 8 + 32*i*scaleX*8, y / 8 + 32*j*scaleY*8, 0, scaleX * 4, scaleY * 4);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_2, x / 8 + 32*i*scaleX*8, y / 8 + 32*j*scaleY*8, 0, scaleX * 4, scaleY * 4);
 		}
 		
-		SetDrawColor(0, 127 + (int)(cos((float)battle.globalTimer / 64) * 128), 255);
+		Drawer_SetDrawColor(0, 127 + (int)(cos((float)battle.globalTimer / 64) * 128), 255);
 		for (int j = -38; j < 28; j++)
 		for (int i = -32; i < 32; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_2, x / 2 + 32*i*scaleX*2, y + 32*j*scaleY, 0, scaleX, scaleY);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_2, x / 2 + 32*i*scaleX*2, y + 32*j*scaleY, 0, scaleX, scaleY);
 		}
 		
-		SetDrawBlend(SDL_BLENDMODE_MUL);
-		SetDrawColor(0, 0, 255);
+		Drawer_SetDrawBlend(BLENDMODE_MUL);
+		Drawer_SetDrawColor(0, 0, 255);
 		for (int j = -28; j < 28; j++)
 		for (int i = -32; i < 32; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_2, x / 2 + 32*i*scaleX*4, y / 2 + 32*j*scaleY*4, 0, scaleX * 4, scaleY * 4);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_2, x / 2 + 32*i*scaleX*4, y / 2 + 32*j*scaleY*4, 0, scaleX * 4, scaleY * 4);
 		}
 		
-		SetDrawColor(63, 0, 0);
+		Drawer_SetDrawColor(63, 0, 0);
 		for (int j = -18; j < 18; j++)
 		for (int i = -22; i < 22; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_2, x / 8 + 32*i*scaleX*4, y / 16 + 32*j*scaleY*4, 0, scaleX * 6, scaleY * 6);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_2, x / 8 + 32*i*scaleX*4, y / 16 + 32*j*scaleY*4, 0, scaleX * 6, scaleY * 6);
 		}
 		
-		SetDrawBlend(SDL_BLENDMODE_ADD);
-		SetDrawColor(0, 0, 31);
+		Drawer_SetDrawBlend(BLENDMODE_ADD);
+		Drawer_SetDrawColor(0, 0, 31);
 		for (int j = -18; j < 18; j++)
 		for (int i = -22; i < 22; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_2, x / 8 + 32*i*scaleX*4, y / 16 + 32*j*scaleY*4, 0, scaleX * 6, scaleY * 6);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_2, x / 8 + 32*i*scaleX*4, y / 16 + 32*j*scaleY*4, 0, scaleX * 6, scaleY * 6);
 		}
 		
-		SetDrawColor(127, 0, 127);
+		Drawer_SetDrawColor(127, 0, 127);
 		/*
 		for (int i = -4; i < 60; i++) {
-			FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -4; i < 60; i++) {
-			FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
 		}
 		*/
-		SetDrawBlend(SDL_BLENDMODE_BLEND);
+		Drawer_SetDrawBlend(BLENDMODE_BLEND);
 	}
 	else if (battle.backgroundId == 4) {
 		float speed = 0.25;
@@ -3105,48 +4551,48 @@ void Battle_Draw() {
 		else if ((battle.globalTimer % 72) / 24 == 1)
 			scale = 4;
 		
-		SetDrawColor(0, 0, 0);
-		FillRect(0, 0, 1280, 720);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_FillRect(0, 0, 1280, 720);
 		
-		SetDrawBlend(SDL_BLENDMODE_ADD);
-		SetDrawColor(32 - (int)(cos((float)battle.globalTimer / 128) * 8), 32 + (int)(cos((float)battle.globalTimer / 128) * 32), 32 + (int)(cos((float)battle.globalTimer / 128) * 32));
+		Drawer_SetDrawBlend(BLENDMODE_ADD);
+		Drawer_SetDrawColor(32 - (int)(cos((float)battle.globalTimer / 128) * 8), 32 + (int)(cos((float)battle.globalTimer / 128) * 32), 32 + (int)(cos((float)battle.globalTimer / 128) * 32));
 		for (int j = -9; j < 16; j++)
 		for (int i = -14; i < 19; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i*scale - (battle.globalTimer % 64) / 4, y + 64*j*scale - (battle.globalTimer % 64) / 4, 0, scale, scale);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i*scale - (battle.globalTimer % 64) / 4, y + 64*j*scale - (battle.globalTimer % 64) / 4, 0, scale, scale);
 		}
 		
 		for (int j = -9; j < 20; j++)
 		for (int i = -14; i < 22; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i*scale + (battle.globalTimer % 64) / 2, -y + 64*j*scale - (battle.globalTimer % 64) / 2, 0, scale, scale);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i*scale + (battle.globalTimer % 64) / 2, -y + 64*j*scale - (battle.globalTimer % 64) / 2, 0, scale, scale);
 		}
-		SetDrawBlend(SDL_BLENDMODE_BLEND);
+		Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		
-		SetDrawColor(31, 0, 0);
+		Drawer_SetDrawColor(31, 0, 0);
 		for (int i = -4; i < 60; i++) {
-			FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -4; i < 60; i++) {
-			FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
 		}
 	}
 	else if (battle.backgroundId == 5) {
-		SetDrawColor(15, 15, 23);
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		Drawer_SetDrawColor(15, 15, 23);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		
-		SetDrawColor(0, 15, 63);
+		Drawer_SetDrawColor(0, 15, 63);
 		for (int i = -100; i < 100; i++) {
-			FillRect(32*i - 0.5 - (battle.globalTimer % 256) / 4, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 - (battle.globalTimer % 256) / 4, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -100; i < 100; i++) {
-			FillRect(0, 32*i - 0.5, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5, SCREEN_WIDTH, 1);
 		}
 		
-		SetDrawColor(0, 31, 127);
+		Drawer_SetDrawColor(0, 31, 127);
 		for (int i = -4; i < 60; i++) {
-			FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -4; i < 60; i++) {
-			FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
 		}
 	}
 	else if (battle.backgroundId == 6) {
@@ -3158,22 +4604,22 @@ void Battle_Draw() {
 		else if ((battle.globalTimer % 120) / 40 == 1)
 			scale = 4;
 		
-		SetDrawColor(0, 0, 0);
-		FillRect(0, 0, 1280, 720);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_FillRect(0, 0, 1280, 720);
 		
-		SetDrawColor(12, 12, 12);
+		Drawer_SetDrawColor(12, 12, 12);
 		for (int j = -9; j < 16; j++)
 		for (int i = -9; i < 14; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i*scale - (battle.globalTimer % 64) / 4, y + 64*j*scale - (battle.globalTimer % 64) / 4, 0, scale, scale);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i*scale - (battle.globalTimer % 64) / 4, y + 64*j*scale - (battle.globalTimer % 64) / 4, 0, scale, scale);
 		}
 		
-		SetDrawColor(16, 16, 16);
-		SetDrawBlend(SDL_BLENDMODE_ADD);
+		Drawer_SetDrawColor(16, 16, 16);
+		Drawer_SetDrawBlend(BLENDMODE_ADD);
 		for (int j = -9; j < 20; j++)
 		for (int i = -9; i < 17; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i*scale + (battle.globalTimer % 64) / 2, y + 64*j*scale - (battle.globalTimer % 64) / 2, 0, scale, scale);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i*scale + (battle.globalTimer % 64) / 2, y + 64*j*scale - (battle.globalTimer % 64) / 2, 0, scale, scale);
 		}
-		SetDrawBlend(SDL_BLENDMODE_BLEND);
+		Drawer_SetDrawBlend(BLENDMODE_BLEND);
 	}
 	else if (battle.backgroundId == 7) {
 		float x = sin((float)(battle.globalTimer % 1024) / 96) * 128;
@@ -3184,87 +4630,87 @@ void Battle_Draw() {
 		else if ((battle.globalTimer % 72) / 24 == 1)
 			scale = 4;
 		
-		SetDrawColor(0, 0, 0);
-		FillRect(0, 0, 1280, 720);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_FillRect(0, 0, 1280, 720);
 		
-		SetDrawColor(12 + (int)(cos((float)battle.globalTimer / 512) * 11), 0, 0);
+		Drawer_SetDrawColor(12 + (int)(cos((float)battle.globalTimer / 512) * 11), 0, 0);
 		for (int j = -9; j < 16; j++)
 		for (int i = -9; i < 14; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i*scale - (battle.globalTimer % 64) / 4, y + 64*j*scale - (battle.globalTimer % 64) / 4, 0, scale, scale);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i*scale - (battle.globalTimer % 64) / 4, y + 64*j*scale - (battle.globalTimer % 64) / 4, 0, scale, scale);
 		}
 		
-		SetDrawColor(6 + (int)(cos((float)battle.globalTimer / 512) * 5), 0, 0);
-		SetDrawBlend(SDL_BLENDMODE_ADD);
+		Drawer_SetDrawColor(6 + (int)(cos((float)battle.globalTimer / 512) * 5), 0, 0);
+		Drawer_SetDrawBlend(BLENDMODE_ADD);
 		for (int j = -9; j < 20; j++)
 		for (int i = -9; i < 17; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i*scale + (battle.globalTimer % 64) / 2, y + 64*j*scale - (battle.globalTimer % 64) / 2, 0, scale, scale);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i*scale + (battle.globalTimer % 64) / 2, y + 64*j*scale - (battle.globalTimer % 64) / 2, 0, scale, scale);
 		}
-		SetDrawBlend(SDL_BLENDMODE_BLEND);
+		Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		
-		SetDrawColor(31, 0, 0);
+		Drawer_SetDrawColor(31, 0, 0);
 		for (int i = -4; i < 60; i++) {
-			FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -4; i < 60; i++) {
-			FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
 		}
 	}
 	else if (battle.backgroundId == 8) {
 		if (battle.battleEventVars[1] >= 999)
-			SetDrawColor(0, 0, 128);
+			Drawer_SetDrawColor(0, 0, 128);
 		else
-			SetDrawColor(255 - 24 * battle.battleEventVars[1], 32, 32);
-		DrawSprite(SPR_misc_backdrop_hell, 0, 0, 0, 2, 2);
+			Drawer_SetDrawColor(255 - 24 * battle.battleEventVars[1], 32, 32);
+		Drawer_DrawSprite(SPR_misc_backdrop_hell, 0, 0, 0, 2, 2);
 	}
 	else if (battle.backgroundId == 9) {
 		for (int y = 0; y < 256; y += 128)
 		for (int x = 0; x < 640; x += 128) {
-			DrawSprite(SPR_misc_bossbattlebg_0, x, y, 0, 2, 2);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_0, x, y, 0, 2, 2);
 		}
-		SetDrawColor(0, 0, 0);
-		FillRect(336, 240, 304, 16);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_FillRect(336, 240, 304, 16);
 	}
 	else if (battle.backgroundId == 10) {
-		SetDrawColor(240, 240, 232);
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		Drawer_SetDrawColor(240, 240, 232);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		
 		float x = cos((float)battle.globalTimer / 4) * 128 + sin((float)battle.globalTimer / 5) * 128 + cos((float)battle.globalTimer / 9) * 128;
 		float y = sin((float)battle.globalTimer / 4) * 128 + cos((float)battle.globalTimer / 5) * 128 + sin((float)battle.globalTimer / 9) * 128;
 		
-		SetDrawColor(255, 240, 192);
+		Drawer_SetDrawColor(255, 240, 192);
 		for (int i = -100; i < 100; i++) {
-			FillRect(32*i - 0.5 + x - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 + x - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -100; i < 100; i++) {
-			FillRect(0, 32*i - 0.5 + y, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5 + y, SCREEN_WIDTH, 1);
 		}
 		
-		SetDrawColor(255, 224, 128);
+		Drawer_SetDrawColor(255, 224, 128);
 		for (int i = -34; i < 90; i++) {
-			FillRect(32*i - 0.5 + 4 + x - (battle.globalTimer % 64), 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 + 4 + x - (battle.globalTimer % 64), 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -34; i < 90; i++) {
-			FillRect(0, 32*i - 0.5 + y - (battle.globalTimer % 64), SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5 + y - (battle.globalTimer % 64), SCREEN_WIDTH, 1);
 		}
 	}
 	else if (battle.backgroundId == 11) {
-		SetDrawColor(15, 23, 31);
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		Drawer_SetDrawColor(15, 23, 31);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		
-		SetDrawColor(0, 47, 63);
+		Drawer_SetDrawColor(0, 47, 63);
 		for (int i = -100; i < 100; i++) {
-			FillRect(32*i - 0.5 - (battle.globalTimer % 256) / 4, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 - (battle.globalTimer % 256) / 4, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -100; i < 100; i++) {
-			FillRect(0, 32*i - 0.5, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5, SCREEN_WIDTH, 1);
 		}
 		
-		SetDrawColor(0, 95, 111);
+		Drawer_SetDrawColor(0, 95, 111);
 		for (int i = -4; i < 60; i++) {
-			FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -4; i < 60; i++) {
-			FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
 		}
 	}
 	else if (battle.backgroundId == 12) {
@@ -3277,28 +4723,28 @@ void Battle_Draw() {
 		else if ((battle.globalTimer % 72) / 24 == 1)
 			scale = 4;
 		
-		SetDrawColor(0, 0, 0);
-		FillRect(0, 0, 1280, 720);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_FillRect(0, 0, 1280, 720);
 		
-		SetDrawColor(16 - (int)(cos((float)battle.globalTimer / 128) * 16), 0, 24 + (int)(cos((float)battle.globalTimer / 128) * 23));
+		Drawer_SetDrawColor(16 - (int)(cos((float)battle.globalTimer / 128) * 16), 0, 24 + (int)(cos((float)battle.globalTimer / 128) * 23));
 		for (int j = -9; j < 16; j++)
 		for (int i = -14; i < 19; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i*scale - (battle.globalTimer % 64) / 4, y + 64*j*scale - (battle.globalTimer % 64) / 4, 0, scale, scale);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_0, x + 64*i*scale - (battle.globalTimer % 64) / 4, y + 64*j*scale - (battle.globalTimer % 64) / 4, 0, scale, scale);
 		}
 		
-		SetDrawBlend(SDL_BLENDMODE_ADD);
+		Drawer_SetDrawBlend(BLENDMODE_ADD);
 		for (int j = -9; j < 20; j++)
 		for (int i = -14; i < 22; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i*scale + (battle.globalTimer % 64) / 2, -y + 64*j*scale - (battle.globalTimer % 64) / 2, 0, scale, scale);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_1, -x + 64*i*scale + (battle.globalTimer % 64) / 2, -y + 64*j*scale - (battle.globalTimer % 64) / 2, 0, scale, scale);
 		}
-		SetDrawBlend(SDL_BLENDMODE_BLEND);
+		Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		
-		SetDrawColor(0, 0, 31);
+		Drawer_SetDrawColor(0, 0, 31);
 		for (int i = -4; i < 60; i++) {
-			FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+			Drawer_FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
 		}
 		for (int i = -4; i < 60; i++) {
-			FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
+			Drawer_FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
 		}
 	}
 	else if (battle.backgroundId == 13) {
@@ -3329,100 +4775,213 @@ void Battle_Draw() {
 			y = 0;
 		
 		if (redMode)
-			SetDrawColor(31, 0, 0);
+			Drawer_SetDrawColor(31, 0, 0);
 		else
-			SetDrawColor(27, 0, 27);
+			Drawer_SetDrawColor(27, 0, 27);
 		for (int i = 0; i < 24; i++) {
-			DrawSprite_Angle(SPR_misc_bossbattlebg_3, x + 32*i, y + 160, 0, 1, 1, angle);
-			DrawSprite_Angle(SPR_misc_bossbattlebg_3, x + 32*i, -y + SCREEN_HEIGHT - 160, 0, 1, 1, angle);
+			Drawer_DrawSprite_Angle(SPR_misc_bossbattlebg_3, x + 32*i, y + 160, 0, 1, 1, angle);
+			Drawer_DrawSprite_Angle(SPR_misc_bossbattlebg_3, x + 32*i, -y + SCREEN_HEIGHT - 160, 0, 1, 1, angle);
 		}
 		if (redMode)
-			SetDrawColor(95, 0, 0);
+			Drawer_SetDrawColor(95, 0, 0);
 		else
-			SetDrawColor(71, 0, 71);
+			Drawer_SetDrawColor(71, 0, 71);
 		for (int i = 0; i < 12; i++) {
-			DrawSprite_Angle(SPR_misc_bossbattlebg_3, x * 2 + 64*i, y + 120, 0, 2, 2, angle);
-			DrawSprite_Angle(SPR_misc_bossbattlebg_3, x * 2 + 64*i, -y + SCREEN_HEIGHT - 120, 0, 2, 2, angle);
-			DrawSprite_Angle(SPR_misc_bossbattlebg_4, x * 2 + 64*i, y + 120, 0, 1.75, 1.75, angle);
-			DrawSprite_Angle(SPR_misc_bossbattlebg_4, x * 2 + 64*i, -y + SCREEN_HEIGHT - 120, 0, 1.75, 1.75, angle);
+			Drawer_DrawSprite_Angle(SPR_misc_bossbattlebg_3, x * 2 + 64*i, y + 120, 0, 2, 2, angle);
+			Drawer_DrawSprite_Angle(SPR_misc_bossbattlebg_3, x * 2 + 64*i, -y + SCREEN_HEIGHT - 120, 0, 2, 2, angle);
+			Drawer_DrawSprite_Angle(SPR_misc_bossbattlebg_4, x * 2 + 64*i, y + 120, 0, 1.75, 1.75, angle);
+			Drawer_DrawSprite_Angle(SPR_misc_bossbattlebg_4, x * 2 + 64*i, -y + SCREEN_HEIGHT - 120, 0, 1.75, 1.75, angle);
 		}
 		if (redMode)
-			SetDrawColor(223, 0, 0);
+			Drawer_SetDrawColor(223, 0, 0);
 		else
-			SetDrawColor(191, 0, 191);
+			Drawer_SetDrawColor(191, 0, 191);
 		for (int i = 0; i < 6; i++) {
-			DrawSprite_Angle(SPR_misc_bossbattlebg_3, x * 4 + 128*i, y * 2 + 46, 0, 4, 4, angle);
-			DrawSprite_Angle(SPR_misc_bossbattlebg_3, x * 4 + 128*i, -y * 2 + SCREEN_HEIGHT - 46, 0, 4, 4, angle);
-			DrawSprite_Angle(SPR_misc_bossbattlebg_4, x * 4 + 128*i, y * 2 + 46, 0, 3.5, 3.5, angle);
-			DrawSprite_Angle(SPR_misc_bossbattlebg_4, x * 4 + 128*i, -y * 2 + SCREEN_HEIGHT - 46, 0, 3.5, 3.5, angle);
+			Drawer_DrawSprite_Angle(SPR_misc_bossbattlebg_3, x * 4 + 128*i, y * 2 + 46, 0, 4, 4, angle);
+			Drawer_DrawSprite_Angle(SPR_misc_bossbattlebg_3, x * 4 + 128*i, -y * 2 + SCREEN_HEIGHT - 46, 0, 4, 4, angle);
+			Drawer_DrawSprite_Angle(SPR_misc_bossbattlebg_4, x * 4 + 128*i, y * 2 + 46, 0, 3.5, 3.5, angle);
+			Drawer_DrawSprite_Angle(SPR_misc_bossbattlebg_4, x * 4 + 128*i, -y * 2 + SCREEN_HEIGHT - 46, 0, 3.5, 3.5, angle);
 		}
 		
 		if (redMode)
-			SetDrawColor(31, 0, 0);
+			Drawer_SetDrawColor(31, 0, 0);
 		else
-			SetDrawColor(15, 0, 15);
-		SetDrawBlend(SDL_BLENDMODE_ADD);
+			Drawer_SetDrawColor(15, 0, 15);
+		Drawer_SetDrawBlend(BLENDMODE_ADD);
 		for (int j = -9; j < 16; j++)
 		for (int i = -15; i < 12; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_1, 64*i*2 + (battle.globalTimer % 512) / 4 * (1 + redMode * 11), 64*j*2 - (battle.globalTimer % 512) / 4, 0, 2, 2);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_1, 64*i*2 + (battle.globalTimer % 512) / 4 * (1 + redMode * 11), 64*j*2 - (battle.globalTimer % 512) / 4, 0, 2, 2);
 		}
 		for (int j = -9; j < 16; j++)
 		for (int i = -15; i < 12; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_1, 64*i*2 + (battle.globalTimer % 256) / 2 * (1 + redMode * 11), 64*j*2 - (battle.globalTimer % 256) / 2, 0, 2, 2);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_1, 64*i*2 + (battle.globalTimer % 256) / 2 * (1 + redMode * 11), 64*j*2 - (battle.globalTimer % 256) / 2, 0, 2, 2);
 		}
-		SetDrawBlend(SDL_BLENDMODE_BLEND);
+		Drawer_SetDrawBlend(BLENDMODE_BLEND);
 	}
 	else if (battle.backgroundId == 14) {
-		SetDrawColor(0, 0, 31);
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-		
 		int a = battle.globalTimer / 4 * 16;
 		float scale = 2;
-		for (int i = 0; i < 100; i++) {
-			float b = (float)(a + i) / 2;
-			float colorScale = 2.0 - (float)i / 50;
-			SetDrawColor((6 + sin(b) * 6) * colorScale, 0, (16 - sin(b) * 16) * colorScale);
-			FillRect(320 - SCREEN_WIDTH / 2, 240 - SCREEN_HEIGHT * scale / 2 + sin((float)(a + i) / 384) * 48 - 56, SCREEN_WIDTH, SCREEN_HEIGHT * scale);
-			scale *= 0.96;
+		if (game.settings.softwareRendering) {
+			for (int i = 0; i < 100; i++) {
+				float b = (float)(a + i) / 2;
+				float colorScale = 2.0 - (float)i / 50;
+				Drawer_SetDrawColor((6 + sin(b) * 6) * colorScale, 0, (16 - sin(b) * 16) * colorScale);
+				Drawer_FillRect(320 - SCREEN_WIDTH / 2, 240 - SCREEN_HEIGHT * scale / 2 + sin((float)(a + i) / 384) * 48 - 56, SCREEN_WIDTH, 16 * scale);
+				Drawer_FillRect(320 - SCREEN_WIDTH / 2, 240 + SCREEN_HEIGHT * scale / 2 - 16 * scale + sin((float)(a + i) / 384) * 48 - 56, SCREEN_WIDTH, 16 * scale);
+				scale *= 0.96;
+			}
+		}
+		else {
+			for (int i = 0; i < 100; i++) {
+				float b = (float)(a + i) / 2;
+				float colorScale = 2.0 - (float)i / 50;
+				Drawer_SetDrawColor((6 + sin(b) * 6) * colorScale, 0, (16 - sin(b) * 16) * colorScale);
+				Drawer_FillRect(320 - SCREEN_WIDTH / 2, 240 - SCREEN_HEIGHT * scale / 2 + sin((float)(a + i) / 384) * 48 - 56, SCREEN_WIDTH, SCREEN_HEIGHT * scale);
+				scale *= 0.96;
+			}
 		}
 		
-		SetDrawColor(0, 63, 159);
+		Drawer_SetDrawColor(0, 63, 159);
 		for (int i = -4; i < 36; i++) {
-			DrawSprite(SPR_misc_bossbattlebg_6, 32*i - (battle.globalTimer % 8) * 4, 140, 0, 2, 2);
-			DrawSprite(SPR_misc_bossbattlebg_6, 32*i + (battle.globalTimer % 8) * 4, 360, 0, 2, -2);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_6, 32*i - (battle.globalTimer % 8) * 4, 140, 0, 2, 2);
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_6, 32*i + (battle.globalTimer % 8) * 4, 360, 0, 2, -2);
 		}
 	}
 	else if (battle.backgroundId == 15) {
-		SetDrawColor(0, 0, 0);
-		FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
 		
 		int a = battle.globalTimer / 2 * 16;
 		float scale = 2;
 		for (int i = 0; i < 100; i++) {
 			float b = (float)(a + i) / 2;
 			float colorScale = 2.0 - (float)i / 50;
-			SetDrawColor((20 + sin(b) * 20) * colorScale * (2 + sin((float)battle.globalTimer / 48)), 0, 0);
-			FillRect(320 - SCREEN_WIDTH * scale / 2, 240 - SCREEN_HEIGHT * scale / 2, SCREEN_WIDTH * scale, SCREEN_HEIGHT * scale);
+			Drawer_SetDrawColor((20 + sin(b) * 20) * colorScale * (2 + sin((float)battle.globalTimer / 48)), 0, 0);
+			Drawer_FillRect(320 - SCREEN_WIDTH * scale / 2, 240 - SCREEN_HEIGHT * scale / 2, SCREEN_WIDTH * scale, SCREEN_HEIGHT * scale);
 			scale *= 0.96;
 		}
 	}
+	else if (battle.backgroundId == 16) {
+		Drawer_SetDrawColor(15, 15, 15);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		
+		Drawer_SetDrawColor(47, 23, 47);
+		for (int i = -100; i < 100; i++) {
+			Drawer_FillRect(32*i - 0.5 - (battle.globalTimer % 256) / 4, 0, 1, SCREEN_HEIGHT);
+		}
+		for (int i = -100; i < 100; i++) {
+			Drawer_FillRect(0, 32*i - 0.5, SCREEN_WIDTH, 1);
+		}
+		
+		Drawer_SetDrawColor(127, 0, 79);
+		for (int i = -4; i < 60; i++) {
+			Drawer_FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+		}
+		for (int i = -4; i < 60; i++) {
+			Drawer_FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
+		}
+	}
+	else if (battle.backgroundId == 17) {
+		Drawer_SetDrawColor(23, 15, 15);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		
+		Drawer_SetDrawColor(63, 0, 0);
+		for (int i = -100; i < 100; i++) {
+			Drawer_FillRect(32*i - 0.5 - (battle.globalTimer % 256) / 4, 0, 1, SCREEN_HEIGHT);
+		}
+		for (int i = -100; i < 100; i++) {
+			Drawer_FillRect(0, 32*i - 0.5, SCREEN_WIDTH, 1);
+		}
+		
+		Drawer_SetDrawColor(127, 0, 0);
+		for (int i = -4; i < 60; i++) {
+			Drawer_FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+		}
+		for (int i = -4; i < 60; i++) {
+			Drawer_FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
+		}
+	}
+	else if (battle.backgroundId == 18) {
+		Drawer_SetDrawColor(167 - (int)(cos((float)battle.globalTimer / 128) * 32), 0, 0);
+		Drawer_DrawSprite(SPR_misc_backdrop_redmountains, 0, 0, 0, 2, 2);
+		
+		Drawer_SetDrawColor(0, 0, 0);
+		for (int y = -64 + ((game.timer / 8) % 6); y < SCREEN_HEIGHT + 128; y += 6) {
+			Drawer_FillRect(-200, y, SCREEN_WIDTH + 400, 1);
+		}
+		
+		/*Drawer_SetDrawColor(127, 0, 0);
+		for (int i = -100; i < 100; i++) {
+			Drawer_FillRect(32*i - 0.5 - (battle.globalTimer % 256) / 4, 0, 1, SCREEN_HEIGHT);
+		}
+		for (int i = -100; i < 100; i++) {
+			Drawer_FillRect(0, 32*i - 0.5, SCREEN_WIDTH, 1);
+		}
+		
+		Drawer_SetDrawColor(63, 0, 0);
+		for (int i = -4; i < 60; i++) {
+			Drawer_FillRect(32*i - 0.5 + 4 - (battle.globalTimer % 128) / 2, 0, 1, SCREEN_HEIGHT);
+		}
+		for (int i = -4; i < 60; i++) {
+			Drawer_FillRect(0, 32*i - 0.5 - (battle.globalTimer % 128) / 2, SCREEN_WIDTH, 1);
+		}*/
+	}
+	else if (battle.backgroundId == 19) {
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		
+		Drawer_SetDrawBlend(BLENDMODE_ADD);
+		Drawer_SetDrawColor(63 + (int)(cos((float)battle.globalTimer / 256) * 32), 0, 0);
+		Drawer_DrawSprite(SPR_misc_bossbattlebg_10, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 16, battle.globalTimer / 2 % 4, 1, 1);
+		
+		for (int i = 1; i <= 8; i++) {
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_10, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 16, (battle.globalTimer / 2 - 1 - i / 2) % 4, 1 + i * 0.5, 1 + i * 0.5);
+		}
+		Drawer_SetDrawBlend(BLENDMODE_BLEND);
+	}
+	else if (battle.backgroundId == 20) {
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		
+		Drawer_SetDrawBlend(BLENDMODE_ADD);
+		Drawer_SetDrawColor(0, 0, 63 + (int)(cos((float)battle.globalTimer / 256) * 32));
+		Drawer_DrawSprite(SPR_misc_bossbattlebg_10, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 16, battle.globalTimer / 2 % 4, 1, 1);
+		
+		for (int i = 1; i <= 8; i++) {
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_10, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 16, (battle.globalTimer / 2 - 1 - i / 2) % 4, 1 + i * 0.5, 1 + i * 0.5);
+		}
+		Drawer_SetDrawBlend(BLENDMODE_BLEND);
+	}
+	else if (battle.backgroundId == 21) {
+		Drawer_SetDrawColor(0, 0, 0);
+		Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+		
+		Drawer_SetDrawBlend(BLENDMODE_ADD);
+		Drawer_SetDrawColor(23, 23, 23);
+		Drawer_DrawSprite(SPR_misc_bossbattlebg_10, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 16, battle.globalTimer / 2 % 4, 1, 1);
+		
+		for (int i = 1; i <= 8; i++) {
+			Drawer_DrawSprite(SPR_misc_bossbattlebg_10, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2 - 16, (battle.globalTimer / 2 - 1 - i / 2) % 4, 1 + i * 0.5, 1 + i * 0.5);
+		}
+		Drawer_SetDrawBlend(BLENDMODE_BLEND);
+	}
 	
-	SetDrawColor(63, 63, 63);
-	FillRect(-64, SCREEN_HEIGHT - 106, SCREEN_WIDTH + 128, 256);
-	SetDrawColor(0, 0, 0);
-	FillRect(-64, SCREEN_HEIGHT - 104, SCREEN_WIDTH + 128, 252);
-	SetDrawColor(255, 255, 255);
+	Drawer_SetDrawColor(63, 63, 63);
+	Drawer_FillRect(-64, SCREEN_HEIGHT - 106, SCREEN_WIDTH + 128, 256);
+	Drawer_SetDrawColor(0, 0, 0);
+	Drawer_FillRect(-64, SCREEN_HEIGHT - 104, SCREEN_WIDTH + 128, 252);
+	Drawer_SetDrawColor(255, 255, 255);
 	
-	SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_CENTER);
+	Drawer_SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_CENTER);
 	
 	for (int i = 0; i < 16; i++) {
 		Fighter* fighter = &battle.fighters[i];
 		if (!fighter->enabled) continue;
 		
 		if (fighter->ai == 192 && battle.battleEventVars[0] == 1) {
-			SetDrawAlpha(223);
-			DrawSprite(SPR_misc_subspace_redaura, fighter->x, fighter->y - 24, (battle.globalTimer / 2) % 4, 2, 2);
-			SetDrawAlpha(255);
+			Drawer_SetDrawAlpha(223);
+			Drawer_DrawSprite(SPR_misc_subspace_redaura, fighter->x, fighter->y - 24, (battle.globalTimer / 2) % 4, 2, 2);
+			Drawer_SetDrawAlpha(255);
 		}
 		
 		float x = fighter->x;
@@ -3430,114 +4989,117 @@ void Battle_Draw() {
 		if (fighter->flinchTicks > 6) {
 			x += (1 - 2 * (((fighter->flinchTicks - 6) / 3) % 2)) * ((fighter->flinchTicks - 6) / 6 + 1);
 		}
+		if (fighter->ai == 101) {
+			y += -12 + cos((float)battle.globalTimer / 32) * 10;
+		}
 		
 		if (fighter->spriteId >= 0)
-			DrawSprite(fighter->spriteId, x, y, fighter->spriteFrame, 2 * fighter->facing, 2);
+			Drawer_DrawSprite(fighter->spriteId, x, y, fighter->spriteFrame, 2 * fighter->facing, 2);
 		else
 			DrawFighterChar(fighter->headId, fighter->bodyId, fighter->state, x, y, 2, 2, fighter->facing);
 		
 		if (fighter->ai == 57 && battle.battleEventVars[1] >= 1) {
-			SetDrawBlend(SDL_BLENDMODE_ADD);
+			Drawer_SetDrawBlend(BLENDMODE_ADD);
 			if (battle.globalTimer % 8 < 4) {
-				SetDrawBlend(SDL_BLENDMODE_BLEND);
-				SetDrawColor(0, 0, 0);
-				SetDrawAlpha(127);
+				Drawer_SetDrawBlend(BLENDMODE_BLEND);
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_SetDrawAlpha(127);
 			}
 			if (fighter->spriteId >= 0)
-				DrawSprite(fighter->spriteId, x, y, fighter->spriteFrame, 2 * fighter->facing, 2);
+				Drawer_DrawSprite(fighter->spriteId, x, y, fighter->spriteFrame, 2 * fighter->facing, 2);
 			else
 				DrawFighterChar(fighter->headId, fighter->bodyId, fighter->state, x, y, 2, 2, fighter->facing);
 			
-			SetDrawBlend(SDL_BLENDMODE_ADD);
-			SetDrawColor(255, 255, 255);
-			SetDrawAlpha(127);
+			Drawer_SetDrawBlend(BLENDMODE_ADD);
+			Drawer_SetDrawColor(255, 255, 255);
+			Drawer_SetDrawAlpha(127);
 			
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 3, 3, (float)battle.globalTimer * 18);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 4, 4, -(float)battle.globalTimer * 18);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 5, 5, (float)battle.globalTimer * 18);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 6, 6, -(float)battle.globalTimer * 18);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 7, 7, (float)battle.globalTimer * 18);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 8, 8, -(float)battle.globalTimer * 18);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 3, 3, (float)battle.globalTimer * 18);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 4, 4, -(float)battle.globalTimer * 18);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 5, 5, (float)battle.globalTimer * 18);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 6, 6, -(float)battle.globalTimer * 18);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 7, 7, (float)battle.globalTimer * 18);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 8, 8, -(float)battle.globalTimer * 18);
 			
-			SetDrawAlpha(255);
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
+			Drawer_SetDrawAlpha(255);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		}
 		if (fighter->ai == 192 && battle.battleEventVars[0] == 1) {
-			SetDrawBlend(SDL_BLENDMODE_ADD);
+			Drawer_SetDrawBlend(BLENDMODE_ADD);
 			if (battle.globalTimer % 8 < 4) {
-				SetDrawBlend(SDL_BLENDMODE_BLEND);
-				SetDrawColor(0, 0, 0);
-				SetDrawAlpha(127);
+				Drawer_SetDrawBlend(BLENDMODE_BLEND);
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_SetDrawAlpha(127);
 			}
 			if (fighter->spriteId >= 0)
-				DrawSprite(fighter->spriteId, x, y, fighter->spriteFrame, 2 * fighter->facing, 2);
+				Drawer_DrawSprite(fighter->spriteId, x, y, fighter->spriteFrame, 2 * fighter->facing, 2);
 			else
 				DrawFighterChar(fighter->headId, fighter->bodyId, fighter->state, x, y, 2, 2, fighter->facing);
 			
-			SetDrawBlend(SDL_BLENDMODE_ADD);
-			SetDrawColor(127, 0, 127);
-			SetDrawAlpha(127);
+			Drawer_SetDrawBlend(BLENDMODE_ADD);
+			Drawer_SetDrawColor(127, 0, 127);
+			Drawer_SetDrawAlpha(127);
 			
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 4, 4, (float)battle.globalTimer * 18);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 6, 6, -(float)battle.globalTimer * 18);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 8, 8, (float)battle.globalTimer * 18);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 10, 10, -(float)battle.globalTimer * 18);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 12, 12, (float)battle.globalTimer * 18);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 14, 14, -(float)battle.globalTimer * 18);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 4, 4, (float)battle.globalTimer * 18);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 6, 6, -(float)battle.globalTimer * 18);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 8, 8, (float)battle.globalTimer * 18);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 10, 10, -(float)battle.globalTimer * 18);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 12, 12, (float)battle.globalTimer * 18);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 14, 14, -(float)battle.globalTimer * 18);
 			
-			SetDrawColor(255, 255, 255);
-			SetDrawAlpha(255);
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
+			Drawer_SetDrawColor(255, 255, 255);
+			Drawer_SetDrawAlpha(255);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		}
 		if (fighter->ai == 191 && battle.battleEventVars[0] == 1) {
-			SetDrawBlend(SDL_BLENDMODE_ADD);
+			Drawer_SetDrawBlend(BLENDMODE_ADD);
 			if (battle.globalTimer % 8 < 4) {
-				SetDrawBlend(SDL_BLENDMODE_BLEND);
-				SetDrawColor(0, 0, 0);
-				SetDrawAlpha(127);
+				Drawer_SetDrawBlend(BLENDMODE_BLEND);
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_SetDrawAlpha(127);
 			}
 			if (fighter->spriteId >= 0)
-				DrawSprite(fighter->spriteId, x, y, fighter->spriteFrame, 2 * fighter->facing, 2);
+				Drawer_DrawSprite(fighter->spriteId, x, y, fighter->spriteFrame, 2 * fighter->facing, 2);
 			else
 				DrawFighterChar(fighter->headId, fighter->bodyId, fighter->state, x, y, 2, 2, fighter->facing);
 			
-			SetDrawBlend(SDL_BLENDMODE_ADD);
-			SetDrawColor(255, 255, 255);
-			SetDrawAlpha(127);
+			Drawer_SetDrawBlend(BLENDMODE_ADD);
+			Drawer_SetDrawColor(255, 255, 255);
+			Drawer_SetDrawAlpha(127);
 			
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 3, 3, (float)battle.globalTimer * 9);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 4, 4, -(float)battle.globalTimer * 9);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 5, 5, (float)battle.globalTimer * 9);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 6, 6, -(float)battle.globalTimer * 9);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 7, 7, (float)battle.globalTimer * 9);
-			DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 8, 8, -(float)battle.globalTimer * 9);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 3, 3, (float)battle.globalTimer * 9);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 4, 4, -(float)battle.globalTimer * 9);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 5, 5, (float)battle.globalTimer * 9);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 6, 6, -(float)battle.globalTimer * 9);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 2, 7, 7, (float)battle.globalTimer * 9);
+			Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 3, 8, 8, -(float)battle.globalTimer * 9);
 			
-			SetDrawAlpha(255);
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
+			Drawer_SetDrawAlpha(255);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		}
 		
 		if (battle.state == BATTLE_STATE_IDLE && fighter->alive) {
 			if (i == battle.turn)
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 255, 255);
 			else if (fighter->actionId > 0)
-				SetDrawColor(255, 127, 255);
+				Drawer_SetDrawColor(255, 127, 255);
 			else
-				SetDrawColor(63, 63, 63);
+				Drawer_SetDrawColor(63, 63, 63);
 			
-			DrawSprite(SPR_gui_speedgem, fighter->x, fighter->y - 86, 0, 2, 2);
+			Drawer_DrawSprite(SPR_gui_speedgem, fighter->x, fighter->y - 86 - (fighter->ai == 101) * 46, 0, 2, 2);
 			
-			SetDrawColor(255, 255, 255);
+			Drawer_SetDrawColor(255, 255, 255);
 			
 			if ((battle.menu.id == 2 && battle.menu.options[battle.menu.cursors[2]].value == i) || (battle.menu.id == 4 && battle.menu.options[battle.menu.cursors[1]].value == i)) {
-				SetDrawBlend(SDL_BLENDMODE_ADD);
-				DrawSprite(SPR_gui_speedgem, fighter->x, fighter->y - 86, 0, 2, 2);
-				SetDrawBlend(SDL_BLENDMODE_BLEND);
+				Drawer_SetDrawBlend(BLENDMODE_ADD);
+				Drawer_DrawSprite(SPR_gui_speedgem, fighter->x, fighter->y - 86 - (fighter->ai == 101) * 46, 0, 2, 2);
+				Drawer_SetDrawBlend(BLENDMODE_BLEND);
 			}
 			
-			SetFontSprite(SPR_font_small);
+			Drawer_SetFontSprite(SPR_font_small);
 			snprintf(game.textBuffer, 32, "%d", fighter->speedRoll);
-			DrawText(game.textBuffer, 32, fighter->x, fighter->y - 82, 2, 2);
-			SetFontSprite(SPR_font_main);
+			Drawer_DrawText(game.textBuffer, 32, fighter->x, fighter->y - 82 - (fighter->ai == 101) * 46, 2, 2);
+			Drawer_SetFontSprite(SPR_font_main);
 		}
 	}
 	
@@ -3556,8 +5118,8 @@ void Battle_Draw() {
 				if (statusCount[statusCountRows] >= 4) statusCountRows++;
 			}
 			
-			SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
-			SetFontSprite(SPR_font_small);
+			Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+			Drawer_SetFontSprite(SPR_font_small);
 			
 			int c = 0;
 			int row = 0;
@@ -3565,10 +5127,12 @@ void Battle_Draw() {
 				if (fighter->status[j] <= 0) continue;
 				if (!statusEffectData[j].visible) continue;
 				
-				DrawSprite(SPR_gui_status, fighter->x - (statusCount[row] - 1) * 12 + c * 24, fighter->y + 16 + 24 * row, j, 2, 2);
+				Drawer_DrawSprite(SPR_gui_status, fighter->x - (statusCount[row] - 1) * 12 + c * 24, fighter->y + 16 + 24 * row, j, 2, 2);
 				
-				snprintf(game.textBuffer, 4, "%d", fighter->status[j]);
-				DrawText(game.textBuffer, 4, fighter->x - (statusCount[row] - 1) * 12 + c * 24 + 2, fighter->y + 16 + 24 * row + 2, 2, 2);
+				if (statusEffectData[j].stackable) {
+					snprintf(game.textBuffer, 4, "%d", fighter->status[j]);
+					Drawer_DrawText(game.textBuffer, 4, fighter->x - (statusCount[row] - 1) * 12 + c * 24 + 2, fighter->y + 16 + 24 * row + 2, 2, 2);
+				}
 				c++;
 				if (c >= 4) {
 					c = 0;
@@ -3579,12 +5143,14 @@ void Battle_Draw() {
 				if (fighter->statusNext[j] <= 0) continue;
 				if (!statusEffectData[j].visible) continue;
 				
-				SetDrawAlpha(127);
-				DrawSprite(SPR_gui_status, fighter->x - (statusCount[row] - 1) * 12 + c * 24, fighter->y + 16 + 24 * row, j, 2, 2);
-				SetDrawAlpha(255);
+				Drawer_SetDrawAlpha(127);
+				Drawer_DrawSprite(SPR_gui_status, fighter->x - (statusCount[row] - 1) * 12 + c * 24, fighter->y + 16 + 24 * row, j, 2, 2);
+				Drawer_SetDrawAlpha(255);
 				
-				snprintf(game.textBuffer, 4, "%d", fighter->statusNext[j]);
-				DrawText(game.textBuffer, 4, fighter->x - (statusCount[row] - 1) * 12 + c * 24 + 2, fighter->y + 16 + 24 * row + 2, 2, 2);
+				if (statusEffectData[j].stackable) {
+					snprintf(game.textBuffer, 4, "%d", fighter->statusNext[j]);
+					Drawer_DrawText(game.textBuffer, 4, fighter->x - (statusCount[row] - 1) * 12 + c * 24 + 2, fighter->y + 16 + 24 * row + 2, 2, 2);
+				}
 				c++;
 				if (c >= 4) {
 					c = 0;
@@ -3592,14 +5158,14 @@ void Battle_Draw() {
 				}
 			}
 			
-			SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_CENTER);
-			SetFontSprite(SPR_font_main);
+			Drawer_SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_CENTER);
+			Drawer_SetFontSprite(SPR_font_main);
 		}
 	}
 	
-	SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+	Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 	
-	SetFontSprite(SPR_font_small);
+	Drawer_SetFontSprite(SPR_font_small);
 	
 	for (int i = 0; i < 16; i++) {
 		Fighter* fighter = &battle.fighters[i];
@@ -3611,49 +5177,49 @@ void Battle_Draw() {
 		else
 			x = SCREEN_WIDTH - 25 - (i - 8) * 54;
 		
-		SetDrawColor(127, 127, 127);
+		Drawer_SetDrawColor(127, 127, 127);
 		if (fighter->blockTimer >= 0 && fighter->blockTimer <= 1)
-			SetDrawColor(255, 255, 0);
+			Drawer_SetDrawColor(255, 255, 0);
 		else if (fighter->blockTimer >= 0)
-			SetDrawColor(159, 159, 159);
+			Drawer_SetDrawColor(159, 159, 159);
 		
-		DrawSprite(SPR_gui_charbar, x, SCREEN_HEIGHT - 102, 0, 2, 2);
+		Drawer_DrawSprite(SPR_gui_charbar, x, SCREEN_HEIGHT - 102, 0, 2, 2);
 		
-		SetDrawColor(255, 0, 0);
-		FillRect(x - 18, SCREEN_HEIGHT - 102 + 52 - fighter->hp * 46 / fighter->hpMax, 6, fighter->hp * 46 / fighter->hpMax);
+		Drawer_SetDrawColor(255, 0, 0);
+		Drawer_FillRect(x - 18, SCREEN_HEIGHT - 102 + 52 - fighter->hp * 46 / fighter->hpMax, 6, fighter->hp * 46 / fighter->hpMax);
 		
-		SetDrawColor(0, 255, 255);
-		FillRect(x - 6, SCREEN_HEIGHT - 102 + 52 - fighter->mp * 46 / fighter->mpMax, 6, fighter->mp * 46 / fighter->mpMax);
+		Drawer_SetDrawColor(0, 255, 255);
+		Drawer_FillRect(x - 6, SCREEN_HEIGHT - 102 + 52 - fighter->mp * 46 / fighter->mpMax, 6, fighter->mp * 46 / fighter->mpMax);
 		
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(255, 255, 255);
 		
 		Battle_DrawFighterPortrait(fighter, x + 2, SCREEN_HEIGHT - 102 + 90);
 		
 		/*if (fighter->headId > 0) {
 			int subImage = fighter->alive ? 0 : 2;
-			if (battleHeadData[fighter->headId].backSpriteId >= 0) DrawSprite(battleHeadData[fighter->headId].backSpriteId, x + 2, SCREEN_HEIGHT - 102 + 90, subImage, 2, 2);
-			DrawSprite(battleHeadData[fighter->headId].spriteId, x + 2, SCREEN_HEIGHT - 102 + 90, subImage, 2, 2);
+			if (battleHeadData[fighter->headId].backSpriteId >= 0) Drawer_DrawSprite(battleHeadData[fighter->headId].backSpriteId, x + 2, SCREEN_HEIGHT - 102 + 90, subImage, 2, 2);
+			Drawer_DrawSprite(battleHeadData[fighter->headId].spriteId, x + 2, SCREEN_HEIGHT - 102 + 90, subImage, 2, 2);
 		}
 		else if (fighter->bodyId > 0) {
 			int subImage = fighter->alive ? FIGHTER_STATE_IDLE : FIGHTER_STATE_HURT;
-			DrawSprite(battleBodyData[fighter->bodyId].spriteId, x + 2, SCREEN_HEIGHT - 102 + 92, subImage, 2, 2);
+			Drawer_DrawSprite(battleBodyData[fighter->bodyId].spriteId, x + 2, SCREEN_HEIGHT - 102 + 92, subImage, 2, 2);
 		}*/
 	}
 	
-	SetFontSprite(SPR_font_main);
+	Drawer_SetFontSprite(SPR_font_main);
 	
 	
 	
 	DrawDialogBox(0, 0, 640, 128);
 	
 	if (dialogSystem.state != DIALOG_STATE_IDLE) {
-		DrawText(dialogSystem.text, dialogSystem.textLength, 8, 4, 2, 2);
+		Drawer_DrawText(dialogSystem.text, dialogSystem.textLength, 8, 4, 2, 2);
 		
 		if (dialogSystem.name[0] != 0) {
-			SetFontAlignment(FONT_ALIGN_RIGHT | FONT_ALIGN_TOP);
+			Drawer_SetFontAlignment(FONT_ALIGN_RIGHT | FONT_ALIGN_TOP);
 			DrawDialogBox(SCREEN_WIDTH - 16 - StringLength(dialogSystem.name) * 16, 128, 16 + StringLength(dialogSystem.name) * 16, 44);
-			DrawText(dialogSystem.name, 32, SCREEN_WIDTH - 8, 132, 2, 2);
-			SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+			Drawer_DrawText(dialogSystem.name, 32, SCREEN_WIDTH - 8, 132, 2, 2);
+			Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 		}
 	}
 	else if (battle.state == BATTLE_STATE_IDLE && battle.timer >= 3) {
@@ -3677,9 +5243,9 @@ void Battle_Draw() {
 		else if (battle.menu.id == 2) {
 			Fighter* fighter = &battle.fighters[battle.menu.options[battle.menu.cursors[2]].value];
 			
-			SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_BOTTOM);
-			DrawText("v", 10, fighter->x, fighter->y - 104, 2, 2);
-			SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+			Drawer_SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_BOTTOM);
+			Drawer_DrawText("v", 10, fighter->x, fighter->y - 104, 2, 2);
+			Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 			
 			Battle_DrawFighterProfile(fighter);
 			Battle_DrawFighterProfileAction(fighter);
@@ -3691,15 +5257,15 @@ void Battle_Draw() {
 			
 			if (profile.itemInventory[battle.menu.options[battle.menu.cursors[battle.menu.cursorId]].value] > 0) {
 				DrawDialogBox(0, SCREEN_HEIGHT - 128, 640, 128);
-				DrawText(GetDialogString(4500 + profile.itemInventory[battle.menu.options[battle.menu.cursors[battle.menu.cursorId]].value]), 128, 8, SCREEN_HEIGHT - 128 + 4, 2, 2);
+				Drawer_DrawText(GetDialogString(4500 + profile.itemInventory[battle.menu.options[battle.menu.cursors[battle.menu.cursorId]].value]), 128, 8, SCREEN_HEIGHT - 128 + 4, 2, 2);
 			}
 		}
 		else if (battle.menu.id == 4) {
 			Fighter* fighter = &battle.fighters[battle.menu.options[battle.menu.cursors[1]].value];
 			
-			SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_BOTTOM);
-			DrawText("v", 10, fighter->x, fighter->y - 104, 2, 2);
-			SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+			Drawer_SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_BOTTOM);
+			Drawer_DrawText("v", 10, fighter->x, fighter->y - 104, 2, 2);
+			Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 			
 			Battle_DrawFighterProfile(fighter);
 			Battle_DrawFighterProfileAction(fighter);
@@ -3707,25 +5273,6 @@ void Battle_Draw() {
 		else if (battle.menu.id == 5) {
 			Menu_DrawOptions(&battle.menu, 0, 0, 360);
 		}
-	}
-	
-	
-	
-	SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_BOTTOM);
-	
-	for (int i = 0; i < 16; i++) {
-		if (battle.label[i].timer < 0) continue;
-		
-		switch (battle.label[i].color) {
-			case 1: SetDrawColor(255, 255, 0); break;
-			case 2: SetDrawColor(127, 127, 127); break;
-			case 3: SetDrawColor(255, 127, 0); break;
-			case 4: SetDrawColor(0, 255, 0); break;
-			case 5: SetDrawColor(0, 127, 255); break;
-		}
-		
-		DrawText(battle.label[i].string, 16, battle.label[i].x, battle.label[i].y, 2, 2);
-		SetDrawColor(255, 255, 255);
 	}
 	
 	
@@ -3738,13 +5285,15 @@ void Battle_Draw() {
 		actionDrawCode[runActionCodeId](battle.attacker, battle.target);
 	}
 	
+	
+	
 	if (battle.state == BATTLE_STATE_START) {
 		if (battle.timer < 44) {
-			SetDrawColor(0, 0, 0);
-			SetDrawAlpha(255 - battle.timer * 255 / 44);
-			FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-			SetDrawColor(255, 255, 255);
-			SetDrawAlpha(255);
+			Drawer_SetDrawColor(0, 0, 0);
+			Drawer_SetDrawAlpha(255 - battle.timer * 255 / 44);
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawColor(255, 255, 255);
+			Drawer_SetDrawAlpha(255);
 		}
 		if (battle.timer <= 33) {
 			for (int i = 0; i < 5; i++) {
@@ -3753,12 +5302,12 @@ void Battle_Draw() {
 				Fighter* fighter = &battle.fighters[i];
 				OverworldObject* object = &overworld.objects[i];
 				
-				SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
+				Drawer_SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
 				
 				fighter->x = GetScreenX(object->x) + (fighter->xStart - GetScreenX(object->x)) * battle.timer / 33;
 				fighter->y = GetScreenY(object->y) + (fighter->yStart - GetScreenY(object->y)) * battle.timer / 33;
 				
-				SetProjection(battle.camera.x, battle.camera.y, battle.camera.zoom);
+				Drawer_SetProjection(battle.camera.x, battle.camera.y, battle.camera.zoom);
 				
 				float x = fighter->x;
 				float y = fighter->y;
@@ -3766,22 +5315,22 @@ void Battle_Draw() {
 				DrawFighterChar(fighter->headId, fighter->bodyId, fighter->state, x, y, 2, 2, fighter->facing);
 				
 				if (battle.timer < 24 && partyMembers[profile.party[i]].armorId != 0) {
-					SetDrawBlend(SDL_BLENDMODE_ADD);
-					DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 1 + Min(3, battle.timer / 3), 2, 2, (float)battle.globalTimer * 15);
-					DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 1 + Min(3, battle.timer / 3), 4, 4, -(float)battle.globalTimer * 15);
-					SetDrawBlend(SDL_BLENDMODE_BLEND);
+					Drawer_SetDrawBlend(BLENDMODE_ADD);
+					Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 1 + Min(3, battle.timer / 3), 2, 2, (float)battle.globalTimer * 15);
+					Drawer_DrawSprite_Angle(SPR_spark_star, fighter->x, fighter->y - 24, 1 + Min(3, battle.timer / 3), 4, 4, -(float)battle.globalTimer * 15);
+					Drawer_SetDrawBlend(BLENDMODE_BLEND);
 				}
 			}
 			if (overworld.transition.vars[0] >= 0) {
 				Fighter* fighter = &battle.fighters[8];
 				OverworldObject* object = &overworld.objects[(int)overworld.transition.vars[0]];
 				
-				SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
+				Drawer_SetProjection(overworld.camera.x, overworld.camera.y, overworld.camera.zoom);
 				
 				fighter->x = GetScreenX(object->x) + (fighter->xStart - GetScreenX(object->x)) * battle.timer / 33;
 				fighter->y = GetScreenY(object->y) + (fighter->yStart - GetScreenY(object->y)) * battle.timer / 33;
 				
-				SetProjection(battle.camera.x, battle.camera.y, battle.camera.zoom);
+				Drawer_SetProjection(battle.camera.x, battle.camera.y, battle.camera.zoom);
 				
 				float x = fighter->x;
 				float y = fighter->y;
@@ -3793,11 +5342,11 @@ void Battle_Draw() {
 	
 	if (battle.state == BATTLE_STATE_END) {
 		if (battle.timer > 5 && battle.timer < 100) {
-			SetDrawColor(0, 0, 0);
-			SetDrawAlpha((battle.timer - 5) * 255 / 30);
-			FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-			SetDrawColor(255, 255, 255);
-			SetDrawAlpha(255);
+			Drawer_SetDrawColor(0, 0, 0);
+			Drawer_SetDrawAlpha((battle.timer - 5) * 255 / 30);
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawColor(255, 255, 255);
+			Drawer_SetDrawAlpha(255);
 		}
 	}
 	
@@ -3813,267 +5362,391 @@ void Battle_Draw() {
 		
 		switch (battle.sparks[i].id) {
 			case 1:
-				DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer / 2, 2, 2);
+				Drawer_DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer / 2, 2, 2);
 				break;
 			case 2:
-				SetDrawColor(255, 191, 0);
-				DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer / 2, 4, 4);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 191, 0);
+				Drawer_DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer / 2, 4, 4);
+				Drawer_SetDrawColor(255, 255, 255);
 				break;
 			case 3:
-				SetDrawColor(255, 0, 0);
-				DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer / 2, 2, 2);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 0, 0);
+				Drawer_DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer / 2, 2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
 				break;
 			case 4:
-				SetDrawColor(0, 255, 0);
-				DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer / 2, 4, 4);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(0, 255, 0);
+				Drawer_DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer / 2, 4, 4);
+				Drawer_SetDrawColor(255, 255, 255);
 				break;
 			case 5:
-				SetDrawColor(0, 127, 255);
-				DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer / 2, 4, 4);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(0, 127, 255);
+				Drawer_DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer / 2, 4, 4);
+				Drawer_SetDrawColor(255, 255, 255);
 				break;
 			case 6:
-				SetDrawColor(255, 191, 0);
-				DrawSprite(SPR_spark_star, x, y, battle.sparks[i].timer / 3, 2, 2);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 191, 0);
+				Drawer_DrawSprite(SPR_spark_star, x, y, battle.sparks[i].timer / 3, 2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
+				break;
+			case 7:
+				Drawer_DrawSprite(SPR_spark_blazeimpact, x, y, battle.sparks[i].timer / 4, 2, 2);
+				break;
+			case 8:
+				Drawer_SetDrawColor(0, 255, 255);
+				Drawer_DrawSprite(SPR_spark_ring, x, y, battle.sparks[i].timer / 4, 2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
+				break;
+			case 9:
+				Drawer_SetDrawColor(0, 0, 255);
+				Drawer_DrawSprite(SPR_spark_spark, x, y, 0, 2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
+				break;
+			case 10:
+				Drawer_SetDrawColor(0, 0, 0);
+				Drawer_DrawSprite(SPR_spark_blazeimpact, x, y, battle.sparks[i].timer / 4, 2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
+				break;
+			case 11:
+				{
+					float angle = PointDirection(0, 0, battle.sparks[i].xVel, battle.sparks[i].yVel);
+					if (angle > PI)
+						angle -= 2 * PI;
+					int frame = 2;
+					if ((angle >= PI / 16 && angle <= PI * 7 / 16) || (angle >= PI * 9 / 16 && angle <= PI * 15 / 16))
+						frame = 3;
+					else if ((angle <= -PI / 16 && angle >= -PI * 7 / 16) || (angle <= -PI * 9 / 16 && angle >= -PI * 15 / 16))
+						frame = 1;
+					else if (angle >= PI / 4 && angle <= PI * 3 / 4)
+						frame = 4;
+					else if (angle <= -PI / 4 && angle >= -PI * 3 / 4)
+						frame = 0;
+					
+					Drawer_DrawSprite(SPR_misc_malinewave, x, y, frame, 2 - 4 * (battle.sparks[i].xVel < 0), 2);
+				}
+				break;
+			case 12:
+				Drawer_SetDrawColor(40, 40, 40);
+				Drawer_DrawSprite(SPR_spark_spark, x, y, 1 + battle.sparks[i].timer / 2, 2, 2);
+				Drawer_DrawSprite(SPR_spark_ring, x, y, battle.sparks[i].timer / 2, 2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
+				break;
+			case 13:
+				for (; y > 0; y -= 4) {
+					Drawer_SetDrawColor(127, 0, 0);
+					Drawer_FillRect(x - 16, y - 1, 32, 4);
+					Drawer_SetDrawColor(255, 0, 0);
+					Drawer_FillRect(x - 6, y - 1, 12, 4);
+					Drawer_SetDrawColor(0, 0, 0);
+					Drawer_FillRect(x - 3, y - 1, 6, 4);
+					x += Random_IRange(-1, 1) * 2;
+				}
+				Drawer_SetDrawColor(255, 255, 255);
+				break;
+			case 14:
+				Drawer_SetDrawColor(255, 0, 0);
+				Drawer_DrawSprite(SPR_spark_slashultra, x, y, battle.sparks[i].timer / 2, 2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
+				break;
+			case 15:
+				Drawer_SetDrawColor(255, 0, 255);
+				Drawer_DrawSprite(SPR_spark_slashultra, x, y, battle.sparks[i].timer / 2, 2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
+				break;
+			case 16:
+				Drawer_SetDrawColor(255, 0, 0);
+				Drawer_DrawSprite(SPR_spark_slashultra, x, y, battle.sparks[i].timer / 2, 2, 2);
+				Drawer_DrawSprite(SPR_spark_slashultra, x, y, battle.sparks[i].timer / 2, -2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
+				break;
+			case 17:
+				Drawer_DrawSprite(SPR_misc_ultluluorb, x, y, battle.sparks[i].timer / 2 % 4, 2, 2);
+				break;
+			case 18:
+				Drawer_DrawSprite(SPR_spark_ultluluimpact, x, y, battle.sparks[i].timer / 4, 2, 2);
+				break;
+			case 19:
+				Drawer_DrawSprite(SPR_spark_ultlulubolt, x, y, battle.sparks[i].timer / 4, 2, 2);
+				break;
+			case 20:
+				Drawer_SetDrawColor(255, 0, 255);
+				Drawer_DrawSprite(SPR_spark_slashultra, x, y, battle.sparks[i].timer / 2, 2, 2);
+				Drawer_DrawSprite(SPR_spark_slashultra, x, y, battle.sparks[i].timer / 2, -2, 2);
+				Drawer_SetDrawColor(255, 255, 255);
+				break;
+			case 21:
+				Drawer_DrawSprite(SPR_spark_blood, x, y, battle.sparks[i].timer / 4, 2, 2);
 				break;
 			
 			case 9900:
-				DrawSprite(SPR_spark_star, x, y, battle.sparks[i].timer / 2, 4, 4);
+				Drawer_DrawSprite(SPR_spark_star, x, y, battle.sparks[i].timer / 2, 4, 4);
 				break;
 			case 9901:
-				SetDrawColor(255, 0, 0);
-				DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer, 16, 16);
-				SetDrawColor(255, 255, 255);
+				Drawer_SetDrawColor(255, 0, 0);
+				Drawer_DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer, 16, 16);
+				Drawer_SetDrawColor(255, 255, 255);
 				break;
 			case 9902:
-				DrawSprite(SPR_misc_omegalulu, x, y, 0, 10, 10);
+				Drawer_DrawSprite(SPR_misc_omegalulu, x, y, 0, 10, 10);
 				break;
 			case 9903:
-				DrawSprite_Angle(SPR_misc_omegalulukatana, x, y, 0, 4, 4, (float)battle.sparks[i].timer * 8);
+				Drawer_DrawSprite_Angle(SPR_misc_omegalulukatana, x, y, 0, 4, 4, (float)battle.sparks[i].timer * 8);
 				break;
 			case 9904:
-				DrawSprite_Angle(SPR_misc_omegalulu, x, y, 0, 4, 4, (float)battle.sparks[i].timer * 5);
+				Drawer_DrawSprite_Angle(SPR_misc_omegalulu, x, y, 0, 4, 4, (float)battle.sparks[i].timer * 5);
 				break;
 			case 9905:
-				DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer, 4, 4);
+				Drawer_DrawSprite(SPR_spark_spark, x, y, battle.sparks[i].timer, 4, 4);
 				break;
 			case 9906:
 				for (; y > 0; y -= 2) {
-					SetDrawColor(255, 31, 255);
-					FillRect(x - 4, y - 1, 8, 2);
-					SetDrawColor(255, 255, 255);
-					FillRect(x - 1, y - 1, 2, 2);
+					Drawer_SetDrawColor(255, 31, 255);
+					Drawer_FillRect(x - 4, y - 1, 8, 2);
+					Drawer_SetDrawColor(255, 255, 255);
+					Drawer_FillRect(x - 1, y - 1, 2, 2);
 					x += Random_IRange(-1, 1) * 2;
 				}
 				break;
 			case 9907:
 				for (; y > 0; y -= 4) {
-					SetDrawColor(127, 0, 127);
-					FillRect(x - 16, y - 1, 32, 4);
-					SetDrawColor(255, 0, 255);
-					FillRect(x - 6, y - 1, 12, 4);
-					SetDrawColor(255, 255, 255);
-					FillRect(x - 3, y - 1, 6, 4);
+					Drawer_SetDrawColor(127, 0, 127);
+					Drawer_FillRect(x - 16, y - 1, 32, 4);
+					Drawer_SetDrawColor(255, 0, 255);
+					Drawer_FillRect(x - 6, y - 1, 12, 4);
+					Drawer_SetDrawColor(255, 255, 255);
+					Drawer_FillRect(x - 3, y - 1, 6, 4);
 					x += Random_IRange(-1, 1) * 2;
 				}
 				break;
 			case 9908:
-				SetDrawColor(255, 0, 255);
-				DrawSprite(SPR_misc_subspace_beam, x, y, (battle.sparks[i].timer / 2) % 5, 2 - Max(0, battle.sparks[i].timer - 30) * 0.2, 2);
+				Drawer_SetDrawColor(255, 0, 255);
+				Drawer_DrawSprite(SPR_misc_subspace_beam, x, y, (battle.sparks[i].timer / 2) % 5, 2 - Max(0, battle.sparks[i].timer - 30) * 0.2, 2);
 				break;
 			case 9909:
-				SetDrawColor(255, 0, 0);
-				DrawSprite(SPR_misc_subspace_beam, x, y, (battle.sparks[i].timer / 2) % 5, 0.8 - Max(0, battle.sparks[i].timer - 30) * 0.08, 2);
+				Drawer_SetDrawColor(255, 0, 0);
+				Drawer_DrawSprite(SPR_misc_subspace_beam, x, y, (battle.sparks[i].timer / 2) % 5, 0.8 - Max(0, battle.sparks[i].timer - 30) * 0.08, 2);
 				break;
 			case 9910:
-				DrawSprite(SPR_spark_ring, x, y, 3, battle.sparks[i].timer, battle.sparks[i].timer);
+				Drawer_DrawSprite(SPR_spark_ring, x, y, 3, battle.sparks[i].timer, battle.sparks[i].timer);
 				break;
 		}
+	}
+	
+	Drawer_SetFontAlignment(FONT_ALIGN_MIDDLE | FONT_ALIGN_BOTTOM);
+	
+	for (int i = 0; i < 16; i++) {
+		if (battle.label[i].timer < 0) continue;
+		
+		switch (battle.label[i].color) {
+			case 1: Drawer_SetDrawColor(255, 255, 0); break;
+			case 2: Drawer_SetDrawColor(127, 127, 127); break;
+			case 3: Drawer_SetDrawColor(255, 127, 0); break;
+			case 4: Drawer_SetDrawColor(0, 255, 0); break;
+			case 5: Drawer_SetDrawColor(0, 127, 255); break;
+			case 6: Drawer_SetDrawColor(0, 255, 255); break;
+		}
+		
+		Drawer_DrawText(battle.label[i].string, 16, battle.label[i].x, battle.label[i].y, 2, 2);
+		Drawer_SetDrawColor(255, 255, 255);
 	}
 	
 	
 	
 	if (battle.encounter == 55 && battle.battleEventVars[1] >= 2 && battle.battleEventVars[1] < 999) {
-		SetProjection(battle.camera.x, battle.camera.y, battle.camera.zoom);
-		SetDrawColor(0, 0, 0);
+		Drawer_SetProjection(battle.camera.x, battle.camera.y, battle.camera.zoom);
+		Drawer_SetDrawColor(0, 0, 0);
 		
 		Battle_ShakeScreen(2);
 		for (int y = -64 + 2 * ((game.timer / 32) % 2); y < SCREEN_HEIGHT + 128; y += 4) {
-			FillRect(-200, y, SCREEN_WIDTH + 400, 2);
+			Drawer_FillRect(-200, y, SCREEN_WIDTH + 400, 2);
 		}
 		
 		if (battle.battleEventVars[1] >= 8) {
 			Battle_ShakeScreen(3);
 			for (int y = -64 + 4 * ((game.timer / 25) % 2); y < SCREEN_HEIGHT + 128; y += 8) {
-				FillRect(-200, y, SCREEN_WIDTH + 400, 4);
+				Drawer_FillRect(-200, y, SCREEN_WIDTH + 400, 4);
 			}
 		}
 		
 		if (battle.battleEventVars[1] >= 19) {
 			Battle_ShakeScreen(5);
 			for (int y = -64 + 6 * ((game.timer / 17) % 2); y < SCREEN_HEIGHT + 128; y += 12) {
-				FillRect(-200, y, SCREEN_WIDTH + 400, 6);
+				Drawer_FillRect(-200, y, SCREEN_WIDTH + 400, 6);
 			}
 		}
 		
 		if (battle.battleEventVars[1] >= 19) {
 			Battle_ShakeScreen(7);
 			for (int y = -64 + 8 * ((game.timer / 16) % 2); y < SCREEN_HEIGHT + 128; y += 16) {
-				FillRect(-200, y, SCREEN_WIDTH + 400, 8);
+				Drawer_FillRect(-200, y, SCREEN_WIDTH + 400, 8);
 			}
 		}
 		
 		if (battle.battleEventVars[1] >= 19) {
 			Battle_ShakeScreen(9);
 			for (int y = -64 + 10 * ((game.timer / 15) % 2); y < SCREEN_HEIGHT + 128; y += 20) {
-				FillRect(-200, y, SCREEN_WIDTH + 400, 10);
+				Drawer_FillRect(-200, y, SCREEN_WIDTH + 400, 10);
 			}
 		}
 		
 		if (battle.battleEventVars[1] >= 19) {
 			Battle_ShakeScreen(11);
 			for (int y = -64 + 12 * ((game.timer / 14) % 2); y < SCREEN_HEIGHT + 128; y += 24) {
-				FillRect(-200, y, SCREEN_WIDTH + 400, 12);
+				Drawer_FillRect(-200, y, SCREEN_WIDTH + 400, 12);
 			}
 		}
 		
 		if (battle.battleEventVars[1] >= 19) {
 			Battle_ShakeScreen(15);
 			for (int y = -64 + 14 * ((game.timer / 13) % 2); y < SCREEN_HEIGHT + 128; y += 28) {
-				FillRect(-200, y, SCREEN_WIDTH + 400, 14);
+				Drawer_FillRect(-200, y, SCREEN_WIDTH + 400, 14);
 			}
 		}
 		
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(255, 255, 255);
 		
 		if (battle.battleEventVars[1] >= 9) {
-			SetDrawBlend(SDL_BLENDMODE_MUL);
-			SetDrawColor(255, 0, 0);
-			FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
+			Drawer_SetDrawColor(255, 0, 0);
+			Drawer_FillRect(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		}
 		
 		if (battle.battleEventVars[1] >= 10) {
-			SetDrawBlend(SDL_BLENDMODE_ADD);
+			Drawer_SetDrawBlend(BLENDMODE_ADD);
 			int size = 4;
 			for (int y = 0; y < SCREEN_HEIGHT; y += size)
 			for (int x = 0; x < SCREEN_WIDTH; x += size) {
 				int level = Random_IRange(36, 144);
-				SetDrawColor(level, 0, 0);
-				FillRect(x, y, size, size);
+				Drawer_SetDrawColor(level, 0, 0);
+				Drawer_FillRect(x, y, size, size);
 			}
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		}
 		else if (battle.battleEventVars[1] >= 9) {
-			SetDrawBlend(SDL_BLENDMODE_ADD);
+			Drawer_SetDrawBlend(BLENDMODE_ADD);
 			int size = 4;
 			for (int y = 0; y < SCREEN_HEIGHT; y += size)
 			for (int x = 0; x < SCREEN_WIDTH; x += size) {
 				int level = Random_IRange(32, 128);
-				SetDrawColor(level, 0, 0);
-				FillRect(x, y, size, size);
+				Drawer_SetDrawColor(level, 0, 0);
+				Drawer_FillRect(x, y, size, size);
 			}
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		}
 		else if (battle.battleEventVars[1] >= 8) {
-			SetDrawBlend(SDL_BLENDMODE_ADD);
+			Drawer_SetDrawBlend(BLENDMODE_ADD);
 			int size = 4;
 			for (int y = 0; y < SCREEN_HEIGHT; y += size)
 			for (int x = 0; x < SCREEN_WIDTH; x += size) {
 				int level = Random_IRange(8, 80);
-				SetDrawColor(level, 0, 0);
-				FillRect(x, y, size, size);
+				Drawer_SetDrawColor(level, 0, 0);
+				Drawer_FillRect(x, y, size, size);
 			}
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		}
 		else if (battle.battleEventVars[1] >= 7) {
-			SetDrawBlend(SDL_BLENDMODE_ADD);
+			Drawer_SetDrawBlend(BLENDMODE_ADD);
 			int size = 4;
 			for (int y = 0; y < SCREEN_HEIGHT; y += size)
 			for (int x = 0; x < SCREEN_WIDTH; x += size) {
 				int level = Random_IRange(0, 48);
-				SetDrawColor(level, 0, 0);
-				FillRect(x, y, size, size);
+				Drawer_SetDrawColor(level, 0, 0);
+				Drawer_FillRect(x, y, size, size);
 			}
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		}
 		
 		if (battle.battleEventVars[1] >= 6) {
-			SetDrawBlend(SDL_BLENDMODE_MUL);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
 			int size = 4;
 			for (int y = 0; y < SCREEN_HEIGHT; y += size)
 			for (int x = 0; x < SCREEN_WIDTH; x += size) {
 				int level = Random_IRange(32, 160);
-				SetDrawColor(level, level, level);
-				FillRect(x, y, size, size);
+				Drawer_SetDrawColor(level, level, level);
+				Drawer_FillRect(x, y, size, size);
 			}
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		}
 		else if (battle.battleEventVars[1] >= 3) {
-			SetDrawBlend(SDL_BLENDMODE_MUL);
+			Drawer_SetDrawBlend(BLENDMODE_MUL);
 			int size = 4;
 			for (int y = 0; y < SCREEN_HEIGHT; y += size)
 			for (int x = 0; x < SCREEN_WIDTH; x += size) {
 				int level = Random_IRange(160, 255);
-				SetDrawColor(level, level, level);
-				FillRect(x, y, size, size);
+				Drawer_SetDrawColor(level, level, level);
+				Drawer_FillRect(x, y, size, size);
 			}
-			SetDrawBlend(SDL_BLENDMODE_BLEND);
+			Drawer_SetDrawBlend(BLENDMODE_BLEND);
 		}
-		SetDrawColor(255, 255, 255);
+		Drawer_SetDrawColor(255, 255, 255);
 	}
 }
 
 void Battle_DrawFighterPortrait(Fighter* fighter, int x, int y) {
+	if (fighter->bodyId > 0) {
+		if (battleBodyData[fighter->bodyId].spriteId == SPR_misc_gemini) {
+			Drawer_DrawSprite(SPR_misc_gemini, x, y, fighter->headId, 2, 2);
+			return;
+		}
+		if (battleBodyData[fighter->bodyId].spriteId == SPR_misc_dystal) {
+			Drawer_DrawSprite(SPR_misc_dystal, x, y, fighter->headId, 2, 2);
+			return;
+		}
+		if (battleBodyData[fighter->bodyId].spriteId == SPR_misc_dystal_final) {
+			Drawer_DrawSprite(SPR_misc_dystal_final, x, y, 0, 2, 2);
+			return;
+		}
+		if (battleBodyData[fighter->bodyId].spriteId == SPR_misc_helltree) {
+			return;
+		}
+	}
+	
 	if (fighter->headId > 0) {
 		int subImage = fighter->alive ? 0 : 2;
-		if (battleHeadData[fighter->headId].backSpriteId >= 0) DrawSprite(battleHeadData[fighter->headId].backSpriteId, x, y, subImage, 2, 2);
-		DrawSprite(battleHeadData[fighter->headId].spriteId, x, y, subImage, 2, 2);
+		if (battleHeadData[fighter->headId].backSpriteId >= 0) Drawer_DrawSprite(battleHeadData[fighter->headId].backSpriteId, x, y, subImage, 2, 2);
+		Drawer_DrawSprite(battleHeadData[fighter->headId].spriteId, x, y, subImage, 2, 2);
 	}
 	else if (fighter->bodyId > 0) {
 		int subImage = fighter->alive ? FIGHTER_STATE_IDLE : FIGHTER_STATE_HURT;
-		DrawSprite(battleBodyData[fighter->bodyId].spriteId, x, y + 2, subImage, 2, 2);
+		Drawer_DrawSprite(battleBodyData[fighter->bodyId].spriteId, x, y + 2, subImage, 2, 2);
 	}
 }
 
 void Battle_DrawFighterProfile(Fighter* fighter) {
 	Battle_DrawFighterPortrait(fighter, SCREEN_WIDTH - 28, 52);
 	
-	SetFontAlignment(FONT_ALIGN_RIGHT | FONT_ALIGN_TOP);
-	DrawText(fighter->name, 32, SCREEN_WIDTH - 64, 4, 2, 2);
-	SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+	Drawer_SetFontAlignment(FONT_ALIGN_RIGHT | FONT_ALIGN_TOP);
+	Drawer_DrawText(fighter->name, 32, SCREEN_WIDTH - 64, 4, 2, 2);
+	Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 	
-	SetDrawColor(63, 63, 63);
-	FillRect(460, 66, 128, 16);
-	FillRect(460, 90, 128, 16);
-	SetDrawColor(0, 0, 0);
-	FillRect(462, 68, 124, 12);
-	FillRect(462, 92, 124, 12);
+	Drawer_SetDrawColor(63, 63, 63);
+	Drawer_FillRect(460, 66, 128, 16);
+	Drawer_FillRect(460, 90, 128, 16);
+	Drawer_SetDrawColor(0, 0, 0);
+	Drawer_FillRect(462, 68, 124, 12);
+	Drawer_FillRect(462, 92, 124, 12);
 	
-	SetDrawColor(255, 0, 0);
-	FillRect(462, 68, fighter->hp * 124 / fighter->hpMax, 12);
-	SetDrawColor(0, 255, 255);
-	FillRect(462, 92, fighter->mp * 124 / fighter->mpMax, 12);
+	Drawer_SetDrawColor(255, 0, 0);
+	Drawer_FillRect(462, 68, fighter->hp * 124 / fighter->hpMax, 12);
+	Drawer_SetDrawColor(0, 255, 255);
+	Drawer_FillRect(462, 92, fighter->mp * 124 / fighter->mpMax, 12);
 	
-	SetDrawColor(255, 255, 255);
+	Drawer_SetDrawColor(255, 255, 255);
 	
-	SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_CENTER);
+	Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_CENTER);
 	
-	DrawText("HP", 32, 592, 72, 2, 2);
-	DrawText("MP", 32, 592, 96, 2, 2);
+	Drawer_DrawText("HP", 32, 592, 72, 2, 2);
+	Drawer_DrawText("MP", 32, 592, 96, 2, 2);
 	
-	SetFontAlignment(FONT_ALIGN_RIGHT | FONT_ALIGN_CENTER);
+	Drawer_SetFontAlignment(FONT_ALIGN_RIGHT | FONT_ALIGN_CENTER);
 	
 	snprintf(game.textBuffer, 32, "%d", fighter->hp);
-	DrawText(game.textBuffer, 32, 456, 72, 2, 2);
+	Drawer_DrawText(game.textBuffer, 32, 456, 72, 2, 2);
 	snprintf(game.textBuffer, 32, "%d", fighter->mp);
-	DrawText(game.textBuffer, 32, 456, 96, 2, 2);
+	Drawer_DrawText(game.textBuffer, 32, 456, 96, 2, 2);
 	
-	SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
+	Drawer_SetFontAlignment(FONT_ALIGN_LEFT | FONT_ALIGN_TOP);
 }
 
 void Battle_DrawFighterProfileAction(Fighter* fighter) {
@@ -4086,28 +5759,30 @@ void Battle_DrawFighterProfileAction(Fighter* fighter) {
 	if (statusCount > 0) {
 		DrawDialogBox(320 - fighter->side * 320, 128, 320, 16 + statusCount * 24);
 		
-		SetFontSprite(SPR_font_small);
+		Drawer_SetFontSprite(SPR_font_small);
 		int c = 0;
 		for (int i = 0; i < 32; i++) {
 			if (fighter->status[i] <= 0) continue;
 			if (!statusEffectData[i].visible) continue;
 			
-			snprintf(game.textBuffer, 128, "%d", fighter->status[i]);
-			DrawText(game.textBuffer, 4, 330 - fighter->side * 320, 140 + c * 24, 2, 2);
-			DrawSprite(SPR_gui_status, 364 - fighter->side * 320, 146 + c * 24, i, 2, 2);
+			if (statusEffectData[i].stackable) {
+				snprintf(game.textBuffer, 128, "%d", fighter->status[i]);
+				Drawer_DrawText(game.textBuffer, 4, 330 - fighter->side * 320, 140 + c * 24, 2, 2);
+			}
+			Drawer_DrawSprite(SPR_gui_status, 364 - fighter->side * 320, 146 + c * 24, i, 2, 2);
 			snprintf(game.textBuffer, 128, "%s: %s", statusEffectData[i].name, statusEffectData[i].desc);
-			DrawText(game.textBuffer, 32, 376 - fighter->side * 320, 140 + c * 24, 2, 2);
+			Drawer_DrawText(game.textBuffer, 32, 376 - fighter->side * 320, 140 + c * 24, 2, 2);
 			c++;
 		}
-		SetFontSprite(SPR_font_main);
+		Drawer_SetFontSprite(SPR_font_main);
 	}
 	
 	if (fighter->actionId > 0) {
-		snprintf(game.textBuffer, 128, "Action: %s", actionData[fighter->actionId].name);
-		DrawText(game.textBuffer, 128, 8, 4, 2, 2);
+		snprintf(game.textBuffer, 128, "%s", actionData[fighter->actionId].name);
+		Drawer_DrawText(game.textBuffer, 128, 8, 4, 2, 2);
 		
 		if (actionData[fighter->actionId].targetType != TARGETTYPE_NONE) {
-			DrawText("Target:", 128, 8, 60, 2, 2);
+			Drawer_DrawText("Target:", 128, 8, 60, 2, 2);
 			if (fighter->targetId == TARGET_ALLYPARTY) {
 				int c = 0;
 				for (int i = 0; i < 8; i++) {
@@ -4136,7 +5811,7 @@ void Battle_DrawFighterProfileAction(Fighter* fighter) {
 		DrawActionDetailBox(fighter->actionId, 0, SCREEN_HEIGHT - 128, fighter->manaCostReduction, false, false);
 	}
 	else {
-		DrawText("No action", 128, 8, 4, 2, 2);
+		Drawer_DrawText("No action", 128, 8, 4, 2, 2);
 	}
 }
 
@@ -4170,9 +5845,9 @@ void Battle_ChangeMenu(int id) {
 				
 				Menu_New(&battle.menu, 0, 1, 4, 0);
 				Menu_AddOption(&battle.menu, battle.fighters[battle.turn].canAct && battle.fighters[battle.turn].movesetCount > 0, 0, "Fight");
-				Menu_AddOption(&battle.menu, true, 1, "Check");
-				Menu_AddOption(&battle.menu, battle.fighters[battle.turn].canAct && profile.itemInventory[0] > 0 && hasItems, 2, "Goods");
-				Menu_AddOption(&battle.menu, true, 3, "Do Nothing");
+				Menu_AddOption(&battle.menu, !battle.everythingButSkillsDisabled, 1, "Check");
+				Menu_AddOption(&battle.menu, !battle.everythingButSkillsDisabled && battle.fighters[battle.turn].canAct && profile.itemInventory[0] > 0 && hasItems, 2, "Goods");
+				Menu_AddOption(&battle.menu, !battle.everythingButSkillsDisabled, 3, "Do Nothing");
 			}
 			break;
 		case 1:
@@ -4265,17 +5940,48 @@ void DrawFighterChar(int headId, int bodyId, int state, float x, float y, float 
 	BattleHead* battleHead = &battleHeadData[headId];
 	BattleBody* battleBody = &battleBodyData[bodyId];
 	
-	float headFrame = battleBody->headFrame[state];
+	int headFrame = battleBody->headFrame[state] & 0xffff;
+	int headFlags = battleBody->headFrame[state] & (~0xffff);
 	float headOffsetX = battleBody->headOffsetX[state];
 	float headOffsetY = battleBody->headOffsetY[state];
 	
+	float headXScale = 1;
+	float headYScale = 1;
+	
+	if (headFlags & BATTLEBODY_HEAD_MIRROR) headXScale = -headXScale;
+	if (headFlags & BATTLEBODY_HEAD_FLIP) headYScale = -headYScale;
+	
+	if (battleBody->spriteId == SPR_misc_pbsuperhero) {
+		Drawer_DrawSprite(SPR_misc_pbsuperhero, x, y, (game.timer / 8) % 3, xScale, yScale);
+		return;
+	}
 	if (battleBody->spriteId == SPR_misc_hellgateboss) {
-		DrawSprite(SPR_misc_hellgateboss, x, y, (game.timer / 16) % 3, xScale, yScale);
+		Drawer_DrawSprite(SPR_misc_hellgateboss, x, y, (game.timer / 16) % 3, xScale, yScale);
+		return;
+	}
+	if (battleBody->spriteId == SPR_misc_gemini) {
+		if (state == FIGHTER_STATE_DOWN) {
+			Drawer_DrawSprite(SPR_misc_gemini_collapsed, x, y, headId, xScale, yScale);
+			return;
+		}
+		Drawer_DrawSprite(SPR_misc_gemini, x, y, headId, xScale, yScale);
+		return;
+	}
+	if (battleBody->spriteId == SPR_misc_dystal) {
+		Drawer_DrawSprite(SPR_misc_dystal, x, y, headId, xScale, yScale);
+		return;
+	}
+	if (battleBody->spriteId == SPR_misc_dystal_final) {
+		Drawer_DrawSprite(SPR_misc_dystal_final, x, y, (game.timer / 2) % 6, xScale, yScale);
+		return;
+	}
+	if (battleBody->spriteId == SPR_misc_helltree) {
+		Drawer_DrawSprite(SPR_misc_helltree, x, y, (game.timer / 48) % 2, xScale, yScale);
 		return;
 	}
 	
-	if (battleHead->backSpriteId >= 0) DrawSprite(battleHead->backSpriteId, x + headOffsetX * facing * xScale, y + headOffsetY * yScale, headFrame, facing * xScale, yScale);
-	if (state != FIGHTER_STATE_BLOCK && battleBody->spriteId >= 0) DrawSprite(battleBody->spriteId, x, y, state, facing * xScale, yScale);
-	if (battleHead->spriteId >= 0) DrawSprite(battleHead->spriteId, x + headOffsetX * facing * xScale, y + headOffsetY * yScale, headFrame, facing * xScale, yScale);
-	if (state == FIGHTER_STATE_BLOCK && battleBody->spriteId >= 0) DrawSprite(battleBody->spriteId, x, y, state, facing * xScale, yScale);
+	if (battleHead->backSpriteId >= 0) Drawer_DrawSprite(battleHead->backSpriteId, x + headOffsetX * facing * xScale, y + headOffsetY * yScale, headFrame, facing * xScale * headXScale, yScale * headYScale);
+	if (state != FIGHTER_STATE_BLOCK && battleBody->spriteId >= 0) Drawer_DrawSprite(battleBody->spriteId, x, y, state, facing * xScale, yScale);
+	if (battleHead->spriteId >= 0) Drawer_DrawSprite(battleHead->spriteId, x + headOffsetX * facing * xScale, y + headOffsetY * yScale, headFrame, facing * xScale * headXScale, yScale * headYScale);
+	if (state == FIGHTER_STATE_BLOCK && battleBody->spriteId >= 0) Drawer_DrawSprite(battleBody->spriteId, x, y, state, facing * xScale, yScale);
 }

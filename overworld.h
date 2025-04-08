@@ -99,6 +99,8 @@ typedef struct {
 	float fadeAlpha;
 	uint8_t fadeColor[3];
 	int overlayId;
+	int backgroundId;
+	bool cameraClamping;
 	bool areaWrap;
 	int lastMusicId;
 	int shakeTimer;
@@ -169,6 +171,10 @@ typedef struct {
 			int area2;
 			int direction1;
 			int direction2;
+			int w1;
+			int h1;
+			int w2;
+			int h2;
 		} doors[OBJECT_COUNT_MAX];
 		struct {
 			int eventId;
@@ -237,6 +243,7 @@ void Overworld_CreateEnemy(int objectId, int id, float x, float y);
 void Overworld_CreateWall(int objectId, float x, float y, float w, float h);
 void Overworld_CreateArea(int id, int x1, int y1, int x2, int y2);
 void Overworld_CreateDoor(int id, int x1, int y1, int area1, int x2, int y2, int area2, int direction1, int direction2);
+void Overworld_CreateDoor_Advanced(int id, int x1, int y1, int area1, int x2, int y2, int area2, int direction1, int direction2, int w1, int h1, int w2, int h2);
 void Overworld_CreateTrigger(int id, float x1, float y1, float x2, float y2, int eventId);
 void Overworld_CreateDecoration(float x, float y, int tileId, int width, int height);
 void Overworld_DeleteDecoration(int id);
